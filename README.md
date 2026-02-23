@@ -1,2 +1,2 @@
 # GentianoseRealDolls
-Adventure virtual pet (bambo lemur and allies)
+Adventure virtual pet (bamboo lemur and allies)
