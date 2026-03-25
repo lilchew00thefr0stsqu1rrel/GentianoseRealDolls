@@ -20,6 +20,10 @@ namespace GentianoseRealDolls
 
         [SerializeField] private float m_InterpolationAngular = 2f;
 
+        [SerializeField] private float m_DistanceToWallNose = 0.07f;
+        [SerializeField] private float m_DistanceToFloorFoot= 0.14f;
+        [SerializeField] private float m_DistanceToFloorHand = 0.2f;
+
         private bool m_IsClimbing = false;
 
         private void Awake()
@@ -59,7 +63,7 @@ namespace GentianoseRealDolls
 
         private void Update()
         {
-            var rHit = Physics.RaycastAll(m_FootRayOrigin.position, -transform.parent.up, 0.2f);
+            var rHit = Physics.RaycastAll(m_FootRayOrigin.position, -transform.parent.up, m_DistanceToFloorFoot);
 
 
             List<RaycastHit> rearHit = new List<RaycastHit>();
@@ -94,53 +98,46 @@ namespace GentianoseRealDolls
 
             if (m_HandRayOrigin != null)
             {
-                var fHit = Physics.RaycastAll(m_HandRayOrigin.position, -transform.parent.up, 0.2f);
-                List<RaycastHit> foreHit = new List<RaycastHit>();
-                for (int i = 0; i < fHit.Length; i++)
+                var fHit = Physics.Raycast(m_HandRayOrigin.position, -transform.parent.up, m_DistanceToFloorHand);
+               
+
+
+                if (!fHit)
                 {
-                    if (fHit[i].collider.transform.root.GetComponent<Doll>() == null)
+                    if (Input.GetKeyDown(KeyCode.W))
                     {
-                        foreHit.Add(fHit[i]);
+                        var dollEuler = transform.parent.eulerAngles;
+                        var dollRotation = transform.parent.rotation;
+                        dollRotation = Quaternion.AngleAxis(90, transform.parent.right);
+                        transform.parent.rotation = Quaternion.Slerp(transform.parent.rotation, dollRotation, m_InterpolationAngular * Time.deltaTime);
+
+                        if (climbProjectionYSign == 0)
+                            StartDescend();
+                        else
+                            EndClimbing();
                     }
+                    // Поворот куклы на 60 о
+                   
                 }
 
 
-                if (rearHit.Count > 0 && foreHit.Count == 0)
+            }
+            var nHit = Physics.Raycast(m_Nose.position, transform.parent.forward, m_DistanceToWallNose);
+
+           
+            if (nHit)
+            {
+                if (Input.GetKeyDown(KeyCode.W))
                 {
                     // Поворот куклы на 60 о
                     var dollEuler = transform.parent.eulerAngles;
                     var dollRotation = transform.parent.rotation;
-                    dollRotation = Quaternion.AngleAxis(90, transform.parent.right);
+                    dollRotation = Quaternion.AngleAxis(-90, transform.parent.right);
                     transform.parent.rotation = Quaternion.Slerp(transform.parent.rotation, dollRotation, m_InterpolationAngular * Time.deltaTime);
 
-                    if (climbProjectionYSign == 0)
-                        StartDescend();
-                    else
-                        EndClimbing();
+
+                    StartClimbing();
                 }
-
-
-            }
-            var nHit = Physics.RaycastAll(m_Nose.position, transform.parent.forward, 0.05f);
-
-            List<RaycastHit> noseHit = new List<RaycastHit>();
-            for (int i = 0; i < nHit.Length; i++)
-            {
-                if (nHit[i].collider.transform.root.GetComponent<Doll>() == null)
-                {
-                    noseHit.Add(nHit[i]);
-                }
-            }
-            if (noseHit.Count > 0)
-            {
-                // Поворот куклы на 60 о
-                var dollEuler = transform.parent.eulerAngles;
-                var dollRotation = transform.parent.rotation;
-                dollRotation = Quaternion.AngleAxis(-90, transform.parent.right);
-                transform.parent.rotation = Quaternion.Slerp(transform.parent.rotation, dollRotation, m_InterpolationAngular * Time.deltaTime);
-
-
-                StartClimbing();
             }
            
 
