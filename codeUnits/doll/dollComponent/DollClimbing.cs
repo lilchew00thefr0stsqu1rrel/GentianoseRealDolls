@@ -59,7 +59,7 @@ namespace GentianoseRealDolls
 
         private void Update()
         {
-            var rHit = Physics.RaycastAll(m_FootRayOrigin.position, -transform.parent.up, 0.05f);
+            var rHit = Physics.RaycastAll(m_FootRayOrigin.position, -transform.parent.up, 0.2f);
 
 
             List<RaycastHit> rearHit = new List<RaycastHit>();
@@ -94,7 +94,7 @@ namespace GentianoseRealDolls
 
             if (m_HandRayOrigin != null)
             {
-                var fHit = Physics.RaycastAll(m_HandRayOrigin.position, -transform.parent.up, 0.05f);
+                var fHit = Physics.RaycastAll(m_HandRayOrigin.position, -transform.parent.up, 0.2f);
                 List<RaycastHit> foreHit = new List<RaycastHit>();
                 for (int i = 0; i < fHit.Length; i++)
                 {
@@ -104,11 +104,9 @@ namespace GentianoseRealDolls
                     }
                 }
 
-                print($"Romokusy {gameObject.name} : {foreHit.Count}");
 
                 if (rearHit.Count > 0 && foreHit.Count == 0)
                 {
-                    print("Duh");
                     // Поворот куклы на 60 о
                     var dollEuler = transform.parent.eulerAngles;
                     var dollRotation = transform.parent.rotation;
@@ -133,10 +131,8 @@ namespace GentianoseRealDolls
                     noseHit.Add(nHit[i]);
                 }
             }
-            print($"Foushee {transform.name} + {noseHit.Count}");
             if (noseHit.Count > 0)
             {
-                print("Douleur " + noseHit[0].collider.name);
                 // Поворот куклы на 60 о
                 var dollEuler = transform.parent.eulerAngles;
                 var dollRotation = transform.parent.rotation;
