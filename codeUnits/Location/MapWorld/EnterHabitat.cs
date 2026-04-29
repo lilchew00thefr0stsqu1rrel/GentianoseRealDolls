@@ -1,9 +1,12 @@
+using NTC.MonoCache;
 using UnityEngine;
 
 namespace GentianoseRealDolls
 {
-    public class EnterHabitat : MonoBehaviour
+    public class EnterHabitat : MonoCache
     {
+        [SerializeField] private Door door;
+
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
@@ -15,6 +18,7 @@ namespace GentianoseRealDolls
         {
           
         }
+        bool Near;
 
 
         private int tipID = 3;
@@ -23,7 +27,23 @@ namespace GentianoseRealDolls
             if (other.transform.root.GetComponent<Doll>() != null)
             {
                 Dashboard.Instance.ShowInteractTip(tipID);
+
+                Near = true;
             }
+        }
+
+        protected override void Run()
+        {
+            base.Run();
+
+            if (Near)
+            {
+                if (Input.GetKeyDown(KeyCode.F))
+                {
+                    door.Activate();
+                }
+            }
+
         }
 
         private void OnTriggerExit(Collider other)
@@ -31,6 +51,9 @@ namespace GentianoseRealDolls
             if (other.transform.root.GetComponent<Doll>() != null)
             {
                 Dashboard.Instance.HideInteractTip();
+
+
+                Near = false;
             }
         }
 
