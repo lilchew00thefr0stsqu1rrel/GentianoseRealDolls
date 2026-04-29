@@ -1,7 +1,9 @@
+using System;
 using UnityEngine;
 
 namespace GentianoseRealDolls
 {
+    [Obsolete]
     public class DynamicObjects : SingletonBase<DynamicObjects>
     {
         [SerializeField] private Animator[] m_AnimatorObjects;
@@ -26,5 +28,7 @@ namespace GentianoseRealDolls
             }
         }
     }
+
+}
 
 }
