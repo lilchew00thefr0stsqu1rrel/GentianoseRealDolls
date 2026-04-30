@@ -1,14 +1,23 @@
-
+using SpaceShooter;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 namespace GentianoseRealDolls
 {
-    public class Dashboard : SingletonBase<Dashboard>
+    public enum Controls
     {
+        Keyboard,
+        Mobile
+    }
+
+    public class Dashboard : MonoBehaviour, IDependency<FollowCamera>
+    {
+        [SerializeField] private Controls controlMode;
+
         [SerializeField] private HabitatInterface habitatUI;
         [SerializeField] private CombatDashboard combatUI;
 
@@ -35,21 +44,25 @@ namespace GentianoseRealDolls
 
         private Doll m_CurrentDoll;
         [SerializeField] private DollController m_CurrentDollController;
+        [SerializeField] private int m_ActiveDollIndexInParty;
+
+        [SerializeField] private GameObject m_VirtualGamepad;
+
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
             interactStrings = new Dictionary<int, string>()
             {
-                [0] = "Приготовить",
-                [1] = "Сесть за стол",
-                [2] = "Покинуть чалку",
-                [3] = "Войти в чалку",
-                [4] = "Спать",
-                [5] = "Встать",
-                [6] = "<предмет>",
-                [7] = "Лавка мыши",
-                [8] = "Купаться",
-                [9] = "Чистить зубы",
+                [0] = "РџСЂРёРіРѕС‚РѕРІРёС‚СЊ",
+                [1] = "РЎРµСЃС‚СЊ Р·Р° СЃС‚РѕР»",
+                [2] = "РџРѕРєРёРЅСѓС‚СЊ С‡Р°Р»РєСѓ",
+                [3] = "Р’РѕР№С‚Рё РІ С‡Р°Р»РєСѓ",
+                [4] = "РЎРїР°С‚СЊ",
+                [5] = "Р’СЃС‚Р°С‚СЊ",
+                [6] = "<РїСЂРµРґРјРµС‚>",
+                [7] = "Р›Р°РІРєР° РјС‹С€Рё",
+                [8] = "РљСѓРїР°С‚СЊСЃСЏ",
+                [9] = "Р§РёСЃС‚РёС‚СЊ Р·СѓР±С‹",
             };
 
             //m_CurrentDoll = Party.Instance.ActiveDoll;
@@ -67,20 +80,26 @@ namespace GentianoseRealDolls
                 m_ActiveDollIndic[i].SetActive(false);
             }
 
+            Party.Instance.OnActiveDollChanged += ShowActiveDoll;
+
+            m_VirtualGamepad.SetActive(controlMode == Controls.Mobile);
+            combatUI.SetEmptyScreenActiveAsNA(controlMode == Controls.Keyboard);
+            
+        }
+        private void OnDestroy()
+        {
+            Party.Instance.OnActiveDollChanged -= ShowActiveDoll;
+            Destroy(gameObject);
         }
 
         public void ShowActiveDoll(int index)
         {
-            m_ActiveDollIndic[index].SetActive(true);
-
+            print("Eija");
             for (int i = 0; i < m_ActiveDollIndic.Length; i++)
-            {
-                if (i != index)
-                {
-                    m_ActiveDollIndic[i].SetActive(false);
-                }
+            {                
+                m_ActiveDollIndic[i].SetActive(false);
             }
-            
+            m_ActiveDollIndic[index].SetActive(true);
         }
         public void SetSleepDoll(int index, bool sleep)
         {
@@ -111,20 +130,19 @@ namespace GentianoseRealDolls
             Party.Instance.UnPauseAllDolls();
         }
 
+       
+
         // Update is called once per frame
         void Update()
         {
             
             if (SceneHelper.GameMode == Mode.Habitat)
             {
-              //  habitatUI.gameObject.SetActive(true);
                 combatUI.gameObject.SetActive(false);
             }
             else
             {
-                // habitatUI.gameObject.SetActive(false);
                 combatUI.gameObject.SetActive(true);
-
             }
 
 
@@ -162,13 +180,10 @@ namespace GentianoseRealDolls
                 }
                 if (tipID == 2)
                 {
-                    //SceneHelper.ExitHouse();
-                    DynamicObjects.Instance.Toggle(0, true);
                     HideInteractTip();
                 }
                 if (tipID == 3)
                 {
-                    SceneHelper.EnterHouse();
                     HideInteractTip();
                 }
                 if (tipID == 4)
@@ -227,27 +242,33 @@ namespace GentianoseRealDolls
         }
 
         [SerializeField] private Camera m_Camera;
-        public void SetDoll(Doll doll, Camera camera)
+        public void SetDoll(Doll doll)
         {
-            m_CurrentDoll = doll;
+             m_CurrentDoll = doll;
+            
             m_CurrentDollController = doll.DollController;
 
-
-            // if (SceneHelper.GameMode == Mode.Habitat)
             SetDollHabitat(doll);
 
-            m_Camera = camera;
 
             if (SceneHelper.GameMode == Mode.OpenWorld)
-                SetDollOpenWorld(doll, m_Camera);
+            {
+                SetDollOpenWorld(doll);
+                SetDollOpenWorldCamera();
+            }
+
         }
         public void SetDollHabitat(Doll doll)
         {
-                habitatUI.SetCurrentDoll(doll);
+             habitatUI.SetCurrentDoll(doll);
         }
-        public void SetDollOpenWorld(Doll doll, Camera camera)
+        public void SetDollOpenWorld(Doll doll)
+        {  
+            combatUI.InitCurrentDollCombat(doll);
+        }
+        public void SetDollOpenWorldCamera()
         {
-                combatUI.InitCurrentDollCombat(doll, Camera.main);
+            combatUI.InitCurrentDollCamera(m_Camera);
         }
 
         public void SetCamera(Camera cam)
@@ -256,10 +277,7 @@ namespace GentianoseRealDolls
             combatUI.SetCamera(cam);
         }
 
-        private void OnDestroy()
-        {
-            Destroy(gameObject);
-        }
+        
 
         [SerializeField] private GameObject stoveUI;
 
@@ -309,6 +327,11 @@ namespace GentianoseRealDolls
             m_Map.SetActive(false);
             SceneHelper.ToMainMenu();
         }
+
+        public void Construct(FollowCamera obj)
+        {
+            m_Camera = obj.ProperCamera;
+        }
     }
     public enum UIType
     {
@@ -324,3 +347,5 @@ namespace GentianoseRealDolls
     
 }
 
+
+  
