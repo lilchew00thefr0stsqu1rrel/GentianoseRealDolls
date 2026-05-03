@@ -16,6 +16,9 @@ public class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     [SerializeField] private Image m_Image;
     [SerializeField] private RectTransform m_ButtonTransform;
 
+    [SerializeField] protected Color m_NormalColor = new Color(255, 255, 255);
+    [SerializeField] private Color m_DisabledColor = new Color(128, 50, 50);
+
     public void SetCurrentDoll(Doll doll)
     {
         // Doll should be in party.
@@ -145,5 +148,13 @@ public class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         OnClick?.Invoke();
     }
 
+    public void SetInteractable(bool v)
+    {
+        Interactable = v;
+        if (Interactable == true)
+            m_Image.color = m_NormalColor;
+        else
+            m_Image.color = m_DisabledColor;
 
+    }
 }
