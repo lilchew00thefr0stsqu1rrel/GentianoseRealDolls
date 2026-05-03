@@ -2,8 +2,10 @@ using GentianoseRealDolls;
 using SpaceShooter;
 using UnityEngine;
 using UnityEngine.UI;
+using NTC.MonoCache;
+using Unity.VisualScripting;
 
-public class CombatDashboard : MonoBehaviour
+public class CombatDashboard : MonoCache
 {
     const float keyCooldownDuration = 0.3f;
     [SerializeField] private Image m_HPFill;
@@ -11,6 +13,7 @@ public class CombatDashboard : MonoBehaviour
     [SerializeField] private Text m_MaxHPText;
 
     [SerializeField] private Doll m_CurrentDoll;
+    [SerializeField] private DollAsset m_CurrentDollAsset;
     private DollBattleManager m_DollBattleManager;
 
     [SerializeField] private Image m_SprayChargeImage;
@@ -26,24 +29,66 @@ public class CombatDashboard : MonoBehaviour
     [SerializeField] private Text m_LesserSkillCooldownText;
     private void Awake()
     {
-
     }
     [SerializeField] private Camera m_Camera;
 
-    public void InitCurrentDollCombat(Doll doll, Camera camera)
+
+
+    public void InitCurrentDollCombat(Doll doll)
     {
+        if (m_CurrentDoll)
+        {
+            EndDoll(m_CurrentDoll);
+        }
+
         m_CurrentDoll = doll;
         m_DollBattleManager = m_CurrentDoll.DollController.BattleManager;
-        m_Camera = camera;
-        m_DollBattleManager.AssignTurretCamera(m_Camera);
 
+        StartDoll(doll);
 
         if (m_DollBattleManager != null)
         {
-            m_ToSprayUI.InitDollSpray(m_CurrentDoll);
 
+            m_FlehmenButton.SetInteractable(!m_DollBattleManager.FlehmenCooldown);
+        }
+
+    }
+    public void InitCurrentDollCamera(Camera camera)
+    {
+        m_Camera = camera;
+        m_DollBattleManager.AssignTurretCamera(m_Camera);
+
+        m_ToSprayUI.InitDollSpray(m_CurrentDoll);
+
+
+
+    }
+
+    [SerializeField] private UIHoldableButton m_NormalAttackButtonScreen;
+    public UIHoldableButton NormalAttackButtonScreen => m_NormalAttackButtonScreen;
+
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        m_SprayButton.SetActive(false);
+        m_SprayModeOffButton.SetActive(false);
+        m_SprayModeButton.SetActive(true);  
+        
+    }
+    public void SetEmptyScreenActiveAsNA(bool interactable)
+    {
+        m_NormalAttackButtonScreen.gameObject.SetActive(interactable);
+    }
+
+    private void StartDoll(Doll doll)
+    {
+        m_DollBattleManager = doll.DollController.BattleManager;
+        if (m_DollBattleManager != null)
+        {
             m_DollBattleManager.OnTakeSprayStance += () =>
             {
+
+
                 m_SprayModeButton.SetActive(false);
                 m_SprayButton.SetActive(true);
                 m_SprayModeOffButton.SetActive(true);
@@ -54,44 +99,49 @@ public class CombatDashboard : MonoBehaviour
 
             m_DollBattleManager.OnEndSprayStance += () =>
             {
+
                 m_SprayButton.SetActive(false);
                 m_SprayModeOffButton.SetActive(false);
                 m_SprayModeButton.SetActive(true);
 
                 m_ToSprayUI.InitDollSpray(m_CurrentDoll);
             };
-
-            m_FlehmenButton.interactable = !m_DollBattleManager.FlehmenCooldown;
         }
+        m_LesserSkillCooldownText.gameObject.SetActive(false);
+
 
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void EndDoll(Doll doll)
     {
+        m_DollBattleManager = doll.DollController.BattleManager;
         if (m_DollBattleManager != null)
         {
-            m_DollBattleManager.OnTakeSprayStance += () =>
-        {
-            m_SprayModeButton.SetActive(false);
-            m_SprayButton.SetActive(true);
-            m_SprayModeOffButton.SetActive(true);
-        };
+            m_DollBattleManager.OnTakeSprayStance -= () =>
+            {
+                m_SprayModeButton.SetActive(false);
+                m_SprayButton.SetActive(true);
+                m_SprayModeOffButton.SetActive(true);
 
-            m_DollBattleManager.OnEndSprayStance += () =>
+                m_SprayUI.InitDollSpray(m_CurrentDoll);
+            };
+
+            m_DollBattleManager.OnEndSprayStance -= () =>
             {
                 m_SprayButton.SetActive(false);
                 m_SprayModeOffButton.SetActive(false);
                 m_SprayModeButton.SetActive(true);
+
+
+                m_ToSprayUI.InitDollSpray(m_CurrentDoll);
             };
         }
-
         m_LesserSkillCooldownText.gameObject.SetActive(false);
-        // m_PetAsSpaceShip = m_CurrentDoll.PetAsSpaceShip;        
     }
+
     SpaceShip m_PetAsSpaceShip;
     // Update is called once per frame
-    void Update()
+    protected override void Run()
     {
         if (m_CurrentDoll != null && m_DollBattleManager != null)
         {
@@ -112,6 +162,9 @@ public class CombatDashboard : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.R))
             {
                 StartSpray();
+
+
+                
                 print("dolldollws");
             }
             if (Input.GetKeyUp(KeyCode.R))
@@ -152,7 +205,7 @@ public class CombatDashboard : MonoBehaviour
 
     private float timerU = 0;
     private bool keyCooldown = false;
-    [SerializeField] private Button m_FlehmenButton;
+    [SerializeField] private UIButton m_FlehmenButton;
 
     public void SetDoll(Doll doll)
     {
@@ -164,35 +217,22 @@ public class CombatDashboard : MonoBehaviour
 
     public void RefreshCooldownButtonLesserSkill()
     {
-        m_FlehmenButton.interactable = true;
+        m_FlehmenButton.SetInteractable(true);
         m_LesserSkillCooldownText.gameObject.SetActive(false);
     }
 
     public void Flehmen()
     {
-        //IEnumerator FlehmenSkill()
-        //{
-        //    print("Flehmen at CD");
-        //    m_FlehmenOnCooldown = true;
-        //    m_FlehmenButton.interactable = false;
-
-        //    m_DollBattleManager.SetFlehmenCooldown();
-        //    yield return new WaitForSeconds(m_DollBattleManager.Cooldown);
-        //    m_FlehmenOnCooldown = false;
-        //    m_FlehmenButton.interactable = true;
-
-        //    print("Flehmen free");
-        //};
+        
 
         if (!m_FlehmenOnCooldown)
         {
-
             m_DollBattleManager.LesserSkill();
             m_LesserSkillCooldownText.gameObject.SetActive(true);
         }
 
 
-        m_FlehmenButton.interactable = false;
+        m_FlehmenButton.SetInteractable(false);
 
 
         //StartCoroutine(FlehmenSkill());
@@ -203,6 +243,12 @@ public class CombatDashboard : MonoBehaviour
     public void PrepareSpray()
     {
          m_DollBattleManager.EnterSprayMode();
+
+        
+        m_SprayModeButton.SetActive(false);
+        m_SprayButton.SetActive(true);
+        m_SprayModeOffButton.SetActive(true);
+        
     }
 
     public void Idle()
@@ -223,7 +269,11 @@ public class CombatDashboard : MonoBehaviour
     }
     public void OutSpray()
     {
-        m_DollBattleManager.ExitSprayMode();
+        m_DollBattleManager.ExitSprayMode(); 
+        
+        m_SprayButton.SetActive(false);
+        m_SprayModeOffButton.SetActive(false);
+        m_SprayModeButton.SetActive(true);
     }
     public void StartAttack()
     {
