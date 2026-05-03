@@ -1,4 +1,5 @@
 using SpaceShooter;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace GentianoseRealDolls
@@ -6,21 +7,42 @@ namespace GentianoseRealDolls
     [RequireComponent(typeof(Doll))]
     public class DollController : MonoBehaviour
     {
+        private Level m_Level;
+        private AllDollCharacters allDolls;
+        private AllDollSleeps allSleeps;
+       
+
         [Header("Doll Base Attributes")]
         [SerializeField] private Doll m_Doll;
+        public Doll Doll => m_Doll;
         [SerializeField] private Animator m_Animator;
+        public Animator Animator => m_Animator;
         [SerializeField] private BeastPositionManager positionManager;
 
         [Header("Doll Component")]
+
+
         [SerializeField] private DollGaitManager gaitGear;
         public DollGaitManager GaitManager => gaitGear;
-        [SerializeField] private DollPoopManager pooper;
-        public DollPoopManager PoopManager => pooper;
+
         [SerializeField] private DollBattleManager battler;
         public DollBattleManager BattleManager => battler;
-        [SerializeField] private DollSleep sleepSystem;
+
+        [SerializeField] private DollPoopManager pooper;
+        public DollPoopManager PoopManager => pooper;
+
         [SerializeField] private DollBath bathSystem;
 
+        [SerializeField] private DollSleep sleepSystem;
+
+        [SerializeField] private DollClimbing climbing;
+        public DollClimbing Climbing => climbing;
+        
+        [Header("Doll's particular parts, e.g. weapons and scent glands")]
+        [SerializeField] private DollPart[] parts;
+
+        private Dashboard m_Dashboard;
+        private Party m_Party;
         public bool Sleeping => sleepSystem.Sleeping;
 
         private int m_DollIndexInParty;
@@ -58,10 +80,16 @@ namespace GentianoseRealDolls
             battler.SetProperties(m_Doll, m_Animator, m_DollIndexInParty);
             sleepSystem.SetProperties(m_Doll, m_Animator, m_DollIndexInParty);
             bathSystem.SetProperties(m_Doll, m_Animator, m_DollIndexInParty);
+
         }
 
         private void Start()
         {
+            foreach (DollPart dp in parts)
+            {
+                if (dp is DollClimbing)
+                    climbing = (DollClimbing)dp;
+            }
             
         }
 
@@ -87,9 +115,10 @@ namespace GentianoseRealDolls
         }
         public void TimeActionStats(long timeDifference, int partyIndex)
         {
-            m_ScaleValues = AllDollCharacters.Instance.GetDollData(dollID);
+            m_ScaleValues = allDolls.GetDollData(dollID);
 
-            bool isSleeping = AllDollSleeps.GetSleepingByID(m_Doll.DollID);
+            bool isSleeping = allSleeps.GetSleepingByID(m_Doll.DollID);
+
             if (isSleeping)
             {
                 sleepSystem.GoToBed(partyIndex);
@@ -99,31 +128,29 @@ namespace GentianoseRealDolls
                 sleepSystem.WakeDoll(partyIndex);
             }
 
-
             if (sleepSystem.Sleeping)
             {
-               // m_Doll.WarpDoll(Level.Instance.Beds[m_Doll.DollID]);
                 sleepSystem.GoToBed(partyIndex);
 
 
                 m_Doll.SetSleep(m_ScaleValues.Sleep + timeDifference);
 
-
-
-                
-                positionManager.WarpDoll(Level.Instance.Beds[dollID]);
+                positionManager.WarpDoll(m_Level.Beds[dollID]);
                 
             }
 
             else
             {
 
+                print("Snegura");
+                print("Snegura"+ m_ScaleValues.Sleep + timeDifference);
                 m_Doll.SetSleep(m_ScaleValues.Sleep - timeDifference);
+                print("Snegure");
             }
 
             float poo = Mathf.Clamp(m_ScaleValues.LooPoo - timeDifference * Doll.StepLooStat, 0, Doll.MaxLooStat);
 
-            float analSpray = Mathf.Clamp(m_Doll.AnalSprayAmount +
+            float analSpray = Mathf.Clamp(m_ScaleValues.AnalSprayAmount +
                 timeDifference * (Doll.StepAnalGlandSecretions * m_Doll.AnalGlandVolume), 0, m_Doll.AnalGlandVolume);
 
             float pee = Mathf.Clamp(m_ScaleValues.LooPee - timeDifference * Doll.StepLooStat, 0, Doll.MaxLooStat);
@@ -143,6 +170,60 @@ namespace GentianoseRealDolls
 
         }
 
+        public void TakeStats(int partyIndex)
+        {
+            m_ScaleValues = allDolls.GetDollData(dollID);
+
+            bool isSleeping = allSleeps.GetSleepingByID(m_Doll.DollID);
+
+            if (isSleeping)
+            {
+                sleepSystem.GoToBed(partyIndex);
+            }
+            else
+            {
+                sleepSystem.WakeDoll(partyIndex);
+            }
+
+            if (sleepSystem.Sleeping)
+            {
+                sleepSystem.GoToBed(partyIndex);
+
+
+                m_Doll.SetSleep(m_ScaleValues.Sleep);
+
+                positionManager.WarpDoll(m_Level.Beds[dollID]);
+
+            }
+
+            else
+            {
+
+                print("Snegura");
+                print("Snegura" + m_ScaleValues.Sleep);
+                m_Doll.SetSleep(m_ScaleValues.Sleep);
+                print("Snegure");
+            }
+            float poo = Mathf.Clamp(m_ScaleValues.LooPoo, 0, Doll.MaxLooStat);
+
+            float analSpray = Mathf.Clamp(m_ScaleValues.AnalSprayAmount, 0, m_Doll.AnalGlandVolume);
+
+            float pee = Mathf.Clamp(m_ScaleValues.LooPee, 0, Doll.MaxLooStat);
+
+            float bath = Mathf.Clamp(m_ScaleValues.Bath, 0, Doll.MaxBrushTeeth);
+            float brushTeeth = Mathf.Clamp(m_ScaleValues.BrushTeeth, 0, Doll.MaxBrushTeeth);
+
+            m_Doll.SetToiletStats(poo,
+                analSpray,
+                pee,
+                bath,
+                brushTeeth);
+
+            float food = Mathf.Clamp(m_ScaleValues.FoodHunger, 0, Doll.MaxStat);
+
+            m_Doll.SetFoodHunger(food);
+        }
+
         public void GoToBed()
         {
             sleepSystem.GoToBed(m_DollIndexInParty);
@@ -153,6 +234,8 @@ namespace GentianoseRealDolls
         }
         public void WakeDoll()
         {
+            if (!Sleeping) return;
+
             sleepSystem.WakeDoll(m_DollIndexInParty);
 
             if (!m_Doll.ActiveDollInPartyStatus)
@@ -178,7 +261,40 @@ namespace GentianoseRealDolls
         public void TakeAndSetDollPos(int loc, int index)
         {
             positionManager.TakeAndSetDollPos(loc, index);
+        }
 
+        public void ResetDollLocation()
+        {
+            positionManager.ResetLocation();
+        }
+        
+        
+        public void ConstructDolls(AllDollCharacters dolls, AllDollSleeps sleeps, Level level, Dashboard dashboard, Party party)
+        {
+            allDolls = dolls;
+            allSleeps = sleeps;
+            m_Level = level;
+            m_Dashboard = dashboard;
+            m_Party = party;
+
+            positionManager.ConstructDolls(dolls, sleeps, level);
+            sleepSystem.ConstructSleep(sleeps);
+
+            gaitGear.ConstructDollCom(m_Dashboard, m_Party);
+            battler.ConstructDollCom(m_Dashboard, m_Party);
+
+            pooper.ConstructDollCom(m_Dashboard, m_Party);
+
+            bathSystem.ConstructDollCom(m_Dashboard, m_Party);
+            sleepSystem.ConstructDollCom(m_Dashboard, m_Party);
+
+            // battler.SetHealSideParty(m_Party);
+
+            foreach (var dp in parts)
+            {
+                if (dp != null)
+                    dp.Construct(this, m_Party, m_Dashboard, m_Animator);
+            }
         }
 
         public void StatsReduce()
@@ -209,7 +325,8 @@ namespace GentianoseRealDolls
         bool m_NavelEffect;
         [SerializeField] private GameObject m_NavelEffectPrefab;
         private GameObject m_NavelEffectShield;
-
+        
+        public Transform Nose => climbing.Nose;  
         public void NavelEffect(bool enab)
         {
             m_NavelEffect = enab;
@@ -225,6 +342,37 @@ namespace GentianoseRealDolls
             {
                 Destroy(m_NavelEffectShield);
             }
+        }
+
+        public void SetClimb(int climbMode)
+        {
+            if (climbMode == 0)
+            {
+                climbing.EndClimbing();
+            }
+            if (climbMode == 1)
+            {
+                climbing.StartClimbing();
+            }
+            if (climbMode == 2)
+            {
+                climbing.StartDescend();
+            }
+        }
+
+        public void StartClimbing()
+        {
+            climbing.StartClimbing();
+        }
+
+        public void StopClimbing()
+        {
+            climbing.EndClimbing() ;
+        }
+
+        public void StartDescend()
+        {
+            climbing.StartDescend();
         }
     }
 }
