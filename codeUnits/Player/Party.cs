@@ -17,8 +17,6 @@ namespace GentianoseRealDolls
 
 
 
-        private const string fileName1 = "timeCurr.dat";
-        private const string fileName2 = "timePrev.dat";
 
         // Делегат для события изменения здоровья
         public delegate void ActiveDollChanged(int dollIndexInParty);
@@ -30,6 +28,7 @@ namespace GentianoseRealDolls
         [Header("Services")]
 
         [SerializeField] private CurrentSceneData m_CurrentScene;
+        [SerializeField] private TimePastStats m_TimePastStats;
         [SerializeField] private TeleportBeasts m_TeleportBeasts;
 
         [SerializeField] private FollowCamera m_Camera;
@@ -149,7 +148,6 @@ namespace GentianoseRealDolls
             }
         }
 
-
         private void Awake()
         {
             ////// _objectResolver.InjectGameObject(gameObject);
@@ -161,22 +159,18 @@ namespace GentianoseRealDolls
 
             StartCoroutine(TimeSave());
 
-            Saver<long>.TryLoad(fileName1, ref m_CurrentTime);
-            Saver<long>.TryLoad(fileName2, ref m_PreviousTime);
-            print("Prev  " + m_PreviousTime);
+
+            //print("Prev  " + m_PreviousTime);
 
 
-            m_TimeDifference = m_CurrentTime - m_PreviousTime;
+            m_TimeDifference = m_TimePastStats.ReadTime();
 
         }
-
 
         // Изменение шкал кукол по времени
         IEnumerator TimeSave()
         {
-            m_CurrentTime = DateTime.Now.Ticks / 600000000;
-
-            Saver<long>.Save(fileName1, m_CurrentTime);
+            m_TimePastStats.WriteTimeDuring();
 
 
 
@@ -185,7 +179,7 @@ namespace GentianoseRealDolls
             yield return new WaitForSeconds(1);
             //            
             ReducePartyStats();
-            
+
             StartCoroutine(TimeSave());
             print("ToDrain");
 
@@ -194,8 +188,7 @@ namespace GentianoseRealDolls
 
         private void OnDestroy()
         {
-            m_PreviousTime = m_CurrentTime;
-            Saver<long>.Save(fileName2, m_PreviousTime);
+            m_TimePastStats.WriteTimeDestroy();
         }
 
         private void Start()
@@ -612,4 +605,3 @@ namespace GentianoseRealDolls
     }
 
 }
-
