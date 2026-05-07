@@ -23,19 +23,9 @@ namespace GentianoseRealDolls
         public Quaternion Rotation;
     }
 
-    [Serializable]
-    public class DollPositions
-    {
-        public int dollID;
-        public int Scene;
-        public Vector3[] Positions;
-        public Quaternion Rotation;
-    }
-    public class AllDollCharacters : SingletonBase<AllDollCharacters>
+    public class AllDollCharacters : MonoBehaviour, IAllDolls
     {
         private const string fileName1 = "doll.dat";
-        private const string fileName2 = "dPositions.dat";
-        private const string fileName3 = "dSleeps.dat";
 
         // включая меню
         private int m_Scene;
@@ -43,49 +33,16 @@ namespace GentianoseRealDolls
         [Tooltip("-1 meaning this scene is not a location")]
 
         [SerializeField] private DollScaleValues[] allScaleValues;
-        private List<DollPositions> allPositionsList = new List<DollPositions>();
-
-        [SerializeField] private DollPositions[] allPositions;
         private List<DollScaleValues> allScaleValuesList = new List<DollScaleValues>();
+        [SerializeField] private DollCurrentStats m_CurrentStats;
 
-        private new void Awake()
+        private void Awake()
         {
-            base.Awake();
-
             Saver<DollScaleValues[]>.TryLoad(fileName1, ref allScaleValues);
             allScaleValuesList = allScaleValues.ToList();
-
-            Saver<DollPositions[]>.TryLoad(fileName2, ref allPositions);
-            allPositionsList =allPositions.ToList();
-
-           // print(allPositions[1].Positions[0]);
         }
 
 
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
-        {
-
-         //   print("Start "+ allScaleValues[1].Positions[0]);
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
-       //     print(allScaleValues[1].Positions[0]);
-        }
-        public DollScaleValues FindDollByID(int id)
-        {
-            foreach (var kvp in allScaleValues)
-            {
-                if (kvp.dollID == id)
-                {
-                    return kvp;
-                }
-            }
-            return null;
-        }
 
 
 
@@ -93,25 +50,12 @@ namespace GentianoseRealDolls
         {
             m_Scene = scene;
         }
-        //public void TakeAndSetDollPos(int id)
-        //{
-        //    m_Scene = id;
-
-
-        //    transform.position = m_Positions[sceneToLevel[m_Scene]];
-        //    transform.rotation = m_Rotation;
-
-        //    transform.SetPositionAndRotation(m_Positions[sceneToLevel[m_Scene]], m_Rotation);
-        //}
     
-        [SerializeField] private DollCurrentStats m_CurrentStats;
 
-  
-        public void SaveAllDollStats()
+        public DollScaleValues GetDoll(int id)
         {
-            Saver<DollScaleValues[]>.Save(fileName1, allScaleValues);
+            return allScaleValuesList[id];
         }
-       
 
         public void AddDoll(DollScaleValues sv)
         {
@@ -119,54 +63,18 @@ namespace GentianoseRealDolls
             allScaleValues = allScaleValuesList.ToArray();
         }
      
-        public DollScaleValues GetDollData(int id)
-        {
-            return allScaleValuesList[id];
-        }
-      
-        public void SetDollData(DollScaleValues sv)
+        public void SetDoll(DollScaleValues sv)
         {
             allScaleValues[sv.dollID] = sv;
-            SaveAllDollStats();
-
+            SaveAllDolls();
         }
-        public void SaveAllDollPositions()
+
+        public void SaveAllDolls()
         {
-            Saver<DollPositions[]>.Save(fileName2, allPositions);
-        }
-        public void AddDollPos(DollPositions dp)
-        {
-            allPositionsList.Add(dp);
-            allPositions = allPositionsList.ToArray();
-        }
-        public DollPositions GetDollPos(int id)
-        {
-            if (allPositionsList == null)
-            {
-                allPositions = new DollPositions[3];
-
-                Saver<DollPositions[]>.Save(fileName2, allPositions);
-            }
-
-
-            Saver<DollPositions[]>.TryLoad(fileName2, ref allPositions);
-            allPositionsList = allPositions.ToList();
-
-
-            return allPositionsList[id];
-        }
-        public void SetDollPos(DollPositions dp)
-        {
-            allPositions[dp.dollID] = dp;
-            SaveAllDollPositions();
-
+            Saver<DollScaleValues[]>.Save(fileName1, allScaleValues);
         }
 
-        public Vector3[] GetDollPositions(int id)
-        {
-            //  return allScaleValues[id].Positions;
-            return GetDollPos(id).Positions;
-        }
+
     }
 
 }
