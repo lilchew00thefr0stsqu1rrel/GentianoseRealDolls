@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TowerDefense;
 using UnityEngine;
+using NTC.Pool;
 
 namespace GentianoseRealDolls
 {
@@ -149,7 +150,7 @@ namespace GentianoseRealDolls
 
             foreach (var poop in m_PooList)
             {
-                DestroyImmediate(poop.gameObject);
+                NightPool.Despawn(poop.gameObject);
             }
             m_PooPositions.Clear();
             m_PooPosArray = m_PooPositions.ToArray();
