@@ -17,6 +17,13 @@ namespace GentianoseRealDolls
     /// </summary>
     public class DollBattleManager : DollComponent
     {
+        [Header("Doll parts")]
+
+        [SerializeField] private DollPart m_AttackPart;
+        [SerializeField] private DollPart m_LesserSkillPart;
+        [SerializeField] private Turret m_AnusTurret;
+
+        [Header("Params")]
 
         private GRDTimer chargedTimer;
         [SerializeField] private float m_ChargedAttackTime = 0.592f;
@@ -54,13 +61,38 @@ namespace GentianoseRealDolls
         public event Action OnTakeSprayStance;
         public event Action OnEndSprayStance;
 
-        [SerializeField] private Turret m_NormalTurret;
-        [SerializeField] private HealSide m_HealingSide;
+
+
+        [SerializeField] private bool m_IsSprayStance;
+        Vector2 m_AimInput;
+
+        [SerializeField] private int attackDamage;
+        public int AttackDamage => attackDamage;
+
+        [SerializeField] private bool m_FlehmenCooldown;
+        public bool FlehmenCooldown => m_FlehmenCooldown;
+
+        public void SetFlehmenCooldown()
+        {
+            m_FlehmenCooldown = true;
+        }
+        [SerializeField] private float m_Cooldown;
+        public float Cooldown => m_Cooldown;
+        public void SetAimInput(Vector2 aimInput)
+        {
+            m_AimInput = aimInput;
+            m_AnusTurret.SetAimInput(aimInput);
+            m_AttackPart.SetAimInput(aimInput);
+        }
+
+
         public void AssignTurretCamera(Camera cam)
         {
-            if (m_NormalTurret)
-                m_NormalTurret.SetCamera(cam);
-            if (m_Doll.AnusNipplesTurret)
+            if (m_AttackPart is Turret)
+                (m_AttackPart as Turret).SetCamera(cam);
+            if (m_LesserSkillPart is Turret)
+                (m_LesserSkillPart as Turret).SetCamera(cam);
+            if (m_AnusTurret)
                 m_Doll.AnusNipplesTurret.SetCamera(cam);
         }
 
@@ -71,7 +103,7 @@ namespace GentianoseRealDolls
         {
             return (time) =>
             {
-                Dashboard.Instance.UpdateCooldown(time);
+                m_Dashboard.UpdateCooldown(time);
             };
         }
         private void Awake()
@@ -92,34 +124,23 @@ namespace GentianoseRealDolls
         }
         private bool _;
 
-        public bool IsAnimationPlaying(string animationName)
-        {
-            // ����� ���������� � ���������
-            var animatorStateInfo = m_Animator.GetCurrentAnimatorStateInfo(0);
-            // �������, ���� �� � ��� ��� �����-�� ��������, �� ���������� true
-            if (animatorStateInfo.IsName(animationName))
-                return true;
-
-            return false;
-        }
         public float AnimationNormalizedTime(string animationTag)
         {
-            // ����� ���������� � ���������
-            var animatorStateInfo = m_Animator.GetCurrentAnimatorStateInfo(0);
-            // �������, ���� �� � ��� ��� �����-�� ��������, �� ���������� true
-            if (animatorStateInfo.IsTag(animationTag))
-                return animatorStateInfo.normalizedTime;
+            if (!m_AnimatorGuard) return 0;
+
+            if (m_AnimatorGuard.IsTag(animationTag))
+                return m_AnimatorGuard.NormalizedTime();
             return 0f;
         }
 
 
         int m_CenterOfMassIndex = 0;
         
-
+        
 
 
         // Update is called once per frame
-        void Update()
+       protected override void Run()
         {
 
             if (AnimationNormalizedTime("ls") >= 1.0f)
@@ -152,7 +173,7 @@ namespace GentianoseRealDolls
                 {
                     m_BeforeChargedAttack = false;  
                     print("Charged");
-                    ChargedAttack();
+                    ChargedAttack(m_AimInput);
                 }
             }
 
@@ -162,7 +183,7 @@ namespace GentianoseRealDolls
                 // ���� ����� ������
                 if (m_AnalSphincterTimer >= m_SprayTime)
                 {
-                    EndGreaterSkill();
+                    EndGreaterSkill(m_AimInput);
                 }
             }
 
@@ -183,11 +204,11 @@ namespace GentianoseRealDolls
             m_CenterOfMassIndex = 0;
 
 
-            m_Animator.SetBool("TailUp", false);
+            //m_Animator.SetBool("TailUp", false);
         }
         public void LesserSkIdle()
         {
-            m_Animator.SetInteger("Autom", 15);
+            // m_Animator.SetInteger("Autom", 15);
             m_CenterOfMassIndex = 0;
         }
 
@@ -205,11 +226,7 @@ namespace GentianoseRealDolls
             m_BeforeChargedAttack = true;
 
             if (m_Doll.DollID != 2 || !m_LesserSkillBuff)
-
-                m_Animator.SetBool("TailUp", true);
-
-            
-            StartCoroutine(ChargedAttackTime());
+                StartCoroutine(ChargedAttackTime());
 
             StartCoroutine(WaitForCooldown());
 
@@ -218,51 +235,68 @@ namespace GentianoseRealDolls
                 attackAtCooldown = true;
                 yield return new WaitForSeconds(m_AttackCooldown);
                 attackAtCooldown = false;
-
-
             }
 
         }
 
-        public void EndAttack()
+        public void EndAttack(Vector2 aimInput)
         {
-            // ���� ������� �����
             if (m_ChargingTimerCA < m_ChargedAttackTime)
             {
-                NormalAttack();
+                NormalAttack(aimInput);
             }
-            // ���� ���������� - ���������
             else
             {
                 Idle();
             }
-
             m_ChargingTimerCA = 0;
             m_BeforeChargedAttack = false;
-
             m_AtChargedAttack = false;
-
-            
-
         }
+
+        private const int SprayStanceID = 4;
+
+        public void SprayModeOnOff()
+        {
+            if (m_IsSprayStance)
+            {
+                m_Doll.State = 0;
+                print("U-like" + m_AnimatorGuard + " " + m_IsSprayStance);
+                m_AnimatorGuard.SetAnimation(0);
+                //m_Animator.SetBool("TailUp", false);
+                MoveInputController.mouseTorque = true;
+            }
+            else
+            {
+                m_Doll.State = 4;
+
+                print("U-like" + m_AnimatorGuard + " " + m_IsSprayStance);
+                m_AnimatorGuard.SetAnimation(SprayStanceID);
+                //m_Animator.SetBool("TailUp", true);
+                MoveInputController.mouseTorque = false;
+            }
+            m_IsSprayStance = !m_IsSprayStance;
+        }
+
         public void EnterSprayMode()
         {
             m_Doll.State = 4;
-            m_Animator.SetInteger("Autom", 4);
-            m_Animator.SetBool("TailUp", true);
-            ShipInputController.mouseTorque = false;
-            print(OnTakeSprayStance != null);
-            OnTakeSprayStance.Invoke();
+            m_AnimatorGuard.SetAnimation(SprayStanceID);
+            //m_Animator.SetBool("TailUp", true);
+            MoveInputController.mouseTorque = false;
+            //print(OnTakeSprayStance != null);
+           // OnTakeSprayStance.Invoke();
         }
 
         public void ExitSprayMode()
         {
             m_Doll.State = 0;
-            m_Animator.SetInteger("Autom", 0);
-            m_Animator.SetBool("TailUp", false);
-            ShipInputController.mouseTorque = true;
+            m_AnimatorGuard.SetAnimation(0);
+            m_Doll.DollController.SetIdle();
+            //m_Animator.SetBool("TailUp", false);
+            MoveInputController.mouseTorque = true;
 
-            OnEndSprayStance.Invoke();
+            //OnEndSprayStance.Invoke();
         }
 
 
@@ -275,25 +309,15 @@ namespace GentianoseRealDolls
             GreaterSkill
         }
 
-
-        private void NormalAttack()
+        private void NormalAttack(Vector2 aimInput)
         {
-            m_Animator.SetInteger("Autom", 7);
+            m_AnimatorGuard.SetAnimation(7);
             m_CenterOfMassIndex = 1;
             m_AtNormalAttack = true;
             m_Doll.Sounds[1].Play();
 
 
-            if (m_Doll.DollID == 1)
-                m_NormalTurret?.Fire();
-
-            if (m_LesserSkillBuff)
-            {
-                if (m_Doll.DollID == 2)
-                {
-                    m_Animator.SetInteger("Autom", 13);
-                }
-            }
+            m_AttackPart.Use(aimInput);
 
             StartCoroutine(OffTime(0.5f));
         }
@@ -321,33 +345,25 @@ namespace GentianoseRealDolls
                 }
             }
         }
-        private void ChargedAttack()
+        private void ChargedAttack(Vector2 aimInput)
         {
-            
 
-            m_Animator.SetInteger("Autom", 8);
+
+            m_AnimatorGuard.SetAnimation(8);
             m_CenterOfMassIndex = 1;
 
 
-            if (m_Doll.DollID == 1 && !m_AtChargedAttack)
-            {
-                m_NormalTurret.AssignLoadout(m_CATurretProps);
-                m_NormalTurret.SetProjProps(m_AlternativeProjectileProps);
+            (m_AttackPart as Turret).AssignLoadout(m_CATurretProps);
+            (m_AttackPart as Turret).SetProjProps(m_AlternativeProjectileProps);
+            m_AttackPart.Use(aimInput);
+            (m_AttackPart as Turret).AssignLoadout(m_TurretProps);
+            (m_AttackPart as Turret).SetProjProps(m_ProjectileProps);
 
-                m_NormalTurret?.Fire();
 
+            m_AnimatorGuard.SetAnimation(14);
 
-                m_NormalTurret.AssignLoadout(m_TurretProps);
-                m_NormalTurret.SetProjProps(m_ProjectileProps);
-            }
-
-            if (m_LesserSkillBuff)
-            {
-                if (m_Doll.DollID == 2)
-                {
-                    m_Animator.SetInteger("Autom", 14);
-                }
-            }
+            ///
+           
 
             m_AtChargedAttack = true;
             m_Doll.Sounds[2].Play();
@@ -356,34 +372,6 @@ namespace GentianoseRealDolls
             StartCoroutine(OffTime(m_ChargedAttackAnimationTime));
         }
 
-
-
-
-        //        public Action<Doll> Link()
-        //        {
-        //            return (Doll d) =>
-        //            {
-        ////                m_CurrentDoll = d;
-        //            };
-        //        }
-
-        //        public void SetDoll(Doll doll)
-        //        {
-        // //           m_CurrentDoll = doll;
-        //        }
-
-        [SerializeField] private int attackDamage;
-        public int AttackDamage => attackDamage;
-
-       [SerializeField]  private bool m_FlehmenCooldown;
-        public bool FlehmenCooldown => m_FlehmenCooldown;
-
-        public void SetFlehmenCooldown() 
-        {
-            m_FlehmenCooldown = true;
-        }
-        [SerializeField] private float m_Cooldown;
-        public float Cooldown => m_Cooldown;
 
         public enum AttackType
         {
@@ -410,14 +398,22 @@ namespace GentianoseRealDolls
       
         public void LesserSkill()
         {
-
-
             print("Lesser"); 
+
+
+            if (!m_FlehmenCooldown)
+            {
+                m_AtAnimationE = true;
+                m_AnimatorGuard.SetAnimation(9);
+                m_LesserSkillPart.Use(m_AimInput);
+                StartCoroutine(EffectTimer());
+                m_LesserSkillBuff = true;
+                StartCoroutine(FlehmenCDSkill());
+            }
 
             IEnumerator FlehmenCDSkill()
             {
                 print("Flehmen at CD");
-
                 m_FlehmenCooldown = true;
                 for (int i = 0; i < m_Cooldown; i++)
                 {
@@ -425,77 +421,16 @@ namespace GentianoseRealDolls
                     yield return new WaitForSeconds(1);
                 }
                 m_FlehmenCooldown = false;
-
-                Dashboard.Instance.Btn();
-
+                m_Dashboard.Btn();
                 print("Flehmen free");
             }
-            ;
-
-
-
-            print(m_FlehmenCooldown);
-            if (!m_FlehmenCooldown)
-            {
-               // m_Doll.LesserSkill();
-                m_AtAnimationE = true;
-                if (m_Doll.DollID == 0)
-                {
-                    m_Animator.SetInteger("Autom", 9);
-                }
-                if (m_Doll.DollID == 1 || m_Doll.DollID == 2)
-                {
-                    m_Animator.SetInteger("Autom", 15);
-                }
-
-                if (m_Doll.DollID == 0)
-                {
-                    // Party.Instance.RestoreHPAll(m_HealAmosunt);
-                    //   m_NormalTurret.Fire();
-
-                    m_Animator.SetBool("FX", true);
-                    m_HealingSide.HealParty();
-                    StartCoroutine(EffectTimer());
-                }
-                if (m_Doll.DollID == 1)
-                {
-                    m_NormalTurret.AssignLoadout(m_ETurretProps);
-                    m_LesserSkillBuff = true;
-                    StartCoroutine(EffectTimer());
-                }
-                if (m_Doll.DollID == 2)
-                {
-                    m_LesserSkillBuff = true;
-                    StartCoroutine(EffectTimer());
-                }
-
-                StartCoroutine(FlehmenCDSkill());
-            }
-
-           
 
             IEnumerator EffectTimer()
             {
                 yield return new WaitForSeconds(m_BuffDuration);
-
-                if (m_Doll.DollID == 0)
-                {
-                    m_Animator.SetBool("FX", false);
-                }
-
-                if (m_Doll.DollID == 1)
-                {
-                    m_NormalTurret.AssignLoadout(m_TurretProps);
-                    m_LesserSkillBuff = false;
-                    Idle();
-                }
-                if (m_Doll.DollID == 2)
-                {
-                    m_LesserSkillBuff = false;
-                    Idle();
-                }
-
-
+               
+                m_LesserSkillBuff = false;
+                Idle();
             }
 
         }
@@ -507,48 +442,25 @@ namespace GentianoseRealDolls
         {
             m_AtSpray = true;
             m_AnalSphincterTimer = 0;
-
         }
-
-        //public void ContinueGreaterSkill()
-        //{
-        //    if (m_AnalSphincterTimer > m_SprayTime)
-        //    {
-        //        EndGreaterSkill();
-        //    }
-        //}
-        
-        /// <summary>
-        /// ������� ������, ���� ����� ������ ������
-        /// ����� - ������.
-        /// </summary>
-        public void EndGreaterSkill()
+         
+        public void EndGreaterSkill(Vector2 aimInput)
         {
             // ����� ������
             if (m_AnalSphincterTimer > m_SprayTime)
             {
-                //m_Doll?.Spray();
-
                 m_Doll.CareToiletStat(ToiletStat.AnalSpray, m_Doll.AnalGlandVolume / 5);
 
 
                 m_Doll.Sounds[6].Play();
                 m_Doll.Sounds[UnityEngine.Random.Range(7, 9)].Play();
-                m_Doll.AnusNipplesTurret.Fire();
 
+                m_Doll.AnusNipplesTurret.SetCamera(Camera.main);
+                m_Doll.AnusNipplesTurret.Fire(aimInput);
             }
             m_AnalSphincterTimer = 0;
             m_AtSpray = false;
-
-
         }
-        public void CancelGreaterSkill()
-        {
-            m_AtSpray = false;
-            m_AnalSphincterTimer = 0;
-
-        }
-
 
     }
 }
