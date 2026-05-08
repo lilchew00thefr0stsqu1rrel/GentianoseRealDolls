@@ -174,21 +174,6 @@ namespace GentianoseRealDolls
             PoopStore.SavePoop();
         }
 
-        private void LiftTail()
-        {
-            FindFirstObjectByType<FollowCamera>().BirdEye();
-
-            m_Doll.State = 6;
-        }
-
-
-        private void DownTail()
-        {
-            FindFirstObjectByType<FollowCamera>().ReBirdEye();
-
-            m_Doll.State = 0;
-        }
-
         public void ToPoop()
         {
             if (!m_AfterTwerk)
