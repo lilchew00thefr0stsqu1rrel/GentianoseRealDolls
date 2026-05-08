@@ -2,16 +2,27 @@ using GentianoseRealDolls;
 using SpaceShooter;
 using UnityEngine;
 
-public class HealSide : MonoBehaviour
+public class HealSide : DollPart
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        HealParty();
-    }
+    [SerializeField] private Collider m_HealTrigger;
+
+    [SerializeField] private float m_CooldownDuration = 7f;
+    [SerializeField] private int m_Heal;
+    [SerializeField] private int m_StatusID = 3;
+    [SerializeField] private int m_Multiplier = 1;
 
     private float m_Time;
-    [SerializeField] private float m_CooldownDuration = 7f;
+
+    private bool m_Cooldown;
+    public override void Use(Vector2 aimInput)
+    {
+        m_HealTrigger.enabled = true;
+    }
+    public void SetParty(Party p)
+    {
+        m_Party = p;
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -23,23 +34,12 @@ public class HealSide : MonoBehaviour
                 m_Cooldown = false;
                 m_Time = 0;
             }
-
         }
-
     }
-
-    [SerializeField] private int m_Heal;
-    [SerializeField] private int m_StatusID = 3;
-    [SerializeField] private int m_Multiplier = 1;
-
-    private bool m_Cooldown;
     private void OnTriggerEnter(Collider other)
     {
-        print("cll");
-
-
         if (other != null  &&
-            // если не попадает коллайдер лечащего поля куклы
+            // РµСЃР»Рё РЅРµ РїРѕРїР°РґР°РµС‚ РєРѕР»Р»Р°Р№РґРµСЂ Р»РµС‡Р°С‰РµРіРѕ РїРѕР»СЏ РєСѓРєР»С‹
                 !other.isTrigger)
         {
             Destructible dest = other.transform.root.GetComponent<Destructible>();
@@ -57,18 +57,10 @@ public class HealSide : MonoBehaviour
                         dest.ApplyBuff();
                         m_Cooldown = true;
                     }
-                   
-
-
                 }
             }
-
         }
     }
-
-    public void HealParty()
-    {
-        Party.Instance.RegenHPAll(m_Heal);
-    }
 }
+
 
