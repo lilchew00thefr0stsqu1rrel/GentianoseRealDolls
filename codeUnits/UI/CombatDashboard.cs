@@ -4,10 +4,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using NTC.MonoCache;
 using Unity.VisualScripting;
+using System;
 
 public class CombatDashboard : MonoCache
 {
     const float keyCooldownDuration = 0.3f;
+    
+
     [SerializeField] private Image m_HPFill;
     [SerializeField] private Text m_HPText;
     [SerializeField] private Text m_MaxHPText;
@@ -21,18 +24,20 @@ public class CombatDashboard : MonoCache
     [SerializeField] private GameObject m_SprayButton;
     [SerializeField] private GameObject m_SprayModeOffButton;
 
+
     [SerializeField] private GameObject m_SprayChargeUI;
 
     [SerializeField] private SprayFeedback m_SprayUI;
 
     [SerializeField] private SprayFeedback m_ToSprayUI;
     [SerializeField] private Text m_LesserSkillCooldownText;
+
+    [SerializeField] private Party m_Party;
+
     private void Awake()
     {
     }
     [SerializeField] private Camera m_Camera;
-
-
 
     public void InitCurrentDollCombat(Doll doll)
     {
@@ -79,6 +84,8 @@ public class CombatDashboard : MonoCache
     {
         m_NormalAttackButtonScreen.gameObject.SetActive(interactable);
     }
+
+    
 
     private void StartDoll(Doll doll)
     {
@@ -153,40 +160,6 @@ public class CombatDashboard : MonoCache
             m_SprayChargeImage.fillAmount = m_DollBattleManager.SprayChargeAmount;
 
 
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                Flehmen();
-            }
-
-            // Spray.
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                StartSpray();
-
-
-                
-                print("dolldollws");
-            }
-            if (Input.GetKeyUp(KeyCode.R))
-            {
-                // With or without spray
-                EndSpray();
-            }
-
-            if (Input.GetKeyDown(KeyCode.U))
-            {
-                print("**");
-                if (timerU == 0)
-                {
-                    PrepareSpray();
-                    keyCooldown = true;
-                }
-                if (timerU >= keyCooldownDuration)
-                {
-                    OutSpray();
-                    timerU = 0;
-                }
-            }
 
             if (keyCooldown)
             {
@@ -221,68 +194,68 @@ public class CombatDashboard : MonoCache
         m_LesserSkillCooldownText.gameObject.SetActive(false);
     }
 
-    public void Flehmen()
-    {
-        
-
-        if (!m_FlehmenOnCooldown)
-        {
-            m_DollBattleManager.LesserSkill();
-            m_LesserSkillCooldownText.gameObject.SetActive(true);
-        }
-
-
-        m_FlehmenButton.SetInteractable(false);
-
-
-        //StartCoroutine(FlehmenSkill());
-
-    }
-
-
-    public void PrepareSpray()
-    {
-         m_DollBattleManager.EnterSprayMode();
-
-        
-        m_SprayModeButton.SetActive(false);
-        m_SprayButton.SetActive(true);
-        m_SprayModeOffButton.SetActive(true);
-        
-    }
-
-    public void Idle()
-    {
-        m_DollBattleManager.Idle();
-    }
-
-   
-    public void StartSpray()
-    {
-        m_DollBattleManager.StartGreaterSkill();
-        m_SprayChargeUI.SetActive(true);
-    }
-    public void EndSpray()
-    {
-        m_DollBattleManager.EndGreaterSkill(); 
-        m_SprayChargeUI.SetActive(false);
-    }
-    public void OutSpray()
-    {
-        m_DollBattleManager.ExitSprayMode(); 
-        
-        m_SprayButton.SetActive(false);
-        m_SprayModeOffButton.SetActive(false);
-        m_SprayModeButton.SetActive(true);
-    }
     public void StartAttack()
     {
         m_DollBattleManager.StartAttack();
     }
     public void EndAttack()
     {
-        m_DollBattleManager.EndAttack();
+        m_DollBattleManager.EndAttack(m_AimInput);
     }
+
+    public void Flehmen()
+    {
+        if (!m_FlehmenOnCooldown)
+        {
+            m_DollBattleManager.LesserSkill();
+            m_LesserSkillCooldownText.gameObject.SetActive(true);
+        }
+
+        m_FlehmenButton.SetInteractable(false);
+    }
+
+
+    public void SprayStanceOnOff()
+    {
+        m_DollBattleManager.SprayModeOnOff();
+
+        m_SprayModeButton.SetActive(!m_SprayModeButton.activeSelf);
+        m_SprayButton.SetActive(!m_SprayButton.activeSelf);
+        m_SprayModeOffButton.SetActive(!m_SprayModeOffButton.activeSelf);
+    }
+
+
+    public void Idle()
+    {
+        m_DollBattleManager.Idle();
+    }
+
+
+    public void SetSprayChargeUIVisible(bool visible)
+    {
+        m_SprayChargeUI.SetActive(visible);
+    }
+
+
+    private Vector2 m_AimInput;
+   
+    public void SetAim(Vector2 AimInput)
+    {
+        m_AimInput = AimInput;
+    }
+
+    public void StartSpray()
+    {
+        m_DollBattleManager.StartGreaterSkill();
+        m_SprayChargeUI.SetActive(true);
+    }
+    
+    public void EndSpray()
+    {
+        m_DollBattleManager.EndGreaterSkill(m_AimInput);
+        m_SprayChargeUI.SetActive(false);
+    }
+
 
     public void SetBM(DollBattleManager battleManager)
     {
@@ -298,6 +271,30 @@ public class CombatDashboard : MonoCache
 
     public void UpdateShowCooldownTime(float time)
     {
-        m_LesserSkillCooldownText.text = time.ToString("f1");
+        m_LesserSkillCooldownText.text = time.ToString();
     }
+
+    public void UpdateDash()
+    {
+        m_CurrentDoll = m_Party.ActiveDoll;
+        m_DollBattleManager = m_CurrentDoll.DollController.BattleManager;
+
+
+        m_SprayUI.UpdateUI();
+
+        if (m_DollBattleManager.FlehmenCooldown)
+        {
+            m_LesserSkillCooldownText.gameObject.SetActive(true);
+            m_LesserSkillCooldownText.text =
+                m_DollBattleManager.LesserSkillCooldownTime.ToString();
+            m_FlehmenButton.SetInteractable(false);
+        }
+        else
+        {
+            m_LesserSkillCooldownText.gameObject.SetActive(false);
+            m_FlehmenButton.SetInteractable(true);
+        }
+    }
+
+   
 }
