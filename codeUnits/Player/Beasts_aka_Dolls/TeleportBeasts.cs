@@ -91,7 +91,7 @@ public class TeleportBeasts : MonoBehaviour,  ISceneGate
                 SceneManager.LoadScene(city);
 
                 m_Party.InitDolls(SceneHelper.SceneToLevel(city),
-                    m_AllCharacters, m_AllPositions, m_AllSleeps, m_TimePastStats.ReadTime());
+                    m_AllCharacters, m_AllPositions, m_AllSleeps, 0);
 
             }
             //  При перемещении в пределах домика
