@@ -3,8 +3,10 @@ using SpaceShooter;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
 
 public enum UIType
 {
@@ -15,25 +17,19 @@ public enum UIType
     Shop
 }
 
-public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<Party>, IDependency<CurrentScene>
+public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
 {
-    private Party m_Party;
-    public void Construct(Party obj)
-    {
-        m_Party = obj;
-    }
-    public void Construct(FollowCamera obj)
-    {
-        m_Camera = obj.ProperCamera;
-    }
-    CurrentScene currentScene;
-    public void Construct(CurrentScene obj)
-    {
-        currentScene = obj;
-    }
+    ////[Inject]
+    //public void Construct(CurrentSceneData obj)
+    //{
+    //    currentScene = obj;
+    //}
 
+    [SerializeField] private Party m_Party;
+    [SerializeField] CurrentSceneData currentScene;
     [SerializeField] private HabitatInterface habitatUI;
     [SerializeField] private CombatDashboard combatUI;
+    public CombatDashboard CombatUI => combatUI;
     [SerializeField] private InventoryDisplay inventoryDisplay;
     [SerializeField] private GameObject stoveUI;
     [SerializeField] private GameObject m_ShopDisplay;
@@ -64,10 +60,51 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
 
     [SerializeField] private GameObject m_VirtualGamepad;
 
+    public void Show(GameObject ui)
+    {
+        ui.SetActive(true);
+    }
+    public void Hide(GameObject ui)
+    {
+        ui.SetActive(false);
+    }
+
+    private IEnumerator UpdateUI()
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        habitatUI.UpdateDash();
+        combatUI.UpdateDash();
+
+        m_GaitDisplay.UpdateGaitDisplay(m_Party.GaitMap);
+
+        StartCoroutine(UpdateUI());
+
+
+    }
+
+    public void InitDoll()
+    {
+        m_CurrentDoll = m_Party.ActiveDoll;
+        m_CurrentDollController = m_Party.ActiveDoll.DollController;
+        habitatUI.SetCurrentDoll(m_CurrentDoll);
+        combatUI.SetDoll(m_CurrentDoll);
+
+        for (int i = 0; i < m_Party.PartyDollSleeps.Length; i++)
+        {
+            SetSleepDoll(i, m_Party.PartyDollSleeps[i]);
+        }
+    }
+
+    //void UpdateDash()
+    //{
+    //    habitatUI.UpdateDash();   
+    //}
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+
         interactStrings = new Dictionary<int, string>()
         {
             [0] = "Приготовить",
@@ -94,6 +131,8 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
         }
 
         m_Party.OnActiveDollChanged += ShowActiveDoll;
+
+        StartCoroutine(UpdateUI());
 
     }
     private void OnDestroy()
@@ -125,18 +164,29 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
         m_LoadReady = true;
     }
 
+    public void OnEscape()
+    {
+        if (uiType == UIType.World)
+            OpenInventory();
+        else
+            CloseInventory();
+    }
+
     public void OpenInventory()
     {
         habitatUI.HideAdditiveDashboard();
-        inventoryDisplay.gameObject.SetActive(true);
+        Show(inventoryDisplay.gameObject);
         uiType = UIType.Inventory;
         m_Party.PauseAllDolls();
     }
     public void CloseInventory()
     {
-        inventoryDisplay.gameObject.SetActive(false);
+        Hide(inventoryDisplay.gameObject);
 
-        m_Map.SetActive(false);
+        Hide(m_Map);
+        Hide(stoveUI);
+        Hide(m_ShopDisplay);
+        
         uiType = UIType.World;
         m_Party.UnPauseAllDolls();
 
@@ -183,7 +233,7 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
         }
         if (tipID == 7)
         {
-            m_ShopDisplay.SetActive(true);
+            ShowShopUI();
             HideInteractTip();
         }
         if (tipID == 8)
@@ -209,39 +259,7 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
             combatUI.gameObject.SetActive(true);
         }
 
-        if (control.Control == ControlModeData.ControlMode.Keyboard)
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                if (uiType == UIType.World)
-                {
-                    OpenInventory();
-                }
-                else
-                {
-                    if (uiType == UIType.Inventory)
-                    {
-                        CloseInventory();
-                    }
-                    if (uiType == UIType.Map)
-                    {
-                        m_Map.SetActive(false);
-                        uiType = UIType.World;
-                    }
-                }
-
-            }
-            if (Input.GetKeyDown(KeyCode.F))
-            {
-                Interact();
-            }
-            if (Input.GetKeyDown(KeyCode.M))
-            {
-                ShowMap();
-            }
-
-        }
-
+        
 
 
 
@@ -253,7 +271,11 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
         combatUI.RefreshCooldownButtonLesserSkill();
     }
 
-
+    public void ShowShopUI()
+    {
+        uiType = UIType.Shop;
+        m_ShopDisplay.SetActive(true);
+    }
 
     public void UpdateCooldown(float time)
     {
@@ -332,6 +354,10 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
         interactTip.SetActive(false);
     }
 
+    public void SetSprayChargeUIVisible(bool visible)
+    {
+        combatUI.SetSprayChargeUIVisible(visible);
+    }
 
 
     public void Eat(InventoryItem food)
