@@ -7,16 +7,19 @@ using UnityEngine.UI;
 namespace GentianoseRealDolls
 {
     /// <summary>
-    /// Компонент, позволяющий изменять аллюры зверька
-    /// По умолчанию - шаг, рысь, галоп
-    /// Но так как у нас большинство играбельных зверей 
-    /// представлены куньими, грызунами и приматами,
-    /// вместо рыси чаще всего используются четырёхтактная иноходь
-    /// ("лисья рысь")
-    /// или трёхтактный галоп - кентер
+    /// РљРѕРјРїРѕРЅРµРЅС‚, РїРѕР·РІРѕР»СЏСЋС‰РёР№ РёР·РјРµРЅСЏС‚СЊ Р°Р»Р»СЋСЂС‹ Р·РІРµСЂСЊРєР°
+    /// РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ - С€Р°Рі, СЂС‹СЃСЊ, РіР°Р»РѕРї
+    /// РќРѕ С‚Р°Рє РєР°Рє Сѓ РЅР°СЃ Р±РѕР»СЊС€РёРЅСЃС‚РІРѕ РёРіСЂР°Р±РµР»СЊРЅС‹С… Р·РІРµСЂРµР№ 
+    /// РїСЂРµРґСЃС‚Р°РІР»РµРЅС‹ РєСѓРЅСЊРёРјРё, РіСЂС‹Р·СѓРЅР°РјРё Рё РїСЂРёРјР°С‚Р°РјРё,
+    /// РІРјРµСЃС‚Рѕ СЂС‹СЃРё С‡Р°С‰Рµ РІСЃРµРіРѕ РёСЃРїРѕР»СЊР·СѓСЋС‚СЃСЏ С‡РµС‚С‹СЂС‘С…С‚Р°РєС‚РЅР°СЏ РёРЅРѕС…РѕРґСЊ
+    /// ("Р»РёСЃСЊСЏ СЂС‹СЃСЊ")
+    /// РёР»Рё С‚СЂС‘С…С‚Р°РєС‚РЅС‹Р№ РіР°Р»РѕРї - РєРµРЅС‚РµСЂ
     /// </summary>
     public class DollGaitManager : DollComponent
     {
+
+
+
         [Range(1f, 3f)]
         [SerializeField] private int gaitState;
 
@@ -46,6 +49,9 @@ namespace GentianoseRealDolls
 
         public int GaitState => gaitState;
 
+        int m_GaitAnimation;
+        public int GaitAnimation => m_GaitAnimation;
+
         private void Awake()
         {
             // gaitState = m_ActiveDoll.gaitState;
@@ -55,22 +61,24 @@ namespace GentianoseRealDolls
             print($"{spaceShip != null}, {spaceShip.MaxLinearVelocity}, {gaitSpeeds[gaitState - 1]}");
             spaceShip.SetMaxLinearVelocity(gaitSpeeds[gaitState - 1]);
 
-            OnGaitTextUpdate += GaitDisplay.UpdateText();
+            // OnGaitTextUpdate += GaitDisplay.Instance.UpdateText();
           
         }
 
         private void OnDestroy()
         {
 
-            OnGaitTextUpdate -= GaitDisplay.UpdateText();
+          //  OnGaitTextUpdate -= GaitDisplay.Instance.UpdateText();
         }
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-            
-                     OnGaitTextUpdate(m_DollIndexInParty, gaitState);
-         //   UpdateText();
-            m_Animator = GetComponent<Animator>();
+
+            //OnGaitTextUpdate(m_DollIndexInParty, gaitState);
+
+            // GaitDisplay.Instance.TextChange(m_DollIndexInParty, gaitState); 
+            //   UpdateText();
+            //m_Animator = GetComponent<Animator>();
         }
 
         //public void GaitTextUpdateSubscribe()
@@ -88,17 +96,18 @@ namespace GentianoseRealDolls
         {
             //   UpdateGait();
             //UpdateMovement();
+
+            if (!m_Doll) return;
             
             if (m_Doll.DollController.ActiveDollInPartyStatus)
             {
-                var animatorStateInfo = m_Animator.GetCurrentAnimatorStateInfo(0);
-                // смотрим, есть ли в нем имя какой-то анимации, то возвращаем true
-                if (animatorStateInfo.IsTag("+++"))
+                // СЃРјРѕС‚СЂРёРј, РµСЃС‚СЊ Р»Рё РІ РЅРµРј РёРјСЏ РєР°РєРѕР№-С‚Рѕ Р°РЅРёРјР°С†РёРё, С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµРј true
+                if (m_AnimatorGuard.IsGallop())
                 {
-                    if (animatorStateInfo.normalizedTime >= sprintThresholdCount)
+                    if (m_AnimatorGuard.NormalizedTime() >= sprintThresholdCount)
                     {
                         print(m_Doll.name);
-                        Party.Instance.ChangeStamina(-1);
+                        m_Party.ChangeStamina(-1);
                         sprintThresholdCount++;
                     }
                 }
@@ -109,9 +118,9 @@ namespace GentianoseRealDolls
               
             }
                     
-            if (gaitState == 3 && Party.Instance.Stamina == 0 && isMoving)
+            if (gaitState == 3 && m_Party.Stamina == 0 && isMoving)
             {
-                Stop(); 
+                StopGait();
             }
 
          
@@ -141,33 +150,45 @@ namespace GentianoseRealDolls
             m_AtTransition = false;
         }
 
-        
+        #region Gait Motion
+
 
         public void Walk()
         {
             if (m_Doll.DollController.Sleeping) return;
-            m_Animator.SetInteger("Autom", gaitCodes[0]);
+            m_AnimatorGuard.SetAnimation(gaitCodes[0]);
             isMoving = true;
 
+            m_GaitAnimation = gaitCodes[0];
+
+            spaceShip.SetMaxLinearVelocity(gaitSpeeds[0]);
 
             MaybeSpecialGait();
         }
         public void SecondGait()
         {
-            //     print("Canter");
             if (m_Doll.DollController.Sleeping) return;
-            m_Animator.SetInteger("Autom", gaitCodes[1]);
+            m_AnimatorGuard.SetAnimation(2);
             isMoving = true;
+
+
+            m_GaitAnimation = gaitCodes[1];
+
+            spaceShip.SetMaxLinearVelocity(gaitSpeeds[1]);
 
             MaybeSpecialGait();
         }
 
         public void Gallop()
         {
-            if (Party.Instance.Stamina == 0) return;    
+            if (m_Party.Stamina == 0) return;    
             if (m_Doll.DollController.Sleeping) return;
-            m_Animator.SetInteger("Autom", gaitCodes[2]);
+            m_AnimatorGuard.SetAnimation(3);
             isMoving = true;
+
+            m_GaitAnimation = gaitCodes[2];
+
+            spaceShip.SetMaxLinearVelocity(gaitSpeeds[2]);
 
             MaybeSpecialGait();  
         }
@@ -177,111 +198,14 @@ namespace GentianoseRealDolls
             if (m_Doll.DollController.BattleManager.LesserSkillBuff && gaitCodes[3] != 0)
             {
                 print("Otter trot, bushbaby saltation");
-                m_Animator.SetInteger("Autom", 30);
+                m_AnimatorGuard.SetAnimation(30);
 
+                m_GaitAnimation = gaitCodes[3];
 
                 spaceShip.SetMaxLinearVelocity(gaitSpeeds[3]);
             }
-            
-        }
-
-        public void Stop()
-        {
-            if (m_Doll.DollController.Sleeping) return;
-            print("тпру"); 
-            if (m_Doll.DollController.BattleManager.LesserSkillBuff && gaitCodes[3] != 0)
-            {
-                m_Animator.SetInteger("Autom", 15);
-            }
-            else
-            {
-                m_Animator.SetInteger("Autom", 0);
-            }
-            isMoving = false;
 
         }
-        
-        public void StopGait()
-        {
-            var animatorStateInfo = m_Animator.GetCurrentAnimatorStateInfo(0);
-            // смотрим, есть ли в нем имя какой-то анимации, то возвращаем true
-            if ((animatorStateInfo.IsTag("++") ||
-               animatorStateInfo.IsTag("+++") ||
-               animatorStateInfo.IsTag("+")) && animatorStateInfo.normalizedTime >= 8.0f)
-                m_Doll.Sounds[7].Play();
-
-            Stop();
-
-        }
-
-
-
-         public void SetGaitText(Text text)
-         {
-            m_GaitText = text;
-         }
-
-        public void SetGaitState(int gs)
-        {
-            if (gs >= 1 && gs <= 3)
-            {
-
-                gaitState = gs;
-                spaceShip.SetMaxLinearVelocity(gaitSpeeds[gaitState - 1]);
-                //             UpdateText();
-                OnGaitTextUpdate(m_DollIndexInParty, gaitState);
-
-                switch (gs)
-                {
-                    case 1:
-                        Walk();
-                        break;
-                    case 2:
-                        SecondGait();
-                        break;
-                    case 3:
-                        Gallop();
-                        break;
-                }
-            }
-            else
-            {
-                print("This gait transmission is invalid");
-            }
-        }
-
-        public void UpGaitState(int dollIndex)
-        {
-            if (gaitState < 3)
-            {
-
-                gaitState++;
-                spaceShip.SetMaxLinearVelocity(gaitSpeeds[gaitState - 1]);
-                //             UpdateText();
-                //OnGaitTextUpdate(m_DollIndexInParty, gaitState);
-
-                OnGaitTextUpdate(dollIndex, gaitState);
-
-                print("цок");
-            }
-        }
-        public void DownGaitState(int dollIndex)
-        {
-            if (gaitState > 1)
-            {
-
-                gaitState--;
-                spaceShip.SetMaxLinearVelocity(gaitSpeeds[gaitState - 1]);
-                //   UpdateText();
-                // OnGaitTextUpdate(m_DollIndexInParty, gaitState);
-
-               OnGaitTextUpdate(dollIndex, gaitState);
-
-
-                print("фифю");
-            }
-        }
-
         public void StartGait()
         {
             print(gaitCodes[1]);
@@ -298,6 +222,7 @@ namespace GentianoseRealDolls
                 MaybeSpecialGait();
             }
 
+
             if (gaitState == 2)
             {
                 m_Doll.Sounds[1].Play();
@@ -307,6 +232,51 @@ namespace GentianoseRealDolls
             {
                 m_Doll.Sounds[2].Play();
             }
+            print("Doll sets its gait");
+
+            isMoving = true;
         }
+
+        public void StopGait()
+        {
+            // СЃРјРѕС‚СЂРёРј, РµСЃС‚СЊ Р»Рё РІ РЅРµРј РёРјСЏ РєР°РєРѕР№-С‚Рѕ Р°РЅРёРјР°С†РёРё, С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµРј true
+            if (m_AnimatorGuard.IsMotion() && m_AnimatorGuard.NormalizedTime() >= 8.0f)
+            
+                m_Doll.Sounds[7].Play();
+
+            if (m_Doll.DollController.Sleeping) return;
+
+            if (m_AnimatorGuard.IsIdle()) return;
+
+            print("С‚РїСЂСѓ");
+            if (m_Doll.DollController.BattleManager.LesserSkillBuff && gaitCodes[3] != 0)
+            {
+                m_AnimatorGuard.SetAnimation(9);
+            }
+            else
+            {
+                m_AnimatorGuard.SetAnimation(0);
+            }
+            isMoving = false;
+        }
+
+        #endregion
+
+        #region Gait Change
+
+        public void SetGaitState(int gs)
+        {
+            if (gs >= 1 && gs <= 3)
+            {
+                gaitState = gs;
+                spaceShip.SetMaxLinearVelocity(gaitSpeeds[gaitState - 1]);
+            }
+            else
+            {
+                print("This gait transmission is invalid");
+            }
+        }
+
+        #endregion
     }
 }
