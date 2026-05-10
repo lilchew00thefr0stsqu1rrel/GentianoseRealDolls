@@ -1,42 +1,48 @@
+using System;
 using UnityEngine;
+using VContainer;
 
 namespace GentianoseRealDolls
 {
     // Original name: Stove
     public class InteractableObject : MonoBehaviour
     {
-     
+        protected Dashboard m_Dashboard;
+
+        [Inject]
+        public void Construct(Dashboard obj)
+        {
+            m_Dashboard = obj;
+        }
+
         [Tooltip("0 - stove; 1 - table; 6 - resource; 7 - shop")]
         [SerializeField] protected int tipID = 0;
 
-      //  [SerializeField] private GameObject stoveUI;
-        private string interactTip = "Приготовить";
+
         private void OnTriggerEnter(Collider other)
         {
-            var doll = other.transform.root.GetComponent<DollController>();
-            if (doll != null && doll.ActiveDollInPartyStatus)
+            print("Yoink");
+            var partyWisp = other.GetComponent<Party>();
+            if (partyWisp != null)
             {
-                OnDollCome(doll);
+                m_Dashboard.ShowInteractTip(tipID);
+                OnDollCome(partyWisp);
             }
         }
 
         private void OnTriggerExit(Collider other)
         {
-            var doll = other.transform.root.GetComponent<DollController>();
-            if (doll != null)
+            var partyWisp = other.GetComponent<Party>();
+            if (partyWisp != null)
             {
-                OnDollGone(doll);
+                m_Dashboard.HideInteractTip();
+                OnDollGone(partyWisp);
             }
         }
 
-        protected virtual void OnDollCome(DollController doll)
-        {
-            Dashboard.Instance.ShowInteractTip(tipID);
-        }
-        protected virtual void OnDollGone(DollController doll)
-        {
-            Dashboard.Instance.HideInteractTip();
-        }
+        protected virtual void OnDollCome(Party p) { }
+        protected virtual void OnDollGone(Party p) { }
+
     }
 }
 
