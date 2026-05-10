@@ -12,7 +12,7 @@ using VContainer.Unity;
 
 namespace GentianoseRealDolls
 {
-    public class Party : MonoBehaviour, IParty
+    public class Party : MonoBehaviour
     {
         // TODO: сделать поля открытыми для UI
         // звери больше не зависят от UI, требования принципа DI
@@ -155,18 +155,16 @@ namespace GentianoseRealDolls
         private void Awake()
         {
             m_PartyMembers = new Doll[3];
-            m_Sleeps = new bool[3];
-            m_GaitMap = new int[3];
+            m_Sleeps = new bool[3] {false, false, false};
+            m_GaitMap = new int[3] {2, 2, 2} ;
 
-            StartCoroutine(TimeSave());
-            m_TimeDifference = m_TimePastStats.ReadTime();
+            //StartCoroutine(TimeSave());
+            //m_TimeDifference = m_TimePastStats.ReadTime();
         }
-
+        
         // Изменение шкал кукол по времени
         IEnumerator TimeSave()
         {
-            m_TimePastStats.RefreshTime();
-
             yield return new WaitUntil(() => DateTime.Now.Second == 59);
 
             yield return new WaitForSeconds(1);
@@ -179,7 +177,6 @@ namespace GentianoseRealDolls
 
         private void OnDestroy()
         {
-            m_TimePastStats.WriteTimeDestroy();
         }
 
         [SerializeField] float dH = 0.7f;
@@ -271,63 +268,70 @@ namespace GentianoseRealDolls
         // Интерфейс пользователя зависит от зверей, а не наоборот
         
 
-        public void InitDolls(int mapID, 
+        public void InitDolls(int mapID, List<float[]> dollData,
             AllDollCharacters adc, AllDollPositions adp, AllDollSleeps ads,
             long time)
         {
-            InitControllerDoll(mapID, adc, adp, ads, time);
+            InitControllerDoll(mapID, dollData, adc, adp, ads, time);
 
             TakeDollsToLastPoint(mapID);
 
             print("Pets are ready");
         }
 
-        public void InitDolls(int mapID,
+        public void InitDolls(int mapID, List<float[]> dollData,
             AllDollCharacters adc, AllDollPositions adp, AllDollSleeps ads,
             long time, Vector3 waypoint)
         {
-            InitControllerDoll(mapID,
+            InitControllerDoll(mapID, dollData,
             adc, adp, ads, time);
 
             PlaceSomeOrAllDolls(mapID, waypoint);
         }
 
-        private void InitControllerDoll(int mapID,
-            AllDollCharacters adc, AllDollPositions adp, AllDollSleeps ads,
+        private void InitControllerDoll(int mapID, List<float[]> dollData,
+            AllDollCharacters adc, 
+            AllDollPositions adp, AllDollSleeps ads,
             long time)
         {
 
+            m_TimeDifference = m_TimePastStats.ReadTime();
+
             sessionHouseMap++;
-
-
-            m_PartyList.Clear();
-            m_PartyControllerList.Clear();
-            print($"Welcome to location #{m_CurrentScene.LocationIndex}");
 
             adc.InitStats();
             adp.InitPositions();
             ads.InitSleeps();
 
+            m_PartyList.Clear();
+            m_PartyControllerList.Clear();
+            print($"Welcome to location #{m_CurrentScene.LocationIndex}");
+
+
             for (int i = 0; i < m_DollPrefabs.Length; i++)
             {
                 var doll = Instantiate(m_DollPrefabs[i]);
                 print($"Hello! I'm {doll.DollSpecies} My name is {doll.CharacterName}");
-                doll.DollController.ConstructDoll(adc, adp, ads, this);
+                doll.DollController.ConstructDoll(dollData, adc, adp, ads, this);
 
+                // Нужно ли уменьшать шкалы на время вне игры?
+                // В начале
+                if (sessionHouseMap <= 1)
+                    doll.DollController.TimeActionStats(time, i, adc, ads);
+                // При смене карты (домик/город)
+                if (sessionHouseMap > 1)
+                    doll.DollController.TakeStats(i, adc, ads);
 
                 m_PartyList.Add(doll);
                 m_PartyControllerList.Add(doll.DollController);
 
-                // Нужно ли уменьшать шкалы на время вне игры?
-                if (sessionHouseMap <= 1)
-                    doll.DollController.TimeActionStats(time, i);
-                if (sessionHouseMap > 1)
-                    doll.DollController.TakeStats(i);
 
                 doll.DollController.SetDollIndexInParty(i);
             }
 
             m_PartyMembers = m_PartyList.ToArray();
+
+            StartCoroutine(TimeSave());
 
             SetActiveDoll(0);
 
@@ -434,7 +438,11 @@ namespace GentianoseRealDolls
 
         public void ReducePartyStats()
         {
-            if (m_PartyMembers != null) print("NO DOLL");
+            if (m_PartyMembers == null)
+            {
+                print("NO DOLL");
+                return;
+            }
 
             foreach (var chrct in m_PartyMembers)
             {
