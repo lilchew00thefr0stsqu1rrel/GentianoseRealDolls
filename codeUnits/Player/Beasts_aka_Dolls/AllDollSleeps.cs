@@ -16,10 +16,10 @@ namespace GentianoseRealDolls
         private List<DollInBed> m_DollsInBedsList = new List<DollInBed>();
         [SerializeField] private DollInBed[] m_SleepsPut; 
         private string fileName = "dInBeds.dat";
+        [SerializeField] private List<bool> m_Sleeping;
         [Serializable]
         public class DollInBed
         {
-
             public int ID;
 
             public bool IsSleep;
@@ -28,8 +28,6 @@ namespace GentianoseRealDolls
             {
                 IsSleep = sleep;
             }
-
-
         }
 
         public event Action<bool> OnDollSleepStateChanged;
@@ -38,9 +36,26 @@ namespace GentianoseRealDolls
         {
 
 
+           //// Saver<DollInBed[]>.TryLoad(fileName, ref m_DollsInBeds);
+
+           //// m_DollsInBedsList = m_DollsInBeds.ToList();
+        }
+
+        public List<bool> ReadSleeping()
+        {
+
             Saver<DollInBed[]>.TryLoad(fileName, ref m_DollsInBeds);
 
             m_DollsInBedsList = m_DollsInBeds.ToList();
+
+            m_Sleeping = new List<bool>();
+            int i = 0;
+            foreach (var db in m_DollsInBedsList)
+            {
+                m_Sleeping.Add(m_DollsInBeds[i].IsSleep);
+                i++;
+            }
+            return m_Sleeping;
         }
 
         public void SetDollSleep(DollInBed dib)
@@ -68,16 +83,24 @@ namespace GentianoseRealDolls
             m_DollsInBeds = m_SleepsPut;
 
             Saver<DollInBed[]>.TryLoad(fileName, ref m_DollsInBeds);
+
+            m_DollsInBedsList = m_DollsInBeds.ToList();
         }
 
         public void WriteDollSleep(int id,  bool sleep)
         {
             m_DollsInBeds[id].SetSleepState(sleep);
-            Saver<DollInBed[]>.Save(fileName, m_DollsInBeds);
 
+            m_DollsInBedsList = m_DollsInBeds.ToList();
+            m_Sleeping = new List<bool>();
+            int i = 0;
+            foreach (var db in m_DollsInBedsList)
+            {
+                m_Sleeping.Add(m_DollsInBeds[i].IsSleep);
+                i++;
+            }
 
-
-
+            SaveAllDolls();
         }
         
 
