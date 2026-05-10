@@ -8,7 +8,7 @@ using VContainer;
 
 // This script is primary gate to Dollia
 
-public class TeleportBeasts : MonoBehaviour,  ISceneGate
+public class TeleportBeasts : MonoBehaviour, ISceneGate
 {
     [SerializeField] private StringCoordinates stringCoordinates;
     [SerializeField] private CurrentSceneData currentScene;
@@ -22,14 +22,23 @@ public class TeleportBeasts : MonoBehaviour,  ISceneGate
 
     [SerializeField] private Party m_Party;
 
-    
-    
+
+
 
     [SerializeField] private string[] m_Houses = new string[]
     {
         "02+00764,4+00024,7+00759,4",
         "02+01123,4+00029,6+01453,2"
     };
+
+    [SerializeField]
+    private string[] m_Beds = new string[]
+    {
+        "01+00001,2+00004,0+00002,8",
+        "01+00001,2+00004,0-00000,4",
+        "01+00004,8+00000,5-00001,5"
+    };
+    public string[] Beds=> m_Beds;
 
     [Inject]
     public void Construct(AllDollCharacters obj)
@@ -60,7 +69,7 @@ public class TeleportBeasts : MonoBehaviour,  ISceneGate
                 SceneManager.LoadScene(city);
 
                 m_Party.InitDolls(SceneHelper.SceneToLevel(city), m_AllCharacters.ReadStats(),
-                    m_AllCharacters, m_AllPositions, m_AllSleeps, 0);
+                    m_AllCharacters, m_AllPositions, m_AllSleeps.ReadSleeping(), m_AllSleeps, 0);
             }
 
             //  При перемещении в пределах домика
@@ -102,7 +111,8 @@ public class TeleportBeasts : MonoBehaviour,  ISceneGate
 
         print("~~~!!!!~~~~" + m_AllCharacters.ReadStats()[0][0]);
 
-        m_Party.InitDolls(levelID, m_AllCharacters.ReadStats(), m_AllCharacters, m_AllPositions, m_AllSleeps, m_TimePastStats.ReadTime());
+        m_Party.InitDolls(levelID, m_AllCharacters.ReadStats(), m_AllCharacters, m_AllPositions,
+            m_AllSleeps.ReadSleeping(), m_AllSleeps, m_TimePastStats.ReadTime());
         
         currentScene.SetLocationIndex(levelID);
 
