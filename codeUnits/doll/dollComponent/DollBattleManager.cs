@@ -23,7 +23,7 @@ namespace GentianoseRealDolls
         [SerializeField] private DollPart m_LesserSkillPart;
         [SerializeField] private Turret m_AnusTurret;
 
-        [Header("Params")]
+        [Header("***")]
 
         private GRDTimer chargedTimer;
         [SerializeField] private float m_ChargedAttackTime = 0.592f;
@@ -46,17 +46,8 @@ namespace GentianoseRealDolls
         private float m_AnalSphincterTimer = 0;
         private bool m_AtSpray = false;
 
-        private bool m_ToNormalAttack;
-        
-
-        private GRDPlayer player;
-        private SkillState m_CurrentSkill;
 
         public float SprayChargeAmount => m_AnalSphincterTimer / m_SprayTime;
-
-        //[SerializeField] private Animator m_Animator;
-
-        new Rigidbody rigidbody;
 
         public event Action OnTakeSprayStance;
         public event Action OnEndSprayStance;
@@ -85,7 +76,6 @@ namespace GentianoseRealDolls
             m_AttackPart.SetAimInput(aimInput);
         }
 
-
         public void AssignTurretCamera(Camera cam)
         {
             if (m_AttackPart is Turret)
@@ -95,8 +85,6 @@ namespace GentianoseRealDolls
             if (m_AnusTurret)
                 m_Doll.AnusNipplesTurret.SetCamera(cam);
         }
-
-     //   [SerializeField] private Doll m_Doll; 
         
         public event Action<float> OnUpdateCooldownTime;
         public Action<float> UpdateCooldown(float time)
@@ -108,46 +96,35 @@ namespace GentianoseRealDolls
         }
         private void Awake()
         {
-          //  m_CurrentDoll = transform.parent.GetComponent<Doll>();
         }
        
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-            player = Player.Instance as GRDPlayer;
-  //          m_Doll = player.ActiveDoll;
-
-            
-            rigidbody = gameObject. transform.parent.GetComponent<Rigidbody>();
             OnUpdateCooldownTime += UpdateCooldown(m_Cooldown);
-            
         }
         private bool _;
 
         public float AnimationNormalizedTime(string animationTag)
         {
-            if (!m_AnimatorGuard) return 0;
+            if (!m_AnimatorGuard)
+            {
+                print("NO ANIMATion GUard");
+                return 0;
+            }
 
             if (m_AnimatorGuard.IsTag(animationTag))
                 return m_AnimatorGuard.NormalizedTime();
             return 0f;
         }
 
-
-        int m_CenterOfMassIndex = 0;
-        
-        
-
-
         // Update is called once per frame
-       protected override void Run()
+        protected override void Run()
         {
-
             if (AnimationNormalizedTime("ls") >= 1.0f)
             {
                 Idle();
             }
-
 
             if (AnimationNormalizedTime(".") >= 1.0f)
             {
@@ -156,6 +133,7 @@ namespace GentianoseRealDolls
                 else
                     Idle();
             }
+
             if (AnimationNormalizedTime("-") >= 1.0f)
             {
                 if (m_LesserSkillBuff)
@@ -167,7 +145,6 @@ namespace GentianoseRealDolls
             if (m_BeforeChargedAttack)
             {
                 m_ChargingTimerCA += Time.deltaTime;
-
 
                 if (m_ChargingTimerCA >= m_ChargedAttackTime)
                 {
@@ -186,35 +163,15 @@ namespace GentianoseRealDolls
                     EndGreaterSkill(m_AimInput);
                 }
             }
-
-         
-            if (m_Doll)
-            {
-
-            }
-
-
-
-            
         }
 
         public void Idle()
         {
             m_Doll.DollController.SetIdle();
-            m_CenterOfMassIndex = 0;
-
-
-            //m_Animator.SetBool("TailUp", false);
         }
         public void LesserSkIdle()
         {
-            // m_Animator.SetInteger("Autom", 15);
-            m_CenterOfMassIndex = 0;
-        }
-
-        IEnumerator WaitForCooldown()
-        {
-            yield return new WaitForSeconds(m_AttackCooldown);
+            m_AnimatorGuard.SetAnimation(9);
         }
 
         bool attackAtCooldown = false;
@@ -280,23 +237,23 @@ namespace GentianoseRealDolls
 
         public void EnterSprayMode()
         {
-            m_Doll.State = 4;
-            m_AnimatorGuard.SetAnimation(SprayStanceID);
-            //m_Animator.SetBool("TailUp", true);
-            MoveInputController.mouseTorque = false;
-            //print(OnTakeSprayStance != null);
-           // OnTakeSprayStance.Invoke();
+           // m_Doll.State = 4;
+           // m_AnimatorGuard.SetAnimation(SprayStanceID);
+           // //m_Animator.SetBool("TailUp", true);
+           // MoveInputController.mouseTorque = false;
+           // //print(OnTakeSprayStance != null);
+           //// OnTakeSprayStance.Invoke();
         }
 
         public void ExitSprayMode()
         {
-            m_Doll.State = 0;
-            m_AnimatorGuard.SetAnimation(0);
-            m_Doll.DollController.SetIdle();
-            //m_Animator.SetBool("TailUp", false);
-            MoveInputController.mouseTorque = true;
+            //m_Doll.State = 0;
+            //m_AnimatorGuard.SetAnimation(0);
+            //m_Doll.DollController.SetIdle();
+            ////m_Animator.SetBool("TailUp", false);
+            //MoveInputController.mouseTorque = true;
 
-            //OnEndSprayStance.Invoke();
+            ////OnEndSprayStance.Invoke();
         }
 
 
@@ -312,10 +269,8 @@ namespace GentianoseRealDolls
         private void NormalAttack(Vector2 aimInput)
         {
             m_AnimatorGuard.SetAnimation(7);
-            m_CenterOfMassIndex = 1;
             m_AtNormalAttack = true;
             m_Doll.Sounds[1].Play();
-
 
             m_AttackPart.Use(aimInput);
 
@@ -325,13 +280,10 @@ namespace GentianoseRealDolls
         IEnumerator ChargedAttackTime()
         {
             yield return new WaitForSeconds(m_ChargingTimerCA);
-
-            
         }
         IEnumerator OffTime(float time)
         {
             yield return new WaitForSeconds(time);
-
 
             if (m_AtChargedAttack)
             {
@@ -347,11 +299,7 @@ namespace GentianoseRealDolls
         }
         private void ChargedAttack(Vector2 aimInput)
         {
-
-
             m_AnimatorGuard.SetAnimation(8);
-            m_CenterOfMassIndex = 1;
-
 
             (m_AttackPart as Turret).AssignLoadout(m_CATurretProps);
             (m_AttackPart as Turret).SetProjProps(m_AlternativeProjectileProps);
@@ -359,15 +307,10 @@ namespace GentianoseRealDolls
             (m_AttackPart as Turret).AssignLoadout(m_TurretProps);
             (m_AttackPart as Turret).SetProjProps(m_ProjectileProps);
 
-
             m_AnimatorGuard.SetAnimation(14);
-
-            ///
-           
 
             m_AtChargedAttack = true;
             m_Doll.Sounds[2].Play();
-
 
             StartCoroutine(OffTime(m_ChargedAttackAnimationTime));
         }
@@ -395,7 +338,9 @@ namespace GentianoseRealDolls
         [SerializeField] private float m_BuffDuration = 10;
 
 
-      
+        private float m_LesserSkillCooldownTime;
+        public float LesserSkillCooldownTime => m_LesserSkillCooldownTime;
+
         public void LesserSkill()
         {
             print("Lesser"); 
@@ -409,6 +354,7 @@ namespace GentianoseRealDolls
                 StartCoroutine(EffectTimer());
                 m_LesserSkillBuff = true;
                 StartCoroutine(FlehmenCDSkill());
+                m_LesserSkillCooldownTime = m_Cooldown;
             }
 
             IEnumerator FlehmenCDSkill()
@@ -417,11 +363,12 @@ namespace GentianoseRealDolls
                 m_FlehmenCooldown = true;
                 for (int i = 0; i < m_Cooldown; i++)
                 {
-                    OnUpdateCooldownTime(m_Cooldown - i);
+                    //OnUpdateCooldownTime(m_Cooldown - i);
+                    m_LesserSkillCooldownTime--;
                     yield return new WaitForSeconds(1);
                 }
                 m_FlehmenCooldown = false;
-                m_Dashboard.Btn();
+              //  m_Dashboard.Btn();
                 print("Flehmen free");
             }
 

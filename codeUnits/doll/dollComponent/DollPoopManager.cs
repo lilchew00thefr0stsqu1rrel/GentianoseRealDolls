@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
+using NTC.Pool;
 
 namespace GentianoseRealDolls
 {
@@ -12,29 +13,18 @@ namespace GentianoseRealDolls
 //    [RequireComponent(typeof(Doll))]
 
     /// <summary>
-    /// Зверёк ходит в туалет
-    /// В данной вселенной приматы, отличные от человека
-    /// тоже ходят в уборную в определённом месте
+    /// Р—РІРµСЂС‘Рє С…РѕРґРёС‚ РІ С‚СѓР°Р»РµС‚
+    /// Р’ РґР°РЅРЅРѕР№ РІСЃРµР»РµРЅРЅРѕР№ РїСЂРёРјР°С‚С‹, РѕС‚Р»РёС‡РЅС‹Рµ РѕС‚ С‡РµР»РѕРІРµРєР°
+    /// С‚РѕР¶Рµ С…РѕРґСЏС‚ РІ СѓР±РѕСЂРЅСѓСЋ РІ РѕРїСЂРµРґРµР»С‘РЅРЅРѕРј РјРµСЃС‚Рµ
     /// </summary>
     public class DollPoopManager : DollComponent
     {
-        //[Serializable]
-        //private class PoopPosition
-        //{
-        //    public float x, y, z;
-            
-        //    public PoopPosition(Vector3 position)
-        //    {
-        //        this.x = position.x;
-        //        this.y = position.y;
-        //        this.z = position.z;
-        //    }
 
-        //}
+        [SerializeField] private Turret m_AnusTurret;
 
-        ////private List<GameObject> m_PooList;
-        //private List<PoopPosition> m_PooPositions;
+        [SerializeField] private Turret m_PeeTurret;
 
+        [SerializeField] private GameObject m_PeeSpotPrefab;
 
         //private PoopPosition[] m_PooPosArray = new PoopPosition[31];
         private float poopOffset = -0.013f;
@@ -48,37 +38,25 @@ namespace GentianoseRealDolls
         private Transform m_Anus;
       //  [SerializeField] private Animator m_Animator;
 
+
         bool m_IsPooping = false;
         public bool IsPooping => m_IsPooping;
 
         private float minPooPointsToPoop = 6.6f;
 
+
         private void Start()
         {
             t = new GRDTimer(5);
-
-            
-                //m_ActiveDoll = transform.parent.GetComponent<Doll>();
-            m_Anus = m_Doll.AnusNipplesTurret.transform;
-
-            //foreach (var poop in m_PooList)
-            //{
-            //    var pos = poop.transform.position;
-            //    m_PooPositions.Add(new PoopPosition(pos.x, pos.y, pos.z));
-            //}
-            ps = PoopStore.Instance;
-
-            //m_Animator = GetComponentInChildren<Animator>();
-
         }
 
         public event Action OnPoopDeposit;
 
-        PoopStore ps;
+        [SerializeField] private PoopStore ps;
 
-        public void SetPoopStore()
+        public void SetPoopStore(PoopStore poopStore)
         {
-            ps = PoopStore.Instance;
+            ps = poopStore;
         }
 
         public void Poop()
@@ -92,7 +70,8 @@ namespace GentianoseRealDolls
 
                 for (int i = 0; i < poopNumber; i++)
                 {
-                    var poop = Instantiate(m_PoopPrefab, m_Anus.position + new Vector3(0, i * poopOffset, 0), transform.rotation);
+                    var poop = NightPool.Spawn(m_PoopPrefab, 
+                        m_AnusTurret.transform.position + new Vector3(0, i * poopOffset, 0), transform.rotation);
                     poop.GetComponent<Poop>().InitPoop(m_Doll.Asset);
                     ps.AddPoop(poop);
                 }
@@ -106,17 +85,11 @@ namespace GentianoseRealDolls
         private void Update()
         {
             UpdatePoop();
-
-            if (Input.GetKeyUp(KeyCode.F3))
-            {
-                ToPoop();
-            }
         }
 
         private float timer = 0;
         private bool addTime = false;
 
-       // public bool OnPoop { get; internal set; }
 
         IEnumerator WaitEndPooPee()
         {
@@ -136,8 +109,8 @@ namespace GentianoseRealDolls
                 {
                     Poop();
 
-                    // Выделяем фуньку на каку
-                    m_Doll.CareToiletStat(ToiletStat.AnalSpray, -m_Doll.AnalGlandVolume / 37);
+                    // Р’С‹РґРµР»СЏРµРј С„СѓРЅСЊРєСѓ РЅР° РєР°РєСѓ
+                    m_Doll.CareToiletStat(ToiletStat.AnalSpray, -m_Doll.AnalGlandVolume / 37.0f);
                     m_IsPooping = false;
                     EndPee();
                     addTime = true;
@@ -172,27 +145,7 @@ namespace GentianoseRealDolls
             yield return new WaitForSeconds(0.2f);
             m_AfterLiftTail = true;
         }
-
-        public void UpdateCooldown(string inputType, float cooldownTime, Action actionStart, Action actionEnd)
-        {
-            if (timer == 0 && Input.GetKeyDown(KeyCode.T))
-            {
-                actionStart();
-                addTime = true;
-            }
-
-            if (addTime)
-            {
-                timer += Time.deltaTime;
-            }
-
-            if (Input.GetKeyDown(KeyCode.T) && timer >= 0.4f)
-            {
-                actionEnd();
-                addTime = false;
-                timer = 0;
-            }
-        }
+        
 
         private void StartPosePoop()
         {
@@ -200,8 +153,8 @@ namespace GentianoseRealDolls
             FindFirstObjectByType<FollowCamera>().Turn(-1);
 
             m_Doll.State = 5;
-            m_Animator.SetInteger("Autom", 5);
-            m_Animator.SetBool("TailUp", true);
+            m_AnimatorGuard.SetAnimation(5);
+           // m_Animator.SetBool("TailUp", true);
 
             //  OnPoop = true;
             print("st");
@@ -215,39 +168,10 @@ namespace GentianoseRealDolls
 
             m_Doll.State = 0;
 
-            m_Animator.SetInteger("Autom", 0);
-            m_Animator.SetBool("TailUp", false);
+            m_AnimatorGuard.SetAnimation(0);
 
-            //OnPoop = false;
             print("end");
             PoopStore.SavePoop();
-        }
-
-        private void LiftTail()
-        {
-            
-            FindFirstObjectByType<FollowCamera>().BirdEye();
-
-            m_Doll.State = 6;
-
-            //m_Animator.SetInteger("Autom", 6);
-
-            m_Animator.SetTrigger("TailUp");
-
-        }
-
-
-        private void DownTail()
-        {
-
-            FindFirstObjectByType<FollowCamera>().ReBirdEye();
-
-            m_Doll.State = 0;
-
-            //m_Animator.SetInteger("Autom", 6);
-
-            m_Animator.ResetTrigger("TailUp");
-
         }
 
         public void ToPoop()
@@ -257,8 +181,6 @@ namespace GentianoseRealDolls
                 StartPosePoop();
                 m_IsPooping = true;
                 t.Start(5);
-
-                //m_ActiveDoll.StartPee();
 
                 StartCoroutine(BurstPee());
 
@@ -303,42 +225,16 @@ namespace GentianoseRealDolls
            
         }
 
-        public void ToLiftTail()
-        {
-            if (!m_AfterLiftTail)
-            {
-                LiftTail();
-                //  addTime = true;
-                StartCoroutine(WaitLiftTail());
-            }
-           
-        }
-
-        public void OutLiftTail()
-        {
-            if (m_AfterLiftTail)
-            {
-                DownTail();
-
-
-                m_AfterLiftTail = false;
-            }
-           
-        }
 
         public void ToPee()
         {
             StartPee();
         }
 
-        [SerializeField] private Turret m_PeeTurret;
-
-        [SerializeField] private GameObject m_PeeSpotPrefab;
-
         public void StartPee()
         {
             m_Doll.Sounds[9].Play();
-            m_PeeTurret.Fire();
+            m_PeeTurret.Fire(Vector2.zero);
 
             RaycastHit[] hit = Physics.RaycastAll(m_PeeTurret.transform.position, m_PeeTurret.transform.forward, 0.3f);
 

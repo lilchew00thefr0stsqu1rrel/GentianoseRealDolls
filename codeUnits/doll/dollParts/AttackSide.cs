@@ -2,108 +2,97 @@ using GentianoseRealDolls;
 using SpaceShooter;
 using UnityEngine;
 
-public class AttackSide : MonoBehaviour
+namespace GentianoseRealDolls
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start() 
-    { 
-    }
-    Collider[] targets;
 
-    [SerializeField] private bool m_SprayType;
-
-
-
-    [SerializeField] private int m_StatusID;
-
-    [SerializeField] private int m_AttackDamage;
-
-    [SerializeField] private float m_CooldownDuration = 0.1f;
-
-    [SerializeField] private bool m_BelongsToDoll;
-
-    private float m_Time;
-
-    private bool m_Cooldown;
-    // Update is called once per frame
-    void Update()
+    public class AttackSide : DollPart
     {
-        if (m_Cooldown)
+
+        [SerializeField] private Collider m_AttackTrigger;
+
+        public override void Use(Vector2 aimInput)
         {
-            m_Time += Time.deltaTime;
-            if (m_Time > m_CooldownDuration)
-            {
-                m_Cooldown = false;
-                m_Time = 0;
-            }
-            
+            m_AttackTrigger.enabled = true;   
         }
-       
-       
-      
-    }
 
-    public void SetDamage(int damage)
-    {
-        m_AttackDamage = damage;
-    }
+        [SerializeField] private bool m_SprayType;
 
-    public void SetParent(Destructible destructible)
-    {
-       parent = destructible;
-    }
+        [SerializeField] private int m_StatusID;
 
-    [SerializeField] private Destructible parent;
+        [SerializeField] private int m_AttackDamage;
 
-    [SerializeField] private float m_Multiplier = 1;
- 
-    private void OnTriggerEnter(Collider other)
-    {
-        print("cll");
-        if (parent == null) return;
+        [SerializeField] private float m_CooldownDuration = 0.1f;
 
-        
-        if (other != null &&
+        [SerializeField] private bool m_BelongsToDoll;
 
-                // если не попадает коллайдер лечащего поля куклы
-                !other.isTrigger)
+        private float m_Time;
+
+        private bool m_Cooldown;
+        // Update is called once per frame
+        void Update()
         {
-            Destructible dest = other.transform.root.GetComponent<Destructible>();
-
-            if (dest != null)
+            if (m_Cooldown)
             {
-                
-
-                if (m_BelongsToDoll && !dest.GetComponent<Doll>() || !m_BelongsToDoll)
+                m_Time += Time.deltaTime;
+                if (m_Time > m_CooldownDuration)
                 {
-                    if (dest != parent)
+                    m_Cooldown = false;
+                    m_Time = 0;
+                }
+            }
+        }
+
+        public void SetDamage(int damage)
+        {
+            m_AttackDamage = damage;
+        }
+
+        public void SetParent(Destructible destructible)
+        {
+            parent = destructible;
+        }
+
+        [SerializeField] private Destructible parent;
+
+        [SerializeField] private float m_Multiplier = 1;
+ 
+        private void OnTriggerEnter(Collider other)
+        {
+            print("cll");
+            if (parent == null) return;
+
+
+            // если попадает именно коллайдер твёрдости, а не лечащего поля куклы
+            if (other != null && !other.isTrigger)
+            {
+                Destructible dest = other.transform.root.GetComponent<Destructible>();
+
+                if (dest != null)
+                {
+                    if (m_BelongsToDoll && !dest.GetComponent<Doll>() || !m_BelongsToDoll)
                     {
-                        if (!m_Cooldown)
+                        if (dest != parent)
                         {
-                            if (m_SprayType)
+                            if (!m_Cooldown)
                             {
-                                dest.ApplyDamage(m_AttackDamage);
-                                dest.ApplyDebuff(m_StatusID, m_Multiplier, 14);
-                                m_Cooldown = true;
-                            }
-                            else
-                            {
-                                dest.ApplyDamage(m_AttackDamage);
-                                m_Cooldown = true;
+                                if (m_SprayType)
+                                {
+                                    dest.ApplyDamage(m_AttackDamage);
+                                    dest.ApplyDebuff(m_StatusID, m_Multiplier, 14);
+                                    m_Cooldown = true;
+                                }
+                                else
+                                {
+                                    dest.ApplyDamage(m_AttackDamage);
+                                    m_Cooldown = true;
+                                }
                             }
                         }
-
-
-
                     }
                 }
-                    
+
             }
-
-
         }
     }
-       
-
 }
 

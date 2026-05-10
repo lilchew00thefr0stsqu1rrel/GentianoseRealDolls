@@ -107,9 +107,20 @@ public class SceneHelper : MonoBehaviour
 
             Vector3 pos = new Vector3(x, y, z);
 
-            if (index != SceneToLevel(city))
+            print(" City "+ sceneToLevel[city]);
+            //  откуда                          куда
+            if (Party.Instance.LocationIndex != SceneToLevel(city))
             {
+
                 SceneManager.LoadScene(city);
+
+                Party.Instance.PlaceDolls(1, pos);
+            }
+
+            //  ѕри перемещении в пределах домика
+            if (Party.Instance.LocationIndex == SceneToLevel(city))
+            {
+                Party.Instance.PlaceSomeDolls(1, pos);
             }
 
             print("City: " + city + "  Legend: 1: Rusikova, 2: Kukly, 3: Punova");
@@ -119,9 +130,8 @@ public class SceneHelper : MonoBehaviour
 
 
 
-            Party.Instance.PlaceDolls(1, pos);
 
-            if (city == 1)
+            if (city == 1 || city == 3)
             {
                 GameMode = Mode.Habitat;
             }

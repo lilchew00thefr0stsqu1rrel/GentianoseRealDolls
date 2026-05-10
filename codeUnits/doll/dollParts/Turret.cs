@@ -36,16 +36,24 @@ namespace GentianoseRealDolls
              
             m_Ship = transform.root.GetComponent<SpaceShip>();
         }
+        Vector2 m_AimInput;
 
+        public override void SetAimInput(Vector2 aimInput)
+        {
+            m_AimInput = aimInput;
+        }
         private void Update()
         {
             if (m_RefireTimer > 0)
                 m_RefireTimer -= Time.deltaTime;
             else if (Mode == TurretMode.Auto)
             {
-                Fire();                
+                Fire(m_AimInput);                
             }
         }
+
+
+
 
         #endregion
 
@@ -58,65 +66,10 @@ namespace GentianoseRealDolls
             Direct
         }
 
-        [SerializeField] private TurretTrajectory m_Trajectory; 
-
-        // стар. 
-        public void Fire()
+        [SerializeField] private TurretTrajectory m_Trajectory;
+        public override void Use(Vector2 a)
         {
-            if (m_TurretProperties == null) return;
-
-            if (m_RefireTimer > 0) return;
-
-            if (m_Ship)
-            {
-                if (m_Ship.DrawEnergy(m_TurretProperties.EnergyUsage) == false)
-                    return;
-
-                if (m_Ship.DrawAmmo(m_TurretProperties.AmmoUsage) == false)
-                    return;
-            }
-
-            if (m_Trajectory == TurretTrajectory.Thorn)
-            {
-                var aim = m_Camera.ScreenToWorldPoint(new Vector3(
-                Input.mousePosition.x, Input.mousePosition.y, m_ZOffsetAimSpray),
-                Camera.MonoOrStereoscopicEye.Mono);
-                var aimedVector = aim - transform.position;
-
-                // Направление фуньки
-                print(Vector3.Angle(aimedVector, transform.forward));
-
-                transform.forward = aimedVector;
-            }
-           
-
-
-            if (m_Trajectory == TurretTrajectory.Direct)
-            {
-
-
-                var aimedVector = m_Ship.transform.forward;
-                aimedVector.y = 0.3f;
-                transform.forward = aimedVector;
-            }
-
-
-            Projectile projectile = NightPool.Spawn(m_TurretProperties.ProjectilePrefab).GetComponent<Projectile>();
-            projectile.SetProperties(m_ProjectileProperties);
-            projectile.transform.position = transform.position;
-            projectile.transform.forward = transform.forward;
-
-
-
-            projectile.SetParentShooter(m_Ship);
-            projectile.SetAoEParent(m_Ship);
-            m_RefireTimer = m_TurretProperties.RateOfFire;
-
-              
-
-            {
-                // SFX
-            }
+            Fire(a);
         }
 
         // Нов.
@@ -152,8 +105,6 @@ namespace GentianoseRealDolls
 
             if (m_Trajectory == TurretTrajectory.Direct)
             {
-
-
                 var aimedVector = m_Ship.transform.forward;
                 aimedVector.y = 0.3f;
                 transform.forward = aimedVector;

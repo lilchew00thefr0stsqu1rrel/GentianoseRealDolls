@@ -1,0 +1,47 @@
+using UnityEngine;
+
+namespace GentianoseRealDolls
+{
+    public class ThrowBeastsToScene : MonoBehaviour
+    {
+        public enum HouseRoute
+        {
+            Kukly1Enter,
+            Kukly1Exit,
+            Kukly2Enter,
+            Kukly2Exit,
+            SanArle1Enter,
+            SanArle1Exit,
+            SanArle2Enter,
+            SanArle2Exit,
+        }
+
+        [SerializeField] private int m_DestinLocationID;
+        [SerializeField] private HouseRoute m_HouseRoute;
+
+        [SerializeField] private string m_KuklyHouse2 = "02+01123,4+00029,6+01453,2";
+
+        private void OnTriggerEnter(Collider other)
+        {
+            DollController doll = other.transform.root.GetComponent<DollController>();
+            // если попадает коллайдер куклы
+            if (doll != null &&
+
+                // если попадает коллайдер а к т и в н о й куклы
+                doll.ActiveDollInPartyStatus &&
+
+                // если не попадает коллайдер лечащего поля куклы
+                !other.isTrigger)
+            {
+
+                if (m_DestinLocationID == 0)
+                    SceneHelper.EnterHouse();
+                if (m_DestinLocationID == 1)
+                    SceneHelper.ExitHouse();
+                if (m_HouseRoute == HouseRoute.Kukly2Exit)
+                    SceneHelper.TeleportLng(m_KuklyHouse2);
+            }
+        }
+    }
+}
+

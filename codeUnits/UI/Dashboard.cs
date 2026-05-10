@@ -1,326 +1,380 @@
-
+using GentianoseRealDolls;
+using SpaceShooter;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
 
-namespace GentianoseRealDolls
+public enum UIType
 {
-    public class Dashboard : SingletonBase<Dashboard>
+    World,
+    Inventory,
+    Stove,
+    Map,
+    Shop
+}
+
+public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
+{
+    ////[Inject]
+    //public void Construct(CurrentSceneData obj)
+    //{
+    //    currentScene = obj;
+    //}
+
+    [SerializeField] private Party m_Party;
+    [SerializeField] CurrentSceneData currentScene;
+    [SerializeField] private HabitatInterface habitatUI;
+    [SerializeField] private CombatDashboard combatUI;
+    public CombatDashboard CombatUI => combatUI;
+    [SerializeField] private InventoryDisplay inventoryDisplay;
+    [SerializeField] private GameObject stoveUI;
+    [SerializeField] private GameObject m_ShopDisplay;
+    [SerializeField] private GameObject m_Map;
+
+    public event Action<UIType> ChangeWindow;
+
+    private Dictionary<int, string> interactStrings;
+
+    [SerializeField] private GaitDisplay m_GaitDisplay;
+
+
+    [SerializeField] private GameObject interactTip;
+    public bool InteractTipActive => interactTip.activeSelf;
+    [SerializeField] private Text interactText;
+
+    [SerializeField] private GiveResource m_ResourceTree;
+
+    [SerializeField] private GameObject[] m_ActiveDollIndic;
+
+    [SerializeField] private GameObject[] m_DollSleepIndic;
+
+    [SerializeField] private Image m_StaminaImageFill;
+
+    private Doll m_CurrentDoll;
+    [SerializeField] private DollController m_CurrentDollController;
+    [SerializeField] private int m_ActiveDollIndexInParty;
+
+    [SerializeField] private GameObject m_VirtualGamepad;
+
+    public void Show(GameObject ui)
     {
-        [SerializeField] private HabitatInterface habitatUI;
-        [SerializeField] private CombatDashboard combatUI;
+        ui.SetActive(true);
+    }
+    public void Hide(GameObject ui)
+    {
+        ui.SetActive(false);
+    }
 
-        public event Action<UIType> ChangeWindow;
+    private IEnumerator UpdateUI()
+    {
+        yield return new WaitForSeconds(0.5f);
 
-        private Dictionary<int, string> interactStrings;
+        habitatUI.UpdateDash();
+        combatUI.UpdateDash();
 
-        [SerializeField] private GaitDisplay m_GaitDisplay;
-        [SerializeField] private GameObject m_Map;
+        m_GaitDisplay.UpdateGaitDisplay(m_Party.GaitMap);
 
-        [SerializeField] private InventoryDisplay inventoryDisplay;
+        StartCoroutine(UpdateUI());
 
-        [SerializeField] private GameObject interactTip;
-        [SerializeField] private Text interactText;
 
-        [SerializeField] private GiveResource m_ResourceTree;
-        [SerializeField] private GameObject m_ShopDisplay;
+    }
 
-        [SerializeField] private GameObject[] m_ActiveDollIndic;
+    public void InitDoll()
+    {
+        m_CurrentDoll = m_Party.ActiveDoll;
+        m_CurrentDollController = m_Party.ActiveDoll.DollController;
+        habitatUI.SetCurrentDoll(m_CurrentDoll);
+        combatUI.SetDoll(m_CurrentDoll);
 
-        [SerializeField] private GameObject[] m_DollSleepIndic;
-
-        [SerializeField] private Image m_StaminaImageFill;
-
-        private Doll m_CurrentDoll;
-        [SerializeField] private DollController m_CurrentDollController;
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
+        for (int i = 0; i < m_Party.PartyDollSleeps.Length; i++)
         {
-            interactStrings = new Dictionary<int, string>()
-            {
-                [0] = "Приготовить",
-                [1] = "Сесть за стол",
-                [2] = "Покинуть чалку",
-                [3] = "Войти в чалку",
-                [4] = "Спать",
-                [5] = "Встать",
-                [6] = "<предмет>",
-                [7] = "Лавка мыши",
-                [8] = "Купаться",
-                [9] = "Чистить зубы",
-            };
+            SetSleepDoll(i, m_Party.PartyDollSleeps[i]);
+        }
+    }
 
-            //m_CurrentDoll = Party.Instance.ActiveDoll;
+    //void UpdateDash()
+    //{
+    //    habitatUI.UpdateDash();   
+    //}
 
-            StartCoroutine(LoadAllWhoo());
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+
+        interactStrings = new Dictionary<int, string>()
+        {
+            [0] = "РџСЂРёРіРѕС‚РѕРІРёС‚СЊ",
+            [1] = "РЎРµСЃС‚СЊ Р·Р° СЃС‚РѕР»",
+            [2] = "РџРѕРєРёРЅСѓС‚СЊ С‡Р°Р»РєСѓ",
+            [3] = "Р’РѕР№С‚Рё РІ С‡Р°Р»РєСѓ",
+            [4] = "РЎРїР°С‚СЊ",
+            [5] = "Р’СЃС‚Р°С‚СЊ",
+            [6] = "<РїСЂРµРґРјРµС‚>",
+            [7] = "Р›Р°РІРєР° РјС‹С€Рё",
+            [8] = "РљСѓРїР°С‚СЊСЃСЏ",
+            [9] = "Р§РёСЃС‚РёС‚СЊ Р·СѓР±С‹",
+        }; StartCoroutine(LoadAllWhoo());
 
 
-            inventoryDisplay.gameObject.SetActive(false);
-            m_ShopDisplay.SetActive(false);
-            stoveUI.SetActive(false);
-            m_Map.SetActive(false);
+        inventoryDisplay.gameObject.SetActive(false);
+        m_ShopDisplay.SetActive(false);
+        stoveUI.SetActive(false);
+        m_Map.SetActive(false);
 
-            for (int i = 0; i < m_ActiveDollIndic.Length; i++)
-            {
-                m_ActiveDollIndic[i].SetActive(false);
-            }
-
+        for (int i = 0; i < m_ActiveDollIndic.Length; i++)
+        {
+            m_ActiveDollIndic[i].SetActive(false);
         }
 
-        public void ShowActiveDoll(int index)
-        {
-            m_ActiveDollIndic[index].SetActive(true);
+        m_Party.OnActiveDollChanged += ShowActiveDoll;
 
-            for (int i = 0; i < m_ActiveDollIndic.Length; i++)
-            {
-                if (i != index)
-                {
-                    m_ActiveDollIndic[i].SetActive(false);
-                }
-            }
-            
+        StartCoroutine(UpdateUI());
+
+    }
+    private void OnDestroy()
+    {
+        m_Party.OnActiveDollChanged -= ShowActiveDoll;
+        Destroy(gameObject);
+    }
+
+    public void ShowActiveDoll(int index)
+    {
+        print("Eija");
+        for (int i = 0; i < m_ActiveDollIndic.Length; i++)
+        {
+            m_ActiveDollIndic[i].SetActive(false);
         }
-        public void SetSleepDoll(int index, bool sleep)
-        {
-            m_DollSleepIndic[index].SetActive(sleep);
+        m_ActiveDollIndic[index].SetActive(true);
+    }
+    public void SetSleepDoll(int index, bool sleep)
+    {
+        m_DollSleepIndic[index].SetActive(sleep);
+    }
+    int tipID = -1;
 
+    private bool m_LoadReady;
+
+    IEnumerator LoadAllWhoo()
+    {
+        yield return new WaitForSeconds(0.7f);
+        m_LoadReady = true;
+    }
+
+    public void OnEscape()
+    {
+        if (uiType == UIType.World)
+            OpenInventory();
+        else
+            CloseInventory();
+    }
+
+    public void OpenInventory()
+    {
+        habitatUI.HideAdditiveDashboard();
+        Show(inventoryDisplay.gameObject);
+        uiType = UIType.Inventory;
+        m_Party.PauseAllDolls();
+    }
+    public void CloseInventory()
+    {
+        Hide(inventoryDisplay.gameObject);
+
+        Hide(m_Map);
+        Hide(stoveUI);
+        Hide(m_ShopDisplay);
+        
+        uiType = UIType.World;
+        m_Party.UnPauseAllDolls();
+
+
+    } // Update is called once per frame
+
+    public void ShowMap()
+    {
+        m_Map.SetActive(true);
+        uiType = UIType.Map;
+    }
+    public void Interact()
+    {
+        if (tipID == 0)
+        {
+            EnterStove();
         }
-        int tipID = -1;
-
-        private bool m_LoadReady;
-
-        IEnumerator LoadAllWhoo()
+        if (tipID == 1)
         {
-            yield return new WaitForSeconds(0.7f);
-            m_LoadReady = true;
+            OpenInventory();
         }
-
-        public void OpenInventory()
+        if (tipID == 2)
         {
-            habitatUI.HideAdditiveDashboard();
-            inventoryDisplay.gameObject.SetActive(true);
-            uiType = UIType.Inventory;
-            Party.Instance.PauseAllDolls();
+            HideInteractTip();
         }
-        public void CloseInventory()
+        if (tipID == 3)
         {
-            inventoryDisplay.gameObject.SetActive(false);
-            uiType = UIType.World;
-            Party.Instance.UnPauseAllDolls();
+            HideInteractTip();
         }
-
-        // Update is called once per frame
-        void Update()
+        if (tipID == 4)
         {
-            
-            if (SceneHelper.GameMode == Mode.Habitat)
-            {
-              //  habitatUI.gameObject.SetActive(true);
-                combatUI.gameObject.SetActive(false);
-            }
-            else
-            {
-                // habitatUI.gameObject.SetActive(false);
-                combatUI.gameObject.SetActive(true);
-
-            }
-
-
-
-
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                if (uiType == UIType.World)
-                {
-                    OpenInventory();
-                }
-                else
-                {
-                    if (uiType == UIType.Inventory)
-                    {
-                        CloseInventory();
-                    }
-                    if (uiType == UIType.Map)
-                    {
-                        m_Map.SetActive(false);
-                        uiType = UIType.World;
-                    }
-                }
-                
-            }
-            if (Input.GetKeyDown(KeyCode.F))
-            {
-                if (tipID == 0)
-                {
-                    EnterStove();
-                }
-                if (tipID == 1)
-                {
-                    OpenInventory();
-                }
-                if (tipID == 2)
-                {
-                    //SceneHelper.ExitHouse();
-                    DynamicObjects.Instance.Toggle(0, true);
-                    HideInteractTip();
-                }
-                if (tipID == 3)
-                {
-                    SceneHelper.EnterHouse();
-                    HideInteractTip();
-                }
-                if (tipID == 4)
-                {
-                    m_CurrentDollController.GoToBed();
-                    HideInteractTip();
-                }
-                if (tipID == 5)
-                {
-                    m_CurrentDollController.WakeDoll();
-                    HideInteractTip();
-                }
-                if (tipID == 6)
-                {
-                    m_ResourceTree.GiveResources();
-                    HideInteractTip();
-                }
-                if (tipID == 7)
-                {
-                    m_ShopDisplay.SetActive(true);
-                    HideInteractTip();
-                }
-                if (tipID == 8)
-                {
-                    BathInterface.Instance.Wash(m_CurrentDoll);
-                }
-                if (tipID == 9)
-                {
-                    BathInterface.Instance.BrushTeeth(m_CurrentDoll);
-                }
-            }
-            if (Input.GetKeyDown(KeyCode.M))
-            {
-              
-                m_Map.SetActive(true);
-                uiType = UIType.Map;
-               
-            }
-
-            if (Party.Instance)
-                m_StaminaImageFill.fillAmount = Party.Instance.Stamina / 37f;
-
-
+            m_CurrentDollController.GoToBed();
+            HideInteractTip();
         }
-      
-        public void Btn()
+        if (tipID == 5)
         {
-            combatUI.RefreshCooldownButtonLesserSkill();
+            m_CurrentDollController.WakeDoll();
+            HideInteractTip();
         }
-
-       
-
-        public void UpdateCooldown(float time)
+        if (tipID == 6)
         {
-            combatUI.UpdateShowCooldownTime(time);
+            m_ResourceTree.GiveResources();
+            HideInteractTip();
         }
-
-        [SerializeField] private Camera m_Camera;
-        public void SetDoll(Doll doll, Camera camera)
+        if (tipID == 7)
         {
-            m_CurrentDoll = doll;
-            m_CurrentDollController = doll.DollController;
-
-
-            // if (SceneHelper.GameMode == Mode.Habitat)
-            SetDollHabitat(doll);
-
-            m_Camera = camera;
-
-            if (SceneHelper.GameMode == Mode.OpenWorld)
-                SetDollOpenWorld(doll, m_Camera);
+            ShowShopUI();
+            HideInteractTip();
         }
-        public void SetDollHabitat(Doll doll)
+        if (tipID == 8)
         {
-                habitatUI.SetCurrentDoll(doll);
+            BathInterface.Instance.Wash(m_CurrentDoll);
         }
-        public void SetDollOpenWorld(Doll doll, Camera camera)
+        if (tipID == 9)
         {
-                combatUI.InitCurrentDollCombat(doll, Camera.main);
+            BathInterface.Instance.BrushTeeth(m_CurrentDoll);
         }
+    }
 
-        public void SetCamera(Camera cam)
-        {
-            print(cam);
-            combatUI.SetCamera(cam);
-        }
+    [SerializeField] private ControlModeData control;
 
-        private void OnDestroy()
+    void Update()
+    {
+        if (currentScene.GameMode == Mode.Habitat)
         {
-            Destroy(gameObject);
+            combatUI.gameObject.SetActive(false);
         }
-
-        [SerializeField] private GameObject stoveUI;
-
-        public void EnterStove()
+        else
         {
-            stoveUI.gameObject.SetActive(true);
-            uiType = UIType.Stove;
-        }
-
-
-    
-        private UIType uiType;
-        public UIType dashboardUIType => uiType;
-        public void SetUIType(UIType type)
-        {
-            uiType = type;
-        }
-
-        public void ShowInteractTip(int interactID)
-        {
-            tipID = interactID;
-            interactText.text = interactStrings[tipID];
-            interactTip.SetActive(true);
-        }
-        public void ShowInteractTip(int interactID, string itemName, GiveResource resTile)
-        {
-            tipID = interactID;
-            interactText.text = itemName;
-            interactTip.SetActive(true);
-            m_ResourceTree = resTile;
-        }
-        public void HideInteractTip()
-        {
-            interactTip.SetActive(false);
+            combatUI.gameObject.SetActive(true);
         }
 
         
 
-        public void Eat(InventoryItem food)
-        {
-            m_CurrentDoll.Eat(food);
-            InventoryController.Instance.InitAllItems();
-        }
-        public void ToMainMenu()
-        {
-            inventoryDisplay.gameObject.SetActive(false);
-            m_Map.SetActive(false);
-            SceneHelper.ToMainMenu();
-        }
+
+
+        if (m_Party)
+            m_StaminaImageFill.fillAmount = m_Party.Stamina / 37f;
     }
-    public enum UIType
+    public void Btn()
     {
-        World,
-        Inventory,
-        Stove,
-        Map,
-        Shop
+        combatUI.RefreshCooldownButtonLesserSkill();
     }
 
-    
+    public void ShowShopUI()
+    {
+        uiType = UIType.Shop;
+        m_ShopDisplay.SetActive(true);
+    }
 
-    
+    public void UpdateCooldown(float time)
+    {
+        combatUI.UpdateShowCooldownTime(time);
+    }
+
+    [SerializeField] private Camera m_Camera;
+    public void SetDoll(Doll doll)
+    {
+        m_CurrentDoll = doll;
+
+        m_CurrentDollController = doll.DollController;
+
+        SetDollHabitat(doll);
+
+
+        if (currentScene.GameMode == Mode.OpenWorld)
+        {
+            SetDollOpenWorld(doll);
+            SetDollOpenWorldCamera();
+        }
+
+    }
+    public void SetDollHabitat(Doll doll)
+    {
+        habitatUI.SetCurrentDoll(doll);
+    }
+    public void SetDollOpenWorld(Doll doll)
+    {
+        combatUI.InitCurrentDollCombat(doll);
+    }
+    public void SetDollOpenWorldCamera()
+    {
+        combatUI.InitCurrentDollCamera(m_Camera);
+    }
+
+    public void SetCamera(Camera cam)
+    {
+        print(cam);
+        combatUI.SetCamera(cam);
+    }
+
+
+
+
+    public void EnterStove()
+    {
+        stoveUI.gameObject.SetActive(true);
+        uiType = UIType.Stove;
+    }
+
+
+
+    private UIType uiType;
+    public UIType dashboardUIType => uiType;
+    public void SetUIType(UIType type)
+    {
+        uiType = type;
+    }
+
+    public void ShowInteractTip(int interactID)
+    {
+        tipID = interactID;
+        interactText.text = interactStrings[tipID];
+        interactTip.SetActive(true);
+    }
+    public void ShowInteractTip(int interactID, string itemName, GiveResource resTile)
+    {
+        tipID = interactID;
+        interactText.text = itemName;
+        interactTip.SetActive(true);
+        m_ResourceTree = resTile;
+    }
+    public void HideInteractTip()
+    {
+        interactTip.SetActive(false);
+    }
+
+    public void SetSprayChargeUIVisible(bool visible)
+    {
+        combatUI.SetSprayChargeUIVisible(visible);
+    }
+
+
+    public void Eat(InventoryItem food)
+    {
+        m_CurrentDoll.Eat(food);
+        InventoryController.Instance.InitAllItems();
+    }
+    public void ToMainMenu()
+    {
+        CloseInventory();
+
+
+        SceneHelper.ToMainMenu();
+    }
+
 }
+  
+
+
 

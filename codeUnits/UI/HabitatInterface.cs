@@ -2,11 +2,25 @@ using SpaceShooter;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
 
 namespace GentianoseRealDolls
 {
     public class HabitatInterface : MonoBehaviour
     {
+        [SerializeField] private Party m_Party;
+        ////[Inject]
+        //public void Construct(Party obj)
+        //{
+        //    m_Party = obj;
+        //}
+        [SerializeField] CurrentSceneData currentScene;
+        //[Inject]
+        //public void Construct(CurrentSceneData obj)
+        //{
+        //    currentScene = obj;
+        //}
+
         [SerializeField] private Doll m_CurrentDoll;
         [SerializeField] private DollController m_CurrentDollController;
         [SerializeField] private Text m_BathroomText;
@@ -29,11 +43,38 @@ namespace GentianoseRealDolls
         [SerializeField] private GameObject m_ToiletDashboard;
 
 
-
+        [SerializeField] private Text m_DollPitchText;
         
         private void Awake()
         {
         }
+
+        public void UpdateDash()
+        {
+            if (m_Party == null) 
+            {
+                print("NO PArty");
+                return;
+            }
+
+
+            if (m_Party.ActiveDoll == null)
+            {
+                print("NO ACTIVEDOLL");
+                return;
+            }
+
+            m_FoodHungerText.text = m_Party.ActiveDoll.FoodHunger.ToString();
+            m_BathroomText.text = m_Party.ActiveDoll.Bathroom.ToString("F0");
+            m_SleepText.text = m_Party.ActiveDoll.Sleep.ToString();
+            
+        }
+
+        public void StartPoop()
+        {
+            m_PoopManager.ToPoop();
+        }
+
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
 
@@ -50,6 +91,9 @@ namespace GentianoseRealDolls
         // Update is called once per frame
         void Update()
         {
+            if (m_CurrentDoll)
+                print("Doll bathroom "+ m_CurrentDoll.Bathroom);
+
             if (m_CurrentDoll != null)
             {
                 m_BathroomText.text = ((int) m_CurrentDoll.Bathroom).ToString();
@@ -60,6 +104,9 @@ namespace GentianoseRealDolls
                 //print(m_CurrentDoll.PooPoints);
                 m_ToiletHint.SetActive(SarvaToilet.CanPoop && !m_CurrentDoll.DollController.PoopManager.IsPooping && 
                     m_CurrentDoll.PooPoints <= 7.7f);
+
+
+                m_DollPitchText.text = m_CurrentDoll.DollController.Climbing.HillAngle.ToString();
             }
 
             UpdatePoop();
@@ -91,7 +138,7 @@ namespace GentianoseRealDolls
 
         public void UpdateShow()
         {
-            gameObject.SetActive(SceneHelper.GameMode == Mode.Habitat);
+            gameObject.SetActive(currentScene.GameMode == Mode.Habitat);
         }
 
         private void OnDestroy()
@@ -149,11 +196,11 @@ namespace GentianoseRealDolls
             #endregion
             if (Input.GetMouseButtonDown(1))
             {
-                m_PoopManager.ToLiftTail(); 
+               // m_PoopManager.ToLiftTail(); 
             }
             if (Input.GetMouseButtonDown(1))
             {
-               m_PoopManager.OutLiftTail();
+              // m_PoopManager.OutLiftTail();
             }
 
             if (Input.GetKeyDown(KeyCode.Q))
@@ -174,10 +221,11 @@ namespace GentianoseRealDolls
         {
             m_ToiletDashboard.SetActive(false);
         }
+        [SerializeField] private PoopStore m_PoopStore;
 
         public void SilverWhiteTree()
         {
-            PoopStore.Instance.GoPoopToSilverWhiteTree();
+            m_PoopStore.GoPoopToSilverWhiteTree();
             InventoryController.Instance.InitAllItems();
         }
 

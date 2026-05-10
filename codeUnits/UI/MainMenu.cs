@@ -1,10 +1,13 @@
+using TowerDefense;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace GentianoseRealDolls
 {
     public class MainMenu : MonoBehaviour
     {
+
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
@@ -19,12 +22,27 @@ namespace GentianoseRealDolls
         {
 
         }
+        private int m_LocationIndex;
+        public void ReadCurrScene()
+        {
+            Saver<int>.TryLoad(CurrentScene.fileNameScene, ref m_LocationIndex);
+        }
+
+        [SerializeField] private Party party;
 
         public void ToHabitat()
         {
             Level.SetArriveFromMenu();
-            SceneHelper.EnterHouse();
+
+            ReadCurrScene();
+
+            SceneHelper.EnterHouse(SceneHelper.LevelToScene(m_LocationIndex));
+
+            party.PlaceDolls(m_LocationIndex, new Vector3(0, 1, 0));
         }
+
+
+
         public void Quit()
         {
             Application.Quit();
