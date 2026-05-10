@@ -1,6 +1,7 @@
 using GentianoseRealDolls;
 using NUnit.Framework.Internal;
 using System;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using VContainer;
@@ -30,70 +31,38 @@ public class TeleportBeasts : MonoBehaviour,  ISceneGate
         "02+01123,4+00029,6+01453,2"
     };
 
-    ////[Inject]
-    //public void Construct(AllDollSleeps obj)
-    //{
-    //    m_AllSleeps = obj;
-    //}
-
-    ////[Inject]
-    //public void Construct(CurrentSceneData obj)
-    //{
-    //    currentScene = obj;
-    //}
-
-    private void Awake()
+    [Inject]
+    public void Construct(AllDollCharacters obj)
     {
-        //DontDestroyOnLoad(gameObject);
+        m_AllCharacters = obj;
     }
 
-    int levelID;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        // Инкостылямбра
-        //MainMenu mm = FindAnyObjectByType<MainMenu>();
-        //if (mm != null)
-        //{
-        //    mm.Construct(this);
-        //}
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
     private bool m_NotJustStart;
 
     
 
     public void Teleport(string posString, bool someBeastsSleep)
     {
-
-
         if (m_NotJustStart && someBeastsSleep)
         {
             print("Some dolls sleep and team can't go outdoor");
         }
+
         else
         {
             int city = stringCoordinates.GetLocationFromString(posString);
 
             Vector3 pos = stringCoordinates.GetPositionFromString(posString);
 
-
-
-
             //  откуда                          куда
             if (currentScene.LocationIndex != SceneHelper.SceneToLevel(city))
             {
                 SceneManager.LoadScene(city);
 
-                m_Party.InitDolls(SceneHelper.SceneToLevel(city),
+                m_Party.InitDolls(SceneHelper.SceneToLevel(city), m_AllCharacters.ReadStats(),
                     m_AllCharacters, m_AllPositions, m_AllSleeps, 0);
-
             }
+
             //  При перемещении в пределах домика
             if (currentScene.LocationIndex == SceneHelper.SceneToLevel(city))
             {
@@ -102,17 +71,12 @@ public class TeleportBeasts : MonoBehaviour,  ISceneGate
 
             print("City: " + city + "  Legend: 1: Rusikova, 2: Kukly, 3: Punova");
 
-
             currentScene.SetLocationIndex(SceneHelper.SceneToLevel(city));
-
-
 
             if (!m_NotJustStart)
             {
                 m_NotJustStart = true;
             }
-
-
         }
 
     }
@@ -136,17 +100,16 @@ public class TeleportBeasts : MonoBehaviour,  ISceneGate
     {
         Level.SetArriveFromMenu();
 
-        m_Party.InitDolls(levelID, m_AllCharacters, m_AllPositions, m_AllSleeps, m_TimePastStats.ReadTime());
+        print("~~~!!!!~~~~" + m_AllCharacters.ReadStats()[0][0]);
 
+        m_Party.InitDolls(levelID, m_AllCharacters.ReadStats(), m_AllCharacters, m_AllPositions, m_AllSleeps, m_TimePastStats.ReadTime());
+        
         currentScene.SetLocationIndex(levelID);
 
         print("City: " + levelID + "  Legend: 0: Rusikova, 1: Kukly, 2: Punova");
-
 
         m_I = 0.12345679f;
 
         print("Chno Whew!");
     }
-
-
 }
