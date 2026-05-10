@@ -75,7 +75,7 @@ namespace GentianoseRealDolls
         public int Stamina => m_Stamina;
 
         private DollController m_ActiveDollController;
-
+        public DollController ActiveDollController => m_ActiveDollController;
 
 
         [SerializeField] private DollAsset[] m_DollAssets;
