@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
+using static UnityEditor.Progress;
 
 public enum UIType
 {
@@ -37,7 +38,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
 
     public event Action<UIType> ChangeWindow;
 
-    private Dictionary<int, string> interactStrings;
+    private List<string> interactStrings;
 
     [SerializeField] private GaitDisplay m_GaitDisplay;
 
@@ -47,6 +48,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
     [SerializeField] private Text interactText;
 
     [SerializeField] private GiveResource m_ResourceTree;
+    [SerializeField] private Mechanism m_Mechanism;
 
     [SerializeField] private GameObject[] m_ActiveDollIndic;
 
@@ -59,6 +61,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
     [SerializeField] private int m_ActiveDollIndexInParty;
 
     [SerializeField] private GameObject m_VirtualGamepad;
+
 
     public void Show(GameObject ui)
     {
@@ -80,7 +83,13 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
 
         StartCoroutine(UpdateUI());
 
+        m_CurrentDoll = m_Party.ActiveDoll;
+        m_CurrentDollController = m_Party.ActiveDollController;
 
+        for (int i = 0; i < m_Party.PartyDollSleeps.Length; i++)
+        {
+            SetSleepDoll(i, m_Party.PartyDollSleeps[i]);
+        }
     }
 
     public void InitDoll()
@@ -96,28 +105,34 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         }
     }
 
-    //void UpdateDash()
-    //{
-    //    habitatUI.UpdateDash();   
-    //}
+    Action<int, string, GiveResource> ShowInteract(int tipID, string itemName, GiveResource resource)
+    {
+        return (tipID, itemName, resource) =>
+        {
+            ShowInteractTip(tipID, itemName, resource);
+        };
+    }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
-        interactStrings = new Dictionary<int, string>()
-        {
-            [0] = "Приготовить",
-            [1] = "Сесть за стол",
-            [2] = "Покинуть чалку",
-            [3] = "Войти в чалку",
-            [4] = "Спать",
-            [5] = "Встать",
-            [6] = "<предмет>",
-            [7] = "Лавка мыши",
-            [8] = "Купаться",
-            [9] = "Чистить зубы",
-        }; StartCoroutine(LoadAllWhoo());
+        GiveResource.OnWentToResource += ShowInteract(tipID, "+", m_ResourceTree); 
+        interactStrings = new List<string>()
+        {            
+            "Приготовить",
+            "Сесть за стол",
+            "Покинуть чалку",
+            "Войти в чалку",
+            "Спать",
+            "Встать",
+            "<предмет>",
+            "Лавка мыши",
+            "Купаться",
+            "Чистить зубы",
+            "Какать"
+        }; 
+        
+        StartCoroutine(LoadAllWhoo());
 
 
         inventoryDisplay.gameObject.SetActive(false);
@@ -139,6 +154,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
     {
         m_Party.OnActiveDollChanged -= ShowActiveDoll;
         Destroy(gameObject);
+        GiveResource.OnWentToResource -= ShowInteract(tipID, "+", m_ResourceTree);
     }
 
     public void ShowActiveDoll(int index)
@@ -154,7 +170,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
     {
         m_DollSleepIndic[index].SetActive(sleep);
     }
-    int tipID = -1;
+    [SerializeField] int tipID = -1;
 
     private bool m_LoadReady;
 
@@ -189,9 +205,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         
         uiType = UIType.World;
         m_Party.UnPauseAllDolls();
-
-
-    } // Update is called once per frame
+    } 
 
     public void ShowMap()
     {
@@ -210,10 +224,12 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         }
         if (tipID == 2)
         {
+            m_Mechanism.Activate();
             HideInteractTip();
         }
         if (tipID == 3)
         {
+            m_Mechanism.Activate();
             HideInteractTip();
         }
         if (tipID == 4)
@@ -244,6 +260,10 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         {
             BathInterface.Instance.BrushTeeth(m_CurrentDoll);
         }
+        if (tipID == 10)
+        {
+            m_Party.ActiveDoll.DollController.PoopManager.ToPoop();
+        }
     }
 
     [SerializeField] private ControlModeData control;
@@ -258,10 +278,6 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         {
             combatUI.gameObject.SetActive(true);
         }
-
-        
-
-
 
         if (m_Party)
             m_StaminaImageFill.fillAmount = m_Party.Stamina / 37f;
@@ -297,7 +313,6 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
             SetDollOpenWorld(doll);
             SetDollOpenWorldCamera();
         }
-
     }
     public void SetDollHabitat(Doll doll)
     {
@@ -318,9 +333,6 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         combatUI.SetCamera(cam);
     }
 
-
-
-
     public void EnterStove()
     {
         stoveUI.gameObject.SetActive(true);
@@ -338,6 +350,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
 
     public void ShowInteractTip(int interactID)
     {
+        print("Interact!!");
         tipID = interactID;
         interactText.text = interactStrings[tipID];
         interactTip.SetActive(true);
@@ -348,6 +361,13 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         interactText.text = itemName;
         interactTip.SetActive(true);
         m_ResourceTree = resTile;
+    }
+    public void ShowInteractTip(int interactID, Mechanism mechanism)
+    {
+        tipID = interactID;
+        interactText.text = interactStrings[tipID];
+        interactTip.SetActive(true);
+        m_Mechanism = mechanism;
     }
     public void HideInteractTip()
     {
@@ -369,12 +389,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
     {
         CloseInventory();
 
-
         SceneHelper.ToMainMenu();
     }
 
 }
-  
-
-
-
