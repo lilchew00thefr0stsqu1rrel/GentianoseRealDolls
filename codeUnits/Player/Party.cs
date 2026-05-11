@@ -14,6 +14,9 @@ namespace GentianoseRealDolls
 {
     public class Party : MonoBehaviour
     {
+        [SerializeField] private Inventory inventory;
+
+
         // TODO: сделать поля открытыми для UI
         // звери больше не зависят от UI, требования принципа DI
         // Каждые 0.1 с обновляется HUD
@@ -269,10 +272,10 @@ namespace GentianoseRealDolls
         
 
         public void InitDolls(int mapID, List<float[]> dollData,
-            AllDollCharacters adc, AllDollPositions adp, AllDollSleeps ads,
+            AllDollCharacters adc, AllDollPositions adp, List<bool> sleepData, AllDollSleeps ads,
             long time)
         {
-            InitControllerDoll(mapID, dollData, adc, adp, ads, time);
+            InitControllerDoll(mapID, dollData, adc, adp, sleepData, ads, time);
 
             TakeDollsToLastPoint(mapID);
 
@@ -280,18 +283,19 @@ namespace GentianoseRealDolls
         }
 
         public void InitDolls(int mapID, List<float[]> dollData,
-            AllDollCharacters adc, AllDollPositions adp, AllDollSleeps ads,
+            AllDollCharacters adc, AllDollPositions adp, List<bool> sleepData, 
+            AllDollSleeps ads,
             long time, Vector3 waypoint)
         {
             InitControllerDoll(mapID, dollData,
-            adc, adp, ads, time);
+            adc, adp, sleepData, ads, time);
 
             PlaceSomeOrAllDolls(mapID, waypoint);
         }
 
         private void InitControllerDoll(int mapID, List<float[]> dollData,
             AllDollCharacters adc, 
-            AllDollPositions adp, AllDollSleeps ads,
+            AllDollPositions adp, List<bool> sleepData, AllDollSleeps ads,
             long time)
         {
 
@@ -312,12 +316,15 @@ namespace GentianoseRealDolls
             {
                 var doll = Instantiate(m_DollPrefabs[i]);
                 print($"Hello! I'm {doll.DollSpecies} My name is {doll.CharacterName}");
-                doll.DollController.ConstructDoll(dollData, adc, adp, ads, this);
+                doll.DollController.SetLocationIndex(mapID);
+
+                doll.DollController.ConstructDoll(dollData, adc, adp, sleepData, ads, this);
+
 
                 // Нужно ли уменьшать шкалы на время вне игры?
                 // В начале
                 if (sessionHouseMap <= 1)
-                    doll.DollController.TimeActionStats(time, i, adc, ads);
+                    doll.DollController.TimeActionStats(time, i, m_TeleportBeasts, adc, ads);
                 // При смене карты (домик/город)
                 if (sessionHouseMap > 1)
                     doll.DollController.TakeStats(i, adc, ads);
@@ -340,6 +347,8 @@ namespace GentianoseRealDolls
 
             m_ShipInputController.SetTargetDoll(m_ActiveDollController);
             m_GaitInputController.SetCurrentDoll(m_ActiveDollController);
+
+           
 
             SetDollsPatrol();
 
