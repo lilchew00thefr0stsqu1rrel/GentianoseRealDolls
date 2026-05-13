@@ -25,7 +25,7 @@ namespace GentianoseRealDolls
             
             if (bt < Doll.MaxBrushTeeth)
             {
-                m_Animator.SetInteger("Autom", 17);
+                m_AnimatorGuard.SetAnimation(19);
 
                 FindFirstObjectByType<FollowCamera>().Turn(-1);
 
@@ -43,7 +43,7 @@ namespace GentianoseRealDolls
                     }
                     else
                     {
-                        m_Animator.SetInteger("Autom", 0);
+                        m_AnimatorGuard.SetAnimation(0);
                         FindFirstObjectByType<FollowCamera>().Turn(1);
                     }
                 }
