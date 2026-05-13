@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace GentianoseRealDolls
 {
-    public class AllDollSleeps : SingletonBase<AllDollSleeps>
+    public class AllDollSleeps : MonoBehaviour, IAllDolls
     {
 
 
@@ -15,11 +15,12 @@ namespace GentianoseRealDolls
 
         private List<DollInBed> m_DollsInBedsList = new List<DollInBed>();
         [SerializeField] private DollInBed[] m_SleepsPut; 
-        private string fileName = "dInBeds.dat";
+        //private string fileName = "dInBeds.dat";
+        private string path = "Assets/JSON/dInBeds.dat";
+        [SerializeField] private List<bool> m_Sleeping;
         [Serializable]
         public class DollInBed
         {
-
             public int ID;
 
             public bool IsSleep;
@@ -28,20 +29,34 @@ namespace GentianoseRealDolls
             {
                 IsSleep = sleep;
             }
-
-
         }
 
         public event Action<bool> OnDollSleepStateChanged;
 
-        protected new void Awake()
+        protected void Awake()
         {
-            base.Awake();
 
 
-            Saver<DollInBed[]>.TryLoad(fileName, ref m_DollsInBeds);
+           //// Saver<DollInBed[]>.TryLoad(fileName, ref m_DollsInBeds);
+
+           //// m_DollsInBedsList = m_DollsInBeds.ToList();
+        }
+
+        public List<bool> ReadSleeping()
+        {
+
+            Saver<DollInBed[]>.TryLoad2(path, ref m_DollsInBeds);
 
             m_DollsInBedsList = m_DollsInBeds.ToList();
+
+            m_Sleeping = new List<bool>();
+            int i = 0;
+            foreach (var db in m_DollsInBedsList)
+            {
+                m_Sleeping.Add(m_DollsInBeds[i].IsSleep);
+                i++;
+            }
+            return m_Sleeping;
         }
 
         public void SetDollSleep(DollInBed dib)
@@ -54,9 +69,9 @@ namespace GentianoseRealDolls
             m_DollsInBedsList.Add(dib);
             m_DollsInBeds = m_DollsInBedsList.ToArray();
         }
-        public void SaveAllDollSleeps()
+        public void SaveAllDolls()
         {
-            Saver<DollInBed[]>.Save(fileName, m_DollsInBeds);
+            Saver<DollInBed[]>.Save2(path, m_DollsInBeds);
         }
         public bool GetDollInBed(int id)
         {
@@ -68,29 +83,33 @@ namespace GentianoseRealDolls
 
             m_DollsInBeds = m_SleepsPut;
 
-            Saver<DollInBed[]>.TryLoad(fileName, ref m_DollsInBeds);
+            Saver<DollInBed[]>.TryLoad2(path, ref m_DollsInBeds);
+
+            m_DollsInBedsList = m_DollsInBeds.ToList();
         }
 
         public void WriteDollSleep(int id,  bool sleep)
         {
             m_DollsInBeds[id].SetSleepState(sleep);
-            Saver<DollInBed[]>.Save(fileName, m_DollsInBeds);
 
+            m_DollsInBedsList = m_DollsInBeds.ToList();
+            m_Sleeping = new List<bool>();
+            int i = 0;
+            foreach (var db in m_DollsInBedsList)
+            {
+                m_Sleeping.Add(m_DollsInBeds[i].IsSleep);
+                i++;
+            }
 
-
-
+            SaveAllDolls();
         }
         
 
-        public static bool GetSleepingByID(int id)
+        public bool GetSleepingByID(int id)
         {
-            if (!Instance) return false;
+           // if (!Instance) return false;
             
-            return Instance.m_DollsInBeds[id].IsSleep;
-
-            
-               
-
+            return m_DollsInBeds[id].IsSleep;
         }
     }
 }
