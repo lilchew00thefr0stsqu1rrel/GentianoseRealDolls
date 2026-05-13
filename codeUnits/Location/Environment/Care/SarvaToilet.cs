@@ -17,12 +17,16 @@ namespace GentianoseRealDolls
 
         protected override void OnDollCome(Party p)
         {
+            if (m_Dashboard)
+                m_Dashboard.ShowInteractTip(tipID);
             if (p != null)
                 CanPoop = true;
         }
 
         protected override void OnDollGone(Party p)
         {
+            if (m_Dashboard)
+                m_Dashboard.HideInteractTip();
             if (p != null)
                 CanPoop = false;
         }
