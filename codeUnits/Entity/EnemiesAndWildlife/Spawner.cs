@@ -2,7 +2,7 @@ using UnityEngine;
 using Common;
 using TowerDefense;
 
-namespace SpaceShooter
+namespace GentianoseRealDolls
 {
     public abstract class Spawner : MonoBehaviour
     {
@@ -14,7 +14,7 @@ namespace SpaceShooter
 
         /*
         /// <summary>
-        /// Ññûëêè íà ÷òî ñïàâíèòü
+        /// Ссылки на что спавнить
         /// </summary>
         [SerializeField] private Entity[] m_EntityPrefabs;
         */
