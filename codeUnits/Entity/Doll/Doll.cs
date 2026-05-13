@@ -2,6 +2,7 @@ using Common;
 using SpaceShooter;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace GentianoseRealDolls
@@ -27,10 +28,17 @@ namespace GentianoseRealDolls
     [RequireComponent(typeof(Destructible))]
     public class Doll : MonoBehaviour
     {
+        private AllDollCharacters allDolls;
+        private AllDollPositions allPositions;
+
+        [SerializeField] private DollScaleValues m_ScaleValues;
+        [SerializeField] private DollPositions m_Positions;
+
+
         private const long TicksInSecond = 10000000;
         private long StatsPeriod = 9;
         [SerializeField] private DollController m_Controller;
-        public DollController DollController => m_Controller == null ? GetComponent<DollController>() : m_Controller;
+        public DollController DollController => m_Controller;
 
 
         public const float sprayAmountInCare = 2.0f;
@@ -61,9 +69,12 @@ namespace GentianoseRealDolls
         public int DollID => m_DollID;
 
         [SerializeField] private string m_CharacterName;
+        public string CharacterName => m_CharacterName;
 
         [SerializeField] private DollAsset m_Asset;
         public DollAsset Asset { get { return m_Asset; } }
+        [SerializeField] private string m_DollSpecies;
+        public string DollSpecies => m_DollSpecies;
         #region Data_Pet
 
         [Header("At home")]
@@ -188,9 +199,6 @@ namespace GentianoseRealDolls
 
         private event Action OnDollJumps;
 
-        // public bool Sleeping => m_IsSleeping;
-        //TODO: в начало///
-        //     private const string fileName = "dollSleep.dat";
 
 
         [Tooltip("0 - shit, 1 - spray, 2 - pee, 3 - bath, 4 - brushTeeth")]
@@ -198,7 +206,6 @@ namespace GentianoseRealDolls
         public float[] ToiletStats => m_ToiletStats;
 
 
-       [SerializeField]  private DollScaleValues m_ScaleValues;
 
         [SerializeField] private bool m_IsActiveDollInParty;
         public bool ActiveDollInPartyStatus => m_IsActiveDollInParty;
@@ -206,12 +213,23 @@ namespace GentianoseRealDolls
         {
             m_IsActiveDollInParty = active;
         }
-        public Animator EntityAnimator => m_Animator;
         
+        public void ConstructDoll(List<float[]> dollData, AllDollCharacters adc, AllDollPositions adp)
+        {
+            allDolls = adc;
+            allPositions = adp;
+            //m_ScaleValues = allDolls.GetDoll(m_DollID);
+
+            var stats = dollData[m_DollID];
+            SetToiletStats(stats[0], stats[1], stats[2], stats[3], stats[4]);
+            SetFoodHunger(stats[5]);
+            SetSleep(stats[6]);
+            print("Pooey " + m_ScaleValues.LooPoo);
+            m_Positions = allPositions.GetDollPos(m_DollID);
+        }
 
 
-
-        public const int LocationsNumber = 2;
+        public const int LocationsNumber = 3;
         #region Unity Event
         private void Awake()
         {
@@ -235,57 +253,19 @@ namespace GentianoseRealDolls
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-
-         //   m_PoopManager.OnPoopDeposit += PooCareLevelFull();
-            StatsPeriod = GRDPlayer.StatsPeriod;
-
-
-            m_ScaleValues = AllDollCharacters.Instance.GetDollData(DollID);
-
-
-
             print(Loo);
             petAsSpaceShip = GetComponent<SpaceShip>();
-
-            if (m_ScaleValues == null)
-            {
-                m_ScaleValues = new DollScaleValues();
-                AllDollCharacters.Instance.AddDoll(m_ScaleValues);
-            }
-
         }
 
-
-        // Update is called once per frame
-        void Update()
-        {
-
-           
-            if (Input.GetKeyDown(KeyCode.C))
-            {
-                transform.up = Vector3.up;
-                transform.position += new Vector3(0, 0.3f, 0);
-            }
-           
-
-
-            m_LooSpray = MaxLooStat - MaxLooStat * (m_AnalSprayAmount - m_AnalGlandVolume * 0.6f)
-                / (m_AnalGlandVolume - m_AnalGlandVolume * 0.6f);
-
-            m_LooSpray = Mathf.Max(m_LooSpray, 0);
-            m_LooSpray = Mathf.Min(m_LooSpray, MaxLooStat);
-
-            //print(m_ScaleValues.Positions[0]);
-        }
 
         #endregion
 
         #region Stats Storage
-       
+
         IEnumerator PositionWrite()
         {
             yield return new WaitForSeconds(4.25f);
-            AllDollCharacters.Instance.SetDollData(m_ScaleValues);
+            allPositions.SetDollPos(m_Positions);
             StartCoroutine(PositionWrite());
         }
 
@@ -328,23 +308,17 @@ namespace GentianoseRealDolls
                     m_Sleep -= 1;
             }
 
-
             SaveStats();
-
         }
 
         public void SetSleep(float sleep)
         {
             m_Sleep = Mathf.Clamp(sleep, 0, MaxStat);
-
             SaveStats();
-
-
         }
         public void SetFoodHunger(float foodHunger)
         {
             m_FoodHunger = Mathf.Clamp(foodHunger, 0, MaxStat);
-
             SaveStats();
         }
        
@@ -359,10 +333,12 @@ namespace GentianoseRealDolls
 
             m_ScaleValues.AnalSprayAmount = m_AnalSprayAmount;
 
-            m_LooSpray = MaxLooStat * (m_AnalSprayAmount - m_AnalGlandVolume * 0.6f) /
-                m_AnalGlandVolume * 0.4f;
+            // Формула Фуньки
+            m_LooSpray = MaxLooStat * (1 - 
+                (m_AnalSprayAmount - m_AnalGlandVolume * 0.6f)
+                / (m_AnalGlandVolume * 0.4f));
 
-            m_LooSpray = Mathf.Min(m_LooSpray, MaxLooStat);
+            m_LooSpray = Mathf.Clamp(m_LooSpray, 0, MaxLooStat);
 
             if (m_LooPoo > 0)
                 m_LooPoo -= StepLooStat;
@@ -412,7 +388,9 @@ namespace GentianoseRealDolls
 
             
 
-            AllDollCharacters.Instance.SetDollData(m_ScaleValues);
+            allDolls.SetDoll(m_ScaleValues);
+
+            print("Stats were saved");
         }
         
 
@@ -455,32 +433,8 @@ namespace GentianoseRealDolls
         #endregion
 
         #region CharacterSkills
-        /// <summary>
-        /// Распылить секрет
-        /// Анальная железа освобождается на ~18%
-        /// </summary>
-        public void Spray()
-        {
-            if (m_AnalSprayAmount > m_AnalGlandVolume / 5)
-            {
-
-                m_AnalSprayAmount -= m_AnalGlandVolume / 5;
-
-
-
-                m_LooSpray = Mathf.Min(m_LooSpray, MaxLooStat);
-
-                m_ScaleValues.AnalSprayAmount = m_AnalSprayAmount;
-
-                // m_SoundSpray?.Play(); 
-                m_Sounds[6].Play();
-                m_Sounds[UnityEngine.Random.Range(7, 9)].Play();
-                m_Anus.GetComponent<Turret>().Fire();
-
-                SaveStats();
-            }
-            
-        }
+    
+        
 
      
 
@@ -528,6 +482,8 @@ namespace GentianoseRealDolls
 
         public void CareToiletStat(ToiletStat stat, float value)
         {
+            value = (value * 1000f) / 1000;
+
             if (stat == ToiletStat.Poo)
             {
                 m_LooPoo += value;
@@ -537,6 +493,16 @@ namespace GentianoseRealDolls
             {
                 m_AnalSprayAmount -= value;
                 m_AnalSprayAmount = Mathf.Clamp(m_AnalSprayAmount, 0, AnalGlandVolume);
+
+                // Формула Фуньки
+                m_LooSpray = MaxLooStat * (1 -
+                    (m_AnalSprayAmount - m_AnalGlandVolume * 0.6f)
+                    / (m_AnalGlandVolume * 0.4f));
+
+                m_LooSpray = Mathf.Clamp(m_LooSpray, 0, MaxLooStat);
+
+
+                m_LooSpray = Mathf.Clamp(m_LooSpray, 0, MaxLooStat);
             }
             if (stat == ToiletStat.Pee)
             {
@@ -563,9 +529,16 @@ namespace GentianoseRealDolls
                 m_LooPoo = Mathf.Clamp(poo, 0, MaxLooStat);
             
                 m_AnalSprayAmount = Mathf.Clamp(analSpray, 0, AnalGlandVolume);
-            
-           
-                m_LooPee = Mathf.Clamp(pee, 0, MaxLooStat);
+
+            // Формула Фуньки
+            m_LooSpray = MaxLooStat * (1 -
+                (m_AnalSprayAmount - m_AnalGlandVolume * 0.6f)
+                / (m_AnalGlandVolume * 0.4f));
+
+            m_LooSpray = Mathf.Clamp(m_LooSpray, 0, MaxLooStat);
+
+
+            m_LooPee = Mathf.Clamp(pee, 0, MaxLooStat);
             
                 m_Bath = Mathf.Clamp(bath, 0, MaxBath);
             
@@ -575,6 +548,8 @@ namespace GentianoseRealDolls
                 InitToiletStatArray();
                 SaveStats();
         }
+
+        
 
       
     }
