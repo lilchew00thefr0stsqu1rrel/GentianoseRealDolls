@@ -1,19 +1,36 @@
 using GentianoseRealDolls;
 using SpaceShooter;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace GentianoseRealDolls
 {
-
+    [RequireComponent(typeof(BoxCollider))]
     public class AttackSide : DollPart
     {
 
         [SerializeField] private Collider m_AttackTrigger;
-
-        public override void Use(Vector2 aimInput)
+        private int millisecondsInSecond = 1000;
+        private void Awake()
         {
-            m_AttackTrigger.enabled = true;   
+            m_AttackTrigger = GetComponent<Collider>();
+            m_AttackTrigger.enabled = false;
         }
+
+        
+
+        public override void Use(Vector2 aimInput, float attackTime)
+        {
+            HitboxTimer(attackTime);
+        }
+
+        private async void HitboxTimer(float time)
+        {
+            m_AttackTrigger.enabled = true;
+            await Task.Delay((int)(time * millisecondsInSecond));
+            m_AttackTrigger.enabled = false;
+        }
+
 
         [SerializeField] private bool m_SprayType;
 
@@ -24,6 +41,12 @@ namespace GentianoseRealDolls
         [SerializeField] private float m_CooldownDuration = 0.1f;
 
         [SerializeField] private bool m_BelongsToDoll;
+
+        // 0 - питомцы
+        // 6 - враги
+        // 138 - неуязвимые существа
+
+        [SerializeField] private int m_TeamID;
 
         private float m_Time;
 
