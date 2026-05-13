@@ -10,6 +10,7 @@ namespace GentianoseRealDolls
     public class GiveResource : InteractableObject
     {
         public static event Action<int, string, GiveResource> OnWentToResource;
+        public static event Action OnLeaveResource;
 
         [SerializeField] private InventoryItem m_Item;
         [SerializeField] private int m_YieldAmount;
@@ -29,26 +30,23 @@ namespace GentianoseRealDolls
         private DateTime useDateTime;
 
         private bool __;
-        
 
-        private void OnTriggerEnter(Collider other)
+
+        protected override void OnDollCome(Party p)
         {
             if (m_Item != null && !__ && m_ItemsInWorld.Count > 0)
             {
-                var p = other.GetComponent<Party>();
-                if (p != null)
-                {
-                    print("Boing");
-
-
-                    // m_Dashboard.ShowInteractTip(tipID, m_Item.itemName, this);
-                    OnWentToResource(tipID, m_Item.itemName, this);
-
-                }
+                print("Resources!");
+                OnWentToResource(tipID, m_Item.itemName, this);
             }
-
-            print(Inventory.Instance != null);
         }
+
+        protected override void OnDollGone(Party p)
+        {
+            OnLeaveResource();
+            print("Awayy~~!");
+        }
+      
 
         public void GiveResources()
         {
@@ -59,6 +57,12 @@ namespace GentianoseRealDolls
                 InventoryController.Instance.InitAllItems();
                 NightPool.Despawn(m_ItemsInWorld[0]);
                 m_ItemsInWorld.RemoveAt(0);
+
+
+                if (m_ItemsInWorld.Count == 0)
+                {
+                    OnLeaveResource();
+                }
             }
             
         }
