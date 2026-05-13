@@ -105,11 +105,11 @@ public class BeastPositionManager : MonoBehaviour
 
 
     /// <summary>
-    /// Телепортировать зверьков 
+    /// Г’ГҐГ«ГҐГЇГ®Г°ГІГЁГ°Г®ГўГ ГІГј Г§ГўГҐГ°ГјГЄГ®Гў 
     /// </summary>
-    /// <param name="loc">локация (домик или город)</param>
-    /// <param name="waypoint">координаты точки телепортации</param>
-    /// <param name="index">индекс куклы (нужен для того, чтобы зверьки (вся команда) не были отправлены в одну точку)"</param>
+    /// <param name="loc">Г«Г®ГЄГ Г¶ГЁГї (Г¤Г®Г¬ГЁГЄ ГЁГ«ГЁ ГЈГ®Г°Г®Г¤)</param>
+    /// <param name="waypoint">ГЄГ®Г®Г°Г¤ГЁГ­Г ГІГ» ГІГ®Г·ГЄГЁ ГІГҐГ«ГҐГЇГ®Г°ГІГ Г¶ГЁГЁ</param>
+    /// <param name="index">ГЁГ­Г¤ГҐГЄГ± ГЄГіГЄГ«Г» (Г­ГіГ¦ГҐГ­ Г¤Г«Гї ГІГ®ГЈГ®, Г·ГІГ®ГЎГ» Г§ГўГҐГ°ГјГЄГЁ (ГўГ±Гї ГЄГ®Г¬Г Г­Г¤Г ) Г­ГҐ ГЎГ»Г«ГЁ Г®ГІГЇГ°Г ГўГ«ГҐГ­Г» Гў Г®Г¤Г­Гі ГІГ®Г·ГЄГі)"</param>
     
     public void SetDollPosFromWaypoint(int loc, Vector3 waypoint, int index)
     {
@@ -177,7 +177,7 @@ public class BeastPositionManager : MonoBehaviour
         {
             WarpDoll(Level.Instance.Beds[dollID]);
             //  GoToBed();
-            // Прибавить сон. 1 процент за минуту сна. PreviousTime в минутах от 0001 г.
+            // ГЏГ°ГЁГЎГ ГўГЁГІГј Г±Г®Г­. 1 ГЇГ°Г®Г¶ГҐГ­ГІ Г§Г  Г¬ГЁГ­ГіГІГі Г±Г­Г . PreviousTime Гў Г¬ГЁГ­ГіГІГ Гµ Г®ГІ 0001 ГЈ.
 
         }
         SavePos();
