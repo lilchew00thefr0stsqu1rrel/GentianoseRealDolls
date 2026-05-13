@@ -3,14 +3,19 @@ using SpaceShooter;
 using System;
 using System.Collections;
 using UnityEngine;
+using NTC.MonoCache;
 
 [RequireComponent (typeof(Doll))]
-public class BeastPositionManager : MonoBehaviour
+public class BeastPositionManager : MonoCache
 {
+    
+
+    [SerializeField] private AllDollCharacters allDolls;
+    [SerializeField] private AllDollSleeps allDollSleeps;
+    [SerializeField] private AllDollPositions allDollPositions;
+
 
     [SerializeField] private DollPositions m_DollPositions;
-
-  //  [SerializeField] private DollCurrentStats m_CurrentStats;
 
     [SerializeField] private int m_Location;
     public int Location => m_Location;
@@ -23,22 +28,43 @@ public class BeastPositionManager : MonoBehaviour
     private int dollID;
 
     private Vector3 m_WaypointWarpPosition;
+    [SerializeField] private int m_MapsNumber = 3;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+
+    public void ResetLocation()
+    {
+        m_Location = 0;
+    }
+
+    public void ConstructDolls(AllDollCharacters dolls, AllDollPositions positions, AllDollSleeps sleeps)
+    {
+        allDolls = dolls;
+        allDollPositions = positions;
+        allDollSleeps = sleeps;
+
+        InitDoll();
+    }
+
+
+    private void InitDoll()
     {
         m_Doll = GetComponent<Doll>();
         dollID = m_Doll.DollID;
+        /// начало бреда
+        /// 
 
-        if (AllDollCharacters.Instance.GetDollPositions(dollID).Length == 0)
+        if (allDollPositions.GetDollPositions(dollID).Length == 0)
         {
-            m_Positions = new Vector3[2];
+            m_Positions = new Vector3[m_MapsNumber];
+            print("Created positions file");
         }
         else
         {
-            m_Positions = AllDollCharacters.Instance.GetDollPositions(dollID);
+            m_Positions = allDollPositions.GetDollPositions(dollID);
+            print("Position fetch~");
         }
-        m_Rotation = new Quaternion();
+        m_Rotation = Quaternion.identity;
+
 
         StartCoroutine(AndSavePos());
 
@@ -46,13 +72,17 @@ public class BeastPositionManager : MonoBehaviour
         if (m_DollPositions == null)
         {
             m_DollPositions = new DollPositions();
-            AllDollCharacters.Instance.AddDollPos(m_DollPositions);
+            allDollPositions.AddDollPos(m_DollPositions);
         }
     }
 
+    
+
     // Update is called once per frame
-    void Update()
+    protected override void Run()
     {
+        if (m_Positions == null) return;
+
         m_Positions[m_Location] = transform.position;
 
 
@@ -69,9 +99,6 @@ public class BeastPositionManager : MonoBehaviour
     {
         int scene = int.Parse(address[..2]);
 
-        //print(address[2..10]);
-        //  print(address[10..18]);
-        // print(address[18..26]);
         float x = float.Parse(address[2..10]);
 
         float y = float.Parse(address[10..18]);
@@ -85,8 +112,6 @@ public class BeastPositionManager : MonoBehaviour
     }
     IEnumerator AndSavePos()
     {
-
-        //       print("!*!");
 
         int numberOfLocations = Doll.LocationsNumber;
 
@@ -105,11 +130,11 @@ public class BeastPositionManager : MonoBehaviour
 
 
     /// <summary>
-    /// Òåëåïîðòèðîâàòü çâåðüêîâ 
+    /// Телепортировать зверьков 
     /// </summary>
-    /// <param name="loc">ëîêàöèÿ (äîìèê èëè ãîðîä)</param>
-    /// <param name="waypoint">êîîðäèíàòû òî÷êè òåëåïîðòàöèè</param>
-    /// <param name="index">èíäåêñ êóêëû (íóæåí äëÿ òîãî, ÷òîáû çâåðüêè (âñÿ êîìàíäà) íå áûëè îòïðàâëåíû â îäíó òî÷êó)"</param>
+    /// <param name="loc">локация (домик или город)</param>
+    /// <param name="waypoint">координаты точки телепортации</param>
+    /// <param name="index">индекс куклы (нужен для того, чтобы зверьки (вся команда) не были отправлены в одну точку)"</param>
     
     public void SetDollPosFromWaypoint(int loc, Vector3 waypoint, int index)
     {
@@ -126,18 +151,17 @@ public class BeastPositionManager : MonoBehaviour
     {
         m_Location = loc;
 
+        m_Positions = allDollPositions.GetDollPositions(dollID);
 
-       
-        
-        m_Positions = AllDollCharacters.Instance.GetDollPositions(dollID);
+        if (m_Positions[loc] == null)
+        {
+            transform.position = new Vector3(0, 0, 0);
+        }
+        else
+        {
+            transform.position = m_Positions[loc];
+        }
 
-        transform.forward = Vector3.forward;
-
-        transform.position = Level.Instance.SpawnPoint.position + Vector3.right * index;
-
-
-        transform.SetPositionAndRotation(Level.Instance.SpawnPoint.position
-            + Vector3.right, m_Rotation);
 
         print("What " + transform.position.x + ", " + transform.position.y + ", " + transform.position.z);
 
@@ -165,20 +189,17 @@ public class BeastPositionManager : MonoBehaviour
 
 
 
-        AllDollCharacters.Instance.SetDollPos(m_DollPositions);
+        allDollPositions.SetDollPos(m_DollPositions);
     }
 
     private bool m_IsSleeping;
     public void TimeActionStats(long timeDifference)
     {
-        m_IsSleeping = AllDollSleeps.GetSleepingByID(dollID);
+        m_IsSleeping = allDollSleeps.GetSleepingByID(dollID);
 
         if (m_IsSleeping)
         {
-            WarpDoll(Level.Instance.Beds[dollID]);
-            //  GoToBed();
-            // Ïðèáàâèòü ñîí. 1 ïðîöåíò çà ìèíóòó ñíà. PreviousTime â ìèíóòàõ îò 0001 ã.
-
+            //WarpDoll(m_Level.Beds[dollID]);
         }
         SavePos();
     }
