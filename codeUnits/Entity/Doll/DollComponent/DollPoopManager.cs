@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
 using NTC.Pool;
+using System.Threading.Tasks;
 
 namespace GentianoseRealDolls
 {
@@ -26,6 +27,11 @@ namespace GentianoseRealDolls
 
         [SerializeField] private GameObject m_PeeSpotPrefab;
 
+        [SerializeField] private PoopStore ps;
+
+        [SerializeField] private Poop m_PoopPrefab;
+
+        public event Action OnPoopDeposit;
         //private PoopPosition[] m_PooPosArray = new PoopPosition[31];
         private float poopOffset = -0.013f;
         private int poopNumber = 5;
@@ -34,7 +40,6 @@ namespace GentianoseRealDolls
 
        // [SerializeField] private Doll m_ActiveDoll;
 
-        [SerializeField] private Poop m_PoopPrefab;
         private Transform m_Anus;
       //  [SerializeField] private Animator m_Animator;
 
@@ -44,107 +49,58 @@ namespace GentianoseRealDolls
 
         private float minPooPointsToPoop = 6.6f;
 
+        private float timer = 0;
+        private bool addTime = false;
 
+        int count = 0;
+        private bool m_AfterTwerk;
+        private bool m_AfterLiftTail;
         private void Start()
         {
             t = new GRDTimer(5);
         }
 
-        public event Action OnPoopDeposit;
 
-        [SerializeField] private PoopStore ps;
-
-        public void SetPoopStore(PoopStore poopStore)
+        #region Poop API
+        public async void ToPoop()
         {
-            ps = poopStore;
+            StartPosePoop();
+            await Task.Delay(5000);
+            if (m_Doll.PooPoints <= minPooPointsToPoop)
+            {
+                poopNumber = 2 + (int)(Mathf.Ceil(minPooPointsToPoop - m_Doll.PooPoints) / 2.2f);
+                for (int i = 0; i < poopNumber; i++)
+                {
+                    Poop();
+                    StartPee();
+                    await Task.Delay(1000);
+                }
+                EndPosePoop();
+            }
+            else
+            {
+                EndPosePoop() ;
+            }
+        }
+
+        public void OutPoop()
+        {
+            EndPosePoop();
         }
 
         public void Poop()
         {
-            if (m_Doll.PooPoints <= minPooPointsToPoop && t.IsFinished)
-            {
-                var pooSet = new List<GameObject>();
-
-
-                poopNumber = 2  + (int)((minPooPointsToPoop - m_Doll.PooPoints) / 2.2f); 
-
-                for (int i = 0; i < poopNumber; i++)
-                {
-                    var poop = NightPool.Spawn(m_PoopPrefab, 
-                        m_AnusTurret.transform.position + new Vector3(0, i * poopOffset, 0), transform.rotation);
-                    poop.GetComponent<Poop>().InitPoop(m_Doll.Asset);
-                    ps.AddPoop(poop);
-                }
-                m_Doll.SetMaxPooCare();
-               // OnPoopDeposit();
-                 
-                
-            }
+            var poop = NightPool.Spawn(m_PoopPrefab, 
+            m_AnusTurret.transform.position, transform.rotation);
+            poop.GetComponent<Poop>().InitPoop(m_Doll.Asset);
+            PoopStore.Instance.AddPoop(poop);
+            PoopStore.SavePoop();
+            m_Doll.CareToiletStat(ToiletStat.Poo, 2.2f);
+            m_Doll.CareToiletStat(ToiletStat.Pee, 2.2f);
+            m_Doll.CareToiletStat(ToiletStat.AnalSpray, m_Doll.AnalGlandVolume * 0.037f);
         }
 
-        private void Update()
-        {
-            UpdatePoop();
-        }
 
-        private float timer = 0;
-        private bool addTime = false;
-
-
-        IEnumerator WaitEndPooPee()
-        {
-            yield return new WaitForSeconds(6);
-
-            EndPosePoop();
-        }
-
-        public void UpdatePoop()
-        {
-            
-
-            if (m_IsPooping)
-            {
-                t?.RemoveTime(Time.deltaTime);
-                if (t.IsFinished)
-                {
-                    Poop();
-
-                    // Выделяем фуньку на каку
-                    m_Doll.CareToiletStat(ToiletStat.AnalSpray, -m_Doll.AnalGlandVolume / 37.0f);
-                    m_IsPooping = false;
-                    EndPee();
-                    addTime = true;
-
-                    StartCoroutine(WaitEndPooPee());
-                }
-            }
-
-            
-        }
-        int count = 0;
-        IEnumerator BurstPee()
-        {
-            StartPee();
-            count++;
-            yield return new WaitForSeconds(1);
-            if (count < 8)
-            StartCoroutine(BurstPee());
-        }
-
-        private bool m_AfterTwerk;
-        private bool m_AfterLiftTail;
-        IEnumerator WaitTwerk()
-        {
-            m_AfterLiftTail = false;
-            yield return new WaitForSeconds(0.2f);
-            m_AfterTwerk = true;
-        }
-        IEnumerator WaitLiftTail()
-        {
-            m_AfterLiftTail = false;
-            yield return new WaitForSeconds(0.2f);
-            m_AfterLiftTail = true;
-        }
         
 
         private void StartPosePoop()
@@ -154,9 +110,6 @@ namespace GentianoseRealDolls
 
             m_Doll.State = 5;
             m_AnimatorGuard.SetAnimation(5);
-           // m_Animator.SetBool("TailUp", true);
-
-            //  OnPoop = true;
             print("st");
         }
 
@@ -171,37 +124,27 @@ namespace GentianoseRealDolls
             m_AnimatorGuard.SetAnimation(0);
 
             print("end");
-            PoopStore.SavePoop();
         }
 
-        public void ToPoop()
+        #endregion
+
+        #region Coroutines
+        IEnumerator WaitEndPooPee()
         {
-            if (!m_AfterTwerk)
-            {
-                StartPosePoop();
-                m_IsPooping = true;
-                t.Start(5);
+            yield return new WaitForSeconds(6);
 
-                StartCoroutine(BurstPee());
-
-                StartCoroutine(WaitTwerk());
-            }
-            
+            EndPosePoop();
         }
 
-        public void OutPoop()
+        IEnumerator WaitTwerk()
         {
-            if (m_AfterTwerk)
-            {
-                EndPosePoop();
-                addTime = false;
-                timer = 0;
-
-                m_AfterTwerk = false;
-            }
-           
+            m_AfterLiftTail = false;
+            yield return new WaitForSeconds(0.2f);
+            m_AfterTwerk = true;
         }
-       
+        #endregion
+
+        #region Motions
         public void ToTwerk()
         {
             if (!m_AfterTwerk)
@@ -224,7 +167,9 @@ namespace GentianoseRealDolls
             }
            
         }
+        #endregion
 
+        #region Pee
 
         public void ToPee()
         {
@@ -254,6 +199,7 @@ namespace GentianoseRealDolls
         {
             m_Doll.CareToiletStat(ToiletStat.Pee, Doll.MaxLooStat);
         }
+        #endregion
 
     }
 }
