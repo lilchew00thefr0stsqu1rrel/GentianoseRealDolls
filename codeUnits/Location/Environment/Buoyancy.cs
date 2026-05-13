@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GentianoseRealDolls
 {
-    [RequireComponent(typeof(BoxCollider))]
+    [RequireComponent(typeof(Collider))]
     public class Buoyancy : MonoBehaviour
     {
         [SerializeField] private float m_BuoyantForce;
@@ -30,10 +30,10 @@ namespace GentianoseRealDolls
                     Rigidbody rb = other.transform.root.GetComponent<Rigidbody>();
                     if (rb != null && other.transform.position.y < transform.position.y - 0.05f)
                     {
-                        print($"FA ");
+                        //print($"FA ");
                         rb.AddForce(Vector3.up * rb.mass * m_BuoyantForce);
                     }
-                    print("Submerged");
+                    //print("Submerged");
                 }
                 if (destructible.UnitID == "20201")
                 {
