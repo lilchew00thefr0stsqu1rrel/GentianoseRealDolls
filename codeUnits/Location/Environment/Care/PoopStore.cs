@@ -10,7 +10,8 @@ namespace GentianoseRealDolls
     public class PoopStore : SingletonBase<PoopStore>
     {
 
-        private string fileName = "pooStore";
+        //private string fileName = "pooStore";
+        private string path = "Assets/JSON/pooStore";
 
         [SerializeField] private Poop m_PoopPrefab;
 
@@ -60,24 +61,24 @@ namespace GentianoseRealDolls
         [SerializeField] private Material[] m_PooMaterials;
         private new void Awake()
         {
-            base.Awake(); 
-            
+            base.Awake();
+
             level = GetComponent<Level>();
             m_PooPosArray = new PoopPosition[31];
-            m_PooPositions = new List<PoopPosition>(); 
+            m_PooPositions = new List<PoopPosition>();
             m_PooList = new List<Poop>();
-            
-          
-            Saver<PoopPosition[]>.TryLoad(fileName, ref m_PooPosArray);
+
+
+            Saver<PoopPosition[]>.TryLoad2(path, ref m_PooPosArray);
             m_PooPositions = m_PooPosArray.ToList();
-            
-            
+
+
         }
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-            
+
             if (m_PoopPrefab)
             {
                 foreach (var poopPos in m_PooPositions)
@@ -91,12 +92,12 @@ namespace GentianoseRealDolls
                 }
 
             }
-            
+
         }
         private int PoopAmount;
 
 
-       
+
         // Update is called once per frame
         void Update()
         {
@@ -104,12 +105,12 @@ namespace GentianoseRealDolls
             //{
             //    SavePoop();
             //}
-            
-                PoopAmount = m_PooList.Count;
-            
+
+            PoopAmount = m_PooList.Count;
+
         }
 
-        
+
 
         //private List<GameObject> m_PooList;
 
@@ -125,15 +126,15 @@ namespace GentianoseRealDolls
                     if (poop)
                     {
 
-                        m_PooPositions.Add(new PoopPosition(poop.transform.position, poop.Size, poop.DollID, poop.Scale, 
+                        m_PooPositions.Add(new PoopPosition(poop.transform.position, poop.Size, poop.DollID, poop.Scale,
                             poop.Mass));
                     }
                 }
                 m_PooPosArray = m_PooPositions.ToArray();
             }
-          
 
-            Saver<PoopPosition[]>.Save(fileName, m_PooPosArray);
+
+            Saver<PoopPosition[]>.Save2(path, m_PooPosArray);
 
             print("Bola");
         }
@@ -154,7 +155,7 @@ namespace GentianoseRealDolls
             }
             m_PooPositions.Clear();
             m_PooPosArray = m_PooPositions.ToArray();
-            Saver<PoopPosition[]>.Save(fileName, m_PooPosArray);
+            Saver<PoopPosition[]>.Save2(path, m_PooPosArray);
 
         }
 
@@ -163,7 +164,7 @@ namespace GentianoseRealDolls
             m_PooList.Add(poop);
         }
 
- 
+
     }
 
 }
