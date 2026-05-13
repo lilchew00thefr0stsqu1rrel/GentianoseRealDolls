@@ -17,15 +17,12 @@ namespace GentianoseRealDolls
         // Update is called once per frame
         void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                gameObject.SetActive(false);    
-            }
         }
 
         [SerializeField] private InventoryItem[] m_Goods;
         [SerializeField] private int[] m_PriceArray;
 
+        [SerializeField] private ShopGoodsAmount[] m_GoodsDisplay;
         public void Buy(int itemIndex)
         {
             Inventory.Instance.AddItemInstances(m_Goods[itemIndex], 1);
@@ -36,6 +33,13 @@ namespace GentianoseRealDolls
             m_KuklonsIHave.text = m_Kuklons.ToString();
 
             InventoryController.Instance.InitAllItems();
+
+            for (int i = 0; i < m_GoodsDisplay.Length; i++)
+            {
+
+                m_GoodsDisplay[i].UpdateTextValue();
+
+            }
         }
     }
 }
