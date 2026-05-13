@@ -2,13 +2,13 @@
 using TowerDefense;
 using UnityEngine;
 
-namespace SpaceShooter
+namespace GentianoseRealDolls
 {
     public class EntitySpawner : Spawner
     {
 
         /// <summary>
-        /// Ññûëêè íà ÷òî ñïàâíèòü
+        /// Ссылки на что спавнить
         /// </summary>
         [SerializeField] private GameObject[] m_EntityPrefabs;
 
