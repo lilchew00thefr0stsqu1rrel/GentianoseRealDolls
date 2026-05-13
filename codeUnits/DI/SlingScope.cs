@@ -8,12 +8,13 @@ namespace GentianoseRealDolls
     {
         protected override void Configure(IContainerBuilder builder)
         {
-            builder.Register<InteractableObject>(Lifetime.Scoped);
             builder.RegisterComponentInHierarchy<InteractableObject>();
-            builder.RegisterComponentInHierarchy<Bed>();
             builder.RegisterComponentInHierarchy<SarvaToilet>();
+            builder.RegisterComponentInHierarchy<Mechanism>();
+            builder.RegisterComponentInHierarchy<Bed>();
+
             builder.RegisterComponentInHierarchy<ZifferGate>();
-            builder.RegisterComponentInHierarchy<ExitHabitat>();
+            builder.Register<ThrowBeastsToScene>(Lifetime.Scoped);
         }
     }
 }
