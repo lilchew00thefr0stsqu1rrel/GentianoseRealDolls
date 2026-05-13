@@ -12,7 +12,7 @@ namespace GentianoseRealDolls
 
 
         /// <summary>
-        /// Ссылки на что спавнить
+        /// Г‘Г±Г»Г«ГЄГЁ Г­Г  Г·ГІГ® Г±ГЇГ ГўГ­ГЁГІГј
         /// </summary>
         [SerializeField] private EnemyOrWildlife m_EnemyPrefab;
 
