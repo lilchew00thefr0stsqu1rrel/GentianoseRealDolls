@@ -18,16 +18,17 @@ namespace GentianoseRealDolls
 
             builder.Register<CurrentSceneData>(Lifetime.Singleton);
            
-            builder.Register<AllDollCharacters>(Lifetime.Singleton);
             builder.Register<AllDollPositions>(Lifetime.Singleton);
             builder.Register<AllDollSleeps>(Lifetime.Singleton);
 
             builder.Register<StringCoordinates>(Lifetime.Singleton);
             builder.RegisterComponentInHierarchy<TeleportBeasts>();
 
-            // //// builder.RegisterComponentInHierarchy<MainMenu>();
+            builder.RegisterComponentInHierarchy<AllDollCharacters>();
 
             builder.RegisterComponentInHierarchy<Dashboard>();
+            builder.RegisterComponentInHierarchy<EatHook>();
+            builder.RegisterComponentInHierarchy<Party>();
         }
     }
 }
