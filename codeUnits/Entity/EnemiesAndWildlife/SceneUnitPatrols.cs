@@ -20,10 +20,10 @@ public class SceneUnitPatrols : SingletonBase<SceneUnitPatrols>
 
     public void AssignUnitPath(Destructible unit)
     {
-        // Кабаний путь
+        // ГЉГ ГЎГ Г­ГЁГ© ГЇГіГІГј
         if (unit.UnitID == "20001")
             unit.SetPath(m_PatrolPaths[0]);
-        // Лосося путь
+        // Г‹Г®Г±Г®Г±Гї ГЇГіГІГј
         if (unit.UnitID == "20201")
             unit.SetPath(m_PatrolPaths[1]);
     }
