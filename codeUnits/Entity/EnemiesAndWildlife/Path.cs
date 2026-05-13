@@ -1,8 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using SpaceShooter;
 using Common;
 
-namespace TowerDefense
+namespace GentianoseRealDolls
 {
     public class Path : MonoBehaviour
     {
