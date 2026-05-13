@@ -19,18 +19,20 @@ public class DollPositions
 public class AllDollPositions : MonoBehaviour, IAllDolls
 {
     private const string fileName2 = "dPositions.dat";
+    private const string path = "Assets/JSON/dPositions.dat";
 
     [Tooltip("-1 meaning this scene is not a location")]
     // включая меню
     private int m_Scene;
 
 
+
     [SerializeField] private DollPositions[] allPositions;
     private List<DollPositions> allPositionsList = new List<DollPositions>();
     private void Awake()
     {
-        Saver<DollPositions[]>.TryLoad(fileName2, ref allPositions);
-        allPositionsList = allPositions.ToList();
+        //Saver<DollPositions[]>.TryLoad(fileName2, ref allPositions);
+        //allPositionsList = allPositions.ToList();
     }
 
 
@@ -39,6 +41,11 @@ public class AllDollPositions : MonoBehaviour, IAllDolls
         m_Scene = scene;
     }
 
+    public void InitPositions()
+    {
+        Saver<DollPositions[]>.TryLoad2(path, ref allPositions);
+        allPositionsList = allPositions.ToList();
+    }
 
 
     public void AddDollPos(DollPositions dp)
@@ -50,15 +57,10 @@ public class AllDollPositions : MonoBehaviour, IAllDolls
     {
         if (allPositionsList == null)
         {
-            allPositions = new DollPositions[3];
-
-            Saver<DollPositions[]>.Save(fileName2, allPositions);
+            allPositions = new DollPositions[WhooSettings.NumberOfDolls];
         }
 
-
-        Saver<DollPositions[]>.TryLoad(fileName2, ref allPositions);
         allPositionsList = allPositions.ToList();
-
 
         return allPositionsList[id];
     }
@@ -66,7 +68,6 @@ public class AllDollPositions : MonoBehaviour, IAllDolls
 
     public Vector3[] GetDollPositions(int id)
     {
-        //  return allScaleValues[id].Positions;
         return GetDollPos(id).Positions;
     }
     public void SetDollPos(DollPositions dp)
@@ -77,6 +78,6 @@ public class AllDollPositions : MonoBehaviour, IAllDolls
     }
     public void SaveAllDolls()
     {
-        Saver<DollPositions[]>.Save(fileName2, allPositions);
+        Saver<DollPositions[]>.Save2(path, allPositions);
     }
 }
