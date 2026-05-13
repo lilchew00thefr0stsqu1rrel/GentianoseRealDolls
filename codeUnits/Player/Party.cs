@@ -187,27 +187,26 @@ namespace GentianoseRealDolls
         {
             if (m_PartyList[m_ActiveDollIndexInParty] != null)
             {
-                transform.position = m_PartyList[m_ActiveDollIndexInParty].transform.position + Vector3.up * dH
-                    + m_PartyList[m_ActiveDollIndexInParty].transform.forward;
+                transform.position = m_PartyList[m_ActiveDollIndexInParty].transform.position + Vector3.up * dH;
                 transform.forward = m_PartyList[m_ActiveDollIndexInParty].transform.forward;
             }
 
-            if (Input.GetMouseButtonDown(1))
-            {
-                a_ = !a_;
+            //if (Input.GetMouseButtonDown(1))
+            //{
+            //    a_ = !a_;
 
-                if (a_)
-                {
-                    m_Camera.SetTarget(transform);
-                    m_Camera.SetMinOffsetWisp();
-                }
-                if (!a_)
-                {
+            //    if (a_)
+            //    {
+            //        m_Camera.SetTarget(transform);
+            //        m_Camera.SetMinOffsetWisp();
+            //    }
+            //    if (!a_)
+            //    {
 
-                    m_Camera.SetTarget(m_ActiveDoll.transform);
-                    m_Camera.SetMinOffsetDoll();
-                }
-            }
+            //        m_Camera.SetTarget(m_ActiveDoll.transform);
+            //        m_Camera.SetMinOffsetDoll();
+            //    }
+            //}
           
         }
 
