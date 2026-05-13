@@ -249,7 +249,7 @@ namespace GentianoseRealDolls
             if (m_AnimatorGuard.IsIdle()) return;
 
             print("тпру");
-            if (m_Doll.DollController.BattleManager.LesserSkillBuff && gaitCodes[3] != 0)
+            if (gaitCodes[3] != 0 &&m_Doll.DollController.BattleManager.LesserSkillBuff)
             {
                 m_AnimatorGuard.SetAnimation(9);
             }
