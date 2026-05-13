@@ -18,6 +18,23 @@ public class AnimatorGuard : MonoBehaviour, IAnimatorController
         print($"Inflicted animation #{m_AnimID}");
     }
 
+    public float GetAnimationLength(string name)
+    {
+        RuntimeAnimatorController ac = m_Animator.runtimeAnimatorController;
+
+        for (int i = 0; i < ac.animationClips.Length; i++)
+        {
+            print(ac.animationClips[i]);
+            if (ac.animationClips[i].name == name)
+            {
+                float length = ac.animationClips[i].length;
+                // Дальнейшая обработка
+                return length;
+            }
+        }
+        return 0f;
+    }
+
     public bool IsIdle()
     {
         if (m_Animator.GetCurrentAnimatorStateInfo(0).IsTag("*"))
