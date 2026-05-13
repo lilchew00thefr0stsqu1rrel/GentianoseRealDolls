@@ -7,6 +7,9 @@ namespace GentianoseRealDolls
     // Original name: Stove
     public class InteractableObject : MonoBehaviour
     {
+
+        public static event Action<int> OnCameToInteract;
+
         protected Dashboard m_Dashboard;
 
         [Inject]
@@ -21,11 +24,10 @@ namespace GentianoseRealDolls
 
         private void OnTriggerEnter(Collider other)
         {
-            print("Yoink");
             var partyWisp = other.GetComponent<Party>();
             if (partyWisp != null)
             {
-                m_Dashboard.ShowInteractTip(tipID);
+                print("Yoink" + gameObject.name + other.name);
                 OnDollCome(partyWisp);
             }
         }
@@ -35,13 +37,22 @@ namespace GentianoseRealDolls
             var partyWisp = other.GetComponent<Party>();
             if (partyWisp != null)
             {
-                m_Dashboard.HideInteractTip();
                 OnDollGone(partyWisp);
             }
         }
+        
+        
 
-        protected virtual void OnDollCome(Party p) { }
-        protected virtual void OnDollGone(Party p) { }
+        protected virtual void OnDollCome(Party p)
+        {
+            if (m_Dashboard)
+                m_Dashboard.ShowInteractTip(tipID);
+        }
+        protected virtual void OnDollGone(Party p)
+        {
+            if (m_Dashboard)
+                m_Dashboard.HideInteractTip();
+        }
 
     }
 }
