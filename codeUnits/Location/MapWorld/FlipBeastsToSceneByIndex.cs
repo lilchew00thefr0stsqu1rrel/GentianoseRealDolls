@@ -5,14 +5,18 @@ namespace GentianoseRealDolls
 {
     public class FlipBeastsToSceneByIndex : MonoBehaviour
     {
-        
+        //TODO: Dependency
+        [SerializeField] private Dashboard dashboard;
+
+        [SerializeField] private TeleportBeasts teleportBeasts;
+        [SerializeField] private Party party;
 
         public void Flip(int index)
         {
             switch (index)
             {
                 case 0:
-                    SceneHelper.EnterHouse();
+                    SceneHelper.EnterHouse(1);
                     break;
                 case 1:
                     SceneHelper.ExitHouse();
@@ -21,11 +25,11 @@ namespace GentianoseRealDolls
 
             gameObject.SetActive(false);
         }
+
         public void Telep(string posString)
         {
-            SceneHelper.Teleport(posString);
-
-            gameObject.SetActive(false);
+            dashboard.CloseInventory();
+            teleportBeasts.Teleport(posString, party.AreThereSleepingBeasts);
         }
     }
 
