@@ -26,7 +26,7 @@ namespace GentianoseRealDolls
         public virtual void SetAimInput(Vector2 aimInput) { }
         
 
-        public virtual void Use(Vector2 aimInput) { }
+        public virtual void Use(Vector2 aimInput, float time) { }
     }
 }
 
