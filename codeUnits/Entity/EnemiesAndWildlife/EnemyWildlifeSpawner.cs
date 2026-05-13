@@ -2,17 +2,25 @@
 using TowerDefense;
 using SpaceShooter;
 using UnityEngine;
+using NTC.Pool;
+using VContainer;
 
 namespace GentianoseRealDolls
 {
     public class EnemyWildlifeSpawner : Spawner
     {
 
-     
 
+
+        [SerializeField] private Dashboard dashboard;
+        [Inject]
+        public void Construct(Dashboard dashboard)
+        {
+            this.dashboard = dashboard;
+        }
 
         /// <summary>
-        /// Ññûëêè íà ÷òî ñïàâíèòü
+        /// Ссылки на что спавнить
         /// </summary>
         [SerializeField] private EnemyOrWildlife m_EnemyPrefab;
 
@@ -22,11 +30,11 @@ namespace GentianoseRealDolls
         [SerializeField] private EnemyAsset[] m_EnemyAssets;
 
 
-        
 
         protected override GameObject GenerateSpawnedEntity()
         {
-            var e = Instantiate(m_EnemyPrefab);
+            var e = NightPool.Spawn(m_EnemyPrefab);
+            //e.Construct(dashboard);
             //e.Use(m_EnemyAssets[Random.Range(0, m_EnemyAssets.Length)]);
             e.GetComponent<GentAIConroller>().SetPath(m_Path);
             return e.gameObject;
