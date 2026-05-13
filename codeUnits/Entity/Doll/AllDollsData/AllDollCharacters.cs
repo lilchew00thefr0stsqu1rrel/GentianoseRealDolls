@@ -26,6 +26,7 @@ namespace GentianoseRealDolls
     public class AllDollCharacters : MonoBehaviour, IAllDolls
     {
         private const string fileName1 = "doll.dat";
+        private const string path = "Assets/JSON/doll.dat";
 
         // включая меню
         private int m_Scene;
@@ -33,24 +34,49 @@ namespace GentianoseRealDolls
         [Tooltip("-1 meaning this scene is not a location")]
 
         [SerializeField] private DollScaleValues[] allScaleValues;
-        private List<DollScaleValues> allScaleValuesList = new List<DollScaleValues>();
-        [SerializeField] private DollCurrentStats m_CurrentStats;
+        [SerializeField] private List<DollScaleValues> allScaleValuesList = new List<DollScaleValues>();
+
+        [SerializeField] private List<float[]> m_DollMap;
 
         private void Awake()
         {
-            Saver<DollScaleValues[]>.TryLoad(fileName1, ref allScaleValues);
-            allScaleValuesList = allScaleValues.ToList();
         }
 
+        public void InitStats()
+        {
+            Saver<DollScaleValues[]>.TryLoad2(path, ref allScaleValues);
+            allScaleValuesList = allScaleValues.ToList();
+            print("!!!!!!! " + allScaleValuesList[0].LooPoo);
+        }
 
+        public List<float[]> ReadStats()
+        {
+            Saver<DollScaleValues[]>.TryLoad2(path, ref allScaleValues);
+            allScaleValuesList = allScaleValues.ToList();
+            m_DollMap = new List<float[]>();
+            int i = 0;
+            foreach (var sv in allScaleValuesList)
+            {
+                var doll = new float[7];
+                doll[0] = allScaleValuesList[i].LooPoo;
+                doll[1] = allScaleValuesList[i].AnalSprayAmount;
+                doll[2] = allScaleValuesList[i].LooPee;
+                doll[3] = allScaleValuesList[i].Bath;
+                doll[4] = allScaleValuesList[i].BrushTeeth;
+                doll[5] = allScaleValuesList[i].FoodHunger;
+                doll[6] = allScaleValuesList[i].Sleep;
+                m_DollMap.Add(doll);
+                i++;
 
+            }
+            return m_DollMap;
+        }
 
 
         public void SetScene(int scene)
         {
             m_Scene = scene;
         }
-    
 
         public DollScaleValues GetDoll(int id)
         {
@@ -71,7 +97,7 @@ namespace GentianoseRealDolls
 
         public void SaveAllDolls()
         {
-            Saver<DollScaleValues[]>.Save(fileName1, allScaleValues);
+           Saver<DollScaleValues[]>.Save2(path, allScaleValues);
         }
 
 
