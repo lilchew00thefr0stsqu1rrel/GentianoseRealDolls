@@ -5,24 +5,26 @@ using System.Collections;
 using UnityEngine;
 using NTC.MonoCache;
 
+/// <summary>
+/// Положение зверька определяется 1 целым числом (сцена-локация, город, домик) и 1 вектором-3.  
+/// </summary>
 [RequireComponent (typeof(Doll))]
 public class BeastPositionManager : MonoCache
 {
     
 
-    [SerializeField] private AllDollCharacters allDolls;
     [SerializeField] private AllDollSleeps allDollSleeps;
     [SerializeField] private AllDollPositions allDollPositions;
 
 
-    [SerializeField] private DollPositions m_DollPositions;
+    [SerializeField] private DollPosition m_DollPosition;
 
     [SerializeField] private int m_Location;
     public int Location => m_Location;
 
     private Doll m_Doll;
 
-    private Vector3[] m_Positions;
+    private Vector3 m_Position;
     private Quaternion m_Rotation;
 
     private int dollID;
@@ -36,9 +38,8 @@ public class BeastPositionManager : MonoCache
         m_Location = 0;
     }
 
-    public void ConstructDolls(AllDollCharacters dolls, AllDollPositions positions, AllDollSleeps sleeps)
+    public void ConstructDolls( AllDollPositions positions, AllDollSleeps sleeps)
     {
-        allDolls = dolls;
         allDollPositions = positions;
         allDollSleeps = sleeps;
 
@@ -52,28 +53,22 @@ public class BeastPositionManager : MonoCache
         dollID = m_Doll.DollID;
         /// начало бреда
         /// 
+        
+        m_DollPosition = allDollPositions.GetDollPos(dollID);
 
-        if (allDollPositions.GetDollPositions(dollID).Length == 0)
+        if (m_DollPosition == null) 
         {
-            m_Positions = new Vector3[m_MapsNumber];
-            print("Created positions file");
+            m_DollPosition = new DollPosition(dollID, 1, Vector3.zero, Quaternion.identity);
         }
-        else
-        {
-            m_Positions = allDollPositions.GetDollPositions(dollID);
-            print("Position fetch~");
-        }
+
+        m_Position = m_DollPosition.Position;
+
         m_Rotation = Quaternion.identity;
 
 
         StartCoroutine(AndSavePos());
 
 
-        if (m_DollPositions == null)
-        {
-            m_DollPositions = new DollPositions();
-            allDollPositions.AddDollPos(m_DollPositions);
-        }
     }
 
     
@@ -81,18 +76,18 @@ public class BeastPositionManager : MonoCache
     // Update is called once per frame
     protected override void Run()
     {
-        if (m_Positions == null) return;
+        if (m_Position == null) return;
 
-        m_Positions[m_Location] = transform.position;
+        m_Position = transform.position;
 
 
-        m_DollPositions.dollID = m_Doll.DollID;
+        m_DollPosition.dollID = m_Doll.DollID;
 
-        m_DollPositions.Scene = Location;
-        m_DollPositions.Positions = m_Positions;
+        m_DollPosition.Scene = Location;
+        m_DollPosition.Position = m_Position;
 
         m_Rotation = transform.rotation;
-        m_DollPositions.Rotation = m_Rotation;
+        m_DollPosition.Rotation = m_Rotation;
     }
 
     public void WarpDoll(string address)
@@ -115,10 +110,10 @@ public class BeastPositionManager : MonoCache
 
         int numberOfLocations = Doll.LocationsNumber;
 
-        m_DollPositions.Positions = new Vector3[numberOfLocations];
+        m_DollPosition.Position = new Vector3();
         for (int i = 0; i < numberOfLocations; i++)
         {
-            m_DollPositions.Positions[i] = m_Positions[i];
+            m_DollPosition.Position[i] = m_Position[i];
 
         }
 
@@ -151,15 +146,15 @@ public class BeastPositionManager : MonoCache
     {
         m_Location = loc;
 
-        m_Positions = allDollPositions.GetDollPositions(dollID);
+        m_Position = allDollPositions.GetDollPositions(dollID);
 
-        if (m_Positions[loc] == null)
+        if (m_Position == null)
         {
             transform.position = new Vector3(0, 0, 0);
         }
         else
         {
-            transform.position = m_Positions[loc];
+            transform.position = m_Position;
         }
 
 
@@ -170,11 +165,11 @@ public class BeastPositionManager : MonoCache
     private void OnDestroy()
     {
 
-        m_Positions[m_Location] = transform.position;
+        m_Position = transform.position;
         m_Rotation = Quaternion.identity;
 
-        m_DollPositions.Positions = m_Positions;
-        m_DollPositions.Rotation = m_Rotation;
+        m_DollPosition.Position = m_Position;
+        m_DollPosition.Rotation = m_Rotation;
 
         SavePos();
     }
@@ -182,14 +177,14 @@ public class BeastPositionManager : MonoCache
    
     public void SavePos()
     {
-        m_DollPositions.dollID = dollID;
-        m_DollPositions.Positions = m_Positions;
-        m_DollPositions.Rotation = m_Rotation;
-        m_DollPositions.Scene = m_Location;
+        m_DollPosition.dollID = dollID;
+        m_DollPosition.Position = m_Position;
+        m_DollPosition.Rotation = m_Rotation;
+        m_DollPosition.Scene = m_Location;
 
 
 
-        allDollPositions.SetDollPos(m_DollPositions);
+        allDollPositions.SetDollPos(m_DollPosition);
     }
 
     private bool m_IsSleeping;
