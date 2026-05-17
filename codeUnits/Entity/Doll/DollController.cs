@@ -1,23 +1,51 @@
 using SpaceShooter;
+using System;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace GentianoseRealDolls
 {
     [RequireComponent(typeof(Doll))]
     public class DollController : MonoBehaviour
     {
+        // TODO: сделать поля открытыми для UI
+        // звери больше не зависят от UI, требования принципа DI
+        // Каждые 0.1 с обновляется HUD
+
         private Level m_Level;
+
+        [SerializeField] private int m_LocationIndex;
+        public void SetLocationIndex(int loc)
+        {
+            m_LocationIndex = loc;
+        }
+
         private AllDollCharacters allDolls;
+        private AllDollPositions allPositions;
         private AllDollSleeps allSleeps;
        
 
         [Header("Doll Base Attributes")]
         [SerializeField] private Doll m_Doll;
         public Doll Doll => m_Doll;
+
+        [SerializeField] private bool m_IsActiveDollInParty;
+        public bool ActiveDollInPartyStatus => m_IsActiveDollInParty;
+
+        [SerializeField] private SpaceShip m_PetAsSpaceShip;
+        public SpaceShip PetAsSpaceShip => m_PetAsSpaceShip;
         [SerializeField] private Animator m_Animator;
         public Animator Animator => m_Animator;
+        [SerializeField] private AnimatorGuard m_AnimatorGuard;
+        public AnimatorGuard AnimatorGuard => m_AnimatorGuard;
         [SerializeField] private BeastPositionManager positionManager;
+
+        [SerializeField] private DollClimbing climbing;
+        public DollClimbing Climbing => climbing;
+
+
 
         [Header("Doll Component")]
 
@@ -35,11 +63,14 @@ namespace GentianoseRealDolls
 
         [SerializeField] private DollSleep sleepSystem;
 
-        [SerializeField] private DollClimbing climbing;
-        public DollClimbing Climbing => climbing;
+        [SerializeField] private Inventory m_Inventory;
+
         
         [Header("Doll's particular parts, e.g. weapons and scent glands")]
-        [SerializeField] private DollPart[] parts;
+
+
+        [SerializeField] private Vector2 m_AimInput;
+        [SerializeField] private Vector2 m_MoveInput;
 
         private Dashboard m_Dashboard;
         private Party m_Party;
@@ -48,74 +79,182 @@ namespace GentianoseRealDolls
         private int m_DollIndexInParty;
 
         public int DollIndexInParty => m_DollIndexInParty;
+        private DollScaleValues m_ScaleValues;
+        private int dollID;
+        private Rigidbody m_Rigidbody;
+
+
+        public bool FullSleep => m_Doll.FullSleep;
+
+        bool m_NavelEffect;
+        [SerializeField] private GameObject m_NavelEffectPrefab;
+        private GameObject m_NavelEffectShield;
+
+        public Transform Nose => climbing.Nose; 
+        
+        // Unity Event
+
+        private void Awake()
+        {
+
+
+            dollID = m_Doll.DollID;
+          //  InitAllDollComponents();
+
+            m_Rigidbody = GetComponent<Rigidbody>();
+        }
+
+
+        private void Start()
+        {
+        }
+
+
+        // Public API
+
+        // Управление статусом куклы (активная или трейловая)
+
+        public void SetDollAsActive(bool active)
+        {
+            m_IsActiveDollInParty = active;
+        }
+
+        // Установка индекса куклы в отряде (0 - 2)
         public void SetDollIndexInParty(int index)
         {
             m_DollIndexInParty = Mathf.Clamp(index, 0, 2);
 
 
-            InitAllDollComponents();
+            //InitAllDollComponents();
+        }
+        //  анимации
+        public void SetAnimation(int anim)
+        {
+            if (!m_AnimatorGuard) return;
+            m_AnimatorGuard.SetAnimation(anim);
         }
 
+        // Сброс анимации
         public void SetIdle()
         {
-            m_Animator.SetInteger("Autom", 0);
+            if (!m_AnimatorGuard) return;
+            m_AnimatorGuard.SetAnimation(0);
         }
 
 
-
-        private void Awake()
+        // Передача положения курсора
+        public void SetAimInput(Vector2 aimInput)
         {
-           
+            m_AimInput = aimInput;
 
-            dollID = m_Doll.DollID; 
-            InitAllDollComponents();
+            battler.SetAimInput(aimInput);
 
-            m_Rigidbody = GetComponent<Rigidbody>();
-        }
 
-        private void InitAllDollComponents()
-        {
-            gaitGear.SetProperties(m_Doll, m_Animator, m_DollIndexInParty);
-            pooper.SetProperties(m_Doll, m_Animator, m_DollIndexInParty);
-            battler.SetProperties(m_Doll, m_Animator, m_DollIndexInParty);
-            sleepSystem.SetProperties(m_Doll, m_Animator, m_DollIndexInParty);
-            bathSystem.SetProperties(m_Doll, m_Animator, m_DollIndexInParty);
-
-        }
-
-        private void Start()
-        {
-            foreach (DollPart dp in parts)
-            {
-                if (dp is DollClimbing)
-                    climbing = (DollClimbing)dp;
-            }
             
         }
 
-        private void Update()
+        // Передача управления движением (WASD)
+        public void UpdateMoveInput(Vector2 moveInput)
         {
-            if (Input.GetKeyDown(KeyCode.X))
-            {
-                sleepSystem.WakeDoll(m_DollIndexInParty);
-            }
+            m_MoveInput = moveInput;
         }
-        private DollScaleValues m_ScaleValues;
-        private int dollID;
-        private Rigidbody m_Rigidbody;
-
-        [SerializeField] private bool m_IsActiveDollInParty;
-        public bool ActiveDollInPartyStatus => m_IsActiveDollInParty;
-
-        public bool FullSleep => m_Doll.FullSleep;
-
-        public void SetActiveDoll(bool active)
+        public void TriggerClimb(int gait)
         {
-            m_IsActiveDollInParty = active;
+            climbing.ChangeClimb(gait);
         }
-        public void TimeActionStats(long timeDifference, int partyIndex)
+
+        // Инициализация всех 5 компонентов заботы и боя куклы
+        private void InitAllDollComponents()
         {
-            m_ScaleValues = allDolls.GetDollData(dollID);
+            gaitGear.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
+            pooper.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
+            battler.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
+            sleepSystem.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
+            bathSystem.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
+        }
+
+        public void ConstructInventory(Inventory inventory)
+        {
+            m_Inventory = inventory;
+            gaitGear.ConstructDollCom(m_Inventory);
+            battler.ConstructDollCom(m_Inventory);
+
+            pooper.ConstructDollCom(m_Inventory);
+
+            bathSystem.ConstructDollCom(m_Inventory);
+            sleepSystem.ConstructDollCom(m_Inventory);
+        }
+
+        public void ConstructSleep(List<bool> sleepData, AllDollSleeps sleeps)
+        {
+            allSleeps = sleeps;
+            sleepSystem.ConstructDollCom(m_Party); ;
+            sleepSystem.ConstructSleep(sleeps);
+        }
+
+        public void ConstructPos(AllDollPositions positions, AllDollSleeps sleeps)
+        {
+            allPositions = positions;
+
+            positionManager.ConstructDolls( positions, sleeps);
+        }
+
+        public void ConstructPoop(PoopStore ps)
+        {
+            pooper.ConstructPoopStorage(ps);
+        }
+
+        public void ConstructDollParty(Party party)
+        {
+            m_Party = party;
+
+            gaitGear.ConstructDollCom(m_Party);
+            battler.ConstructDollCom(m_Party);
+
+            pooper.ConstructDollCom(m_Party);
+
+            bathSystem.ConstructDollCom(m_Party);
+        }
+
+        // TODO: Создать компонент DollEat
+        public void ConstructDollStats(DollScaleValues[] dollData, AllDollCharacters dolls, AllDollPositions positions, Inventory inventory)
+        {
+            allDolls = dolls;
+
+            m_Doll.ConstructDoll(dollData, dolls, positions, inventory);
+        }
+        public void SetDollProperties()
+        {
+            gaitGear.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
+            battler.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
+            pooper.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
+            bathSystem.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
+            sleepSystem.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
+        }
+        // Настроить компоненты куклы (после создания куклы, работает как зависимости)
+        public void ConstructDoll(List<float[]> dollData, AllDollCharacters dolls, AllDollPositions positions, 
+            List<bool> sleepData, AllDollSleeps sleeps, Party party)
+        {
+
+            // Здесь ещё правильно
+            print("Snowor" + dolls.GetDoll(0).LooPoo);
+            // Начало бреда
+
+
+
+            gaitGear.ConstructDollCom(m_Party);
+            battler.ConstructDollCom(m_Party);
+
+            pooper.ConstructDollCom(m_Party);
+
+            bathSystem.ConstructDollCom(m_Party);
+           
+        }
+
+        // Изменение значений характеристик заботы за время отсутствия игрока (в том числе сон)
+        public void TimeActionStats(long timeDifference, int partyIndex, TeleportBeasts telep, DollScaleValues[] ds, AllDollSleeps allSleeps)
+        {
+            m_ScaleValues = ds[dollID];
 
             bool isSleeping = allSleeps.GetSleepingByID(m_Doll.DollID);
 
@@ -135,17 +274,13 @@ namespace GentianoseRealDolls
 
                 m_Doll.SetSleep(m_ScaleValues.Sleep + timeDifference);
 
-                positionManager.WarpDoll(m_Level.Beds[dollID]);
+                positionManager.WarpDoll(telep.Levels[m_LocationIndex].Beds[m_DollIndexInParty]);
                 
             }
 
             else
             {
-
-                print("Snegura");
-                print("Snegura"+ m_ScaleValues.Sleep + timeDifference);
                 m_Doll.SetSleep(m_ScaleValues.Sleep - timeDifference);
-                print("Snegure");
             }
 
             float poo = Mathf.Clamp(m_ScaleValues.LooPoo - timeDifference * Doll.StepLooStat, 0, Doll.MaxLooStat);
@@ -167,14 +302,15 @@ namespace GentianoseRealDolls
             float food = Mathf.Clamp(m_ScaleValues.FoodHunger - timeDifference, 0, Doll.MaxStat);
 
             m_Doll.SetFoodHunger(food);
-
         }
 
-        public void TakeStats(int partyIndex)
-        {
-            m_ScaleValues = allDolls.GetDollData(dollID);
 
-            bool isSleeping = allSleeps.GetSleepingByID(m_Doll.DollID);
+        // Взять значения характеристик заботы, записанные в файле и попавшие в скрипт AllDollCharacters
+        public void TakeStats(int partyIndex, AllDollCharacters allDoll, AllDollSleeps sleeps)
+        {
+            m_ScaleValues = allDoll.GetDoll(dollID);
+
+            bool isSleeping = sleeps.GetSleepingByID(m_Doll.DollID);
 
             if (isSleeping)
             {
@@ -188,17 +324,12 @@ namespace GentianoseRealDolls
             if (sleepSystem.Sleeping)
             {
                 sleepSystem.GoToBed(partyIndex);
-
-
                 m_Doll.SetSleep(m_ScaleValues.Sleep);
-
-                positionManager.WarpDoll(m_Level.Beds[dollID]);
-
+             /////   positionManager.WarpDoll(m_Level.Beds[dollID]);
             }
 
             else
             {
-
                 print("Snegura");
                 print("Snegura" + m_ScaleValues.Sleep);
                 m_Doll.SetSleep(m_ScaleValues.Sleep);
@@ -224,14 +355,16 @@ namespace GentianoseRealDolls
             m_Doll.SetFoodHunger(food);
         }
 
+
+        // Уложить питомца спать
         public void GoToBed()
         {
             sleepSystem.GoToBed(m_DollIndexInParty);
 
-            m_Doll.GetComponent<AIController>().SleepPatrolBehaviour();
-
-
+            m_Doll.GetComponent<GentAIConroller>().SleepPatrolBehaviour();
         }
+
+        // Разбудить питомца
         public void WakeDoll()
         {
             if (!Sleeping) return;
@@ -239,25 +372,28 @@ namespace GentianoseRealDolls
             sleepSystem.WakeDoll(m_DollIndexInParty);
 
             if (!m_Doll.ActiveDollInPartyStatus)
-                GetComponent<AIController>().WakePatrolBehaviour();
-
-
+                GetComponent<GentAIConroller>().WakePatrolBehaviour();
         }
 
+        // Купание
         public void Wash()
         {
             bathSystem.Wash();
         }
 
+        // Чистить зубы питомцу
         public void BrushTeeth()
         {
             bathSystem.BrushTeeth();
         }
 
+        // Установить позицию из точки телепортации
         public void SetDollPosFromWaypoint(int loc, Vector3 waypoint, int index)
         {
             positionManager.SetDollPosFromWaypoint(loc, waypoint, index);
         }
+
+        // Установить позицию по данным файла
         public void TakeAndSetDollPos(int loc, int index)
         {
             positionManager.TakeAndSetDollPos(loc, index);
@@ -267,36 +403,11 @@ namespace GentianoseRealDolls
         {
             positionManager.ResetLocation();
         }
-        
-        
-        public void ConstructDolls(AllDollCharacters dolls, AllDollSleeps sleeps, Level level, Dashboard dashboard, Party party)
-        {
-            allDolls = dolls;
-            allSleeps = sleeps;
-            m_Level = level;
-            m_Dashboard = dashboard;
-            m_Party = party;
 
-            positionManager.ConstructDolls(dolls, sleeps, level);
-            sleepSystem.ConstructSleep(sleeps);
 
-            gaitGear.ConstructDollCom(m_Dashboard, m_Party);
-            battler.ConstructDollCom(m_Dashboard, m_Party);
+      
 
-            pooper.ConstructDollCom(m_Dashboard, m_Party);
-
-            bathSystem.ConstructDollCom(m_Dashboard, m_Party);
-            sleepSystem.ConstructDollCom(m_Dashboard, m_Party);
-
-            // battler.SetHealSideParty(m_Party);
-
-            foreach (var dp in parts)
-            {
-                if (dp != null)
-                    dp.Construct(this, m_Party, m_Dashboard, m_Animator);
-            }
-        }
-
+        // Уменьшить значения характеристик со временем
         public void StatsReduce()
         {
 
@@ -309,12 +420,15 @@ namespace GentianoseRealDolls
 
 
 
+        // Пауза
         public void Pause()
         {
             m_Animator.enabled = false;
             m_Rigidbody.isKinematic = true;
         }
 
+
+        // Возобновить
         public void UnPause()
         {
             m_Animator.enabled = true;
@@ -322,11 +436,8 @@ namespace GentianoseRealDolls
         }
 
 
-        bool m_NavelEffect;
-        [SerializeField] private GameObject m_NavelEffectPrefab;
-        private GameObject m_NavelEffectShield;
-        
-        public Transform Nose => climbing.Nose;  
+
+        // Карман
         public void NavelEffect(bool enab)
         {
             m_NavelEffect = enab;
@@ -337,43 +448,16 @@ namespace GentianoseRealDolls
 
                 m_NavelEffectShield = Instantiate(m_NavelEffectPrefab, transform);
                 m_NavelEffectShield.transform.SetParent(transform, false);
+
+                m_Rigidbody.useGravity = false;
             }
             else
             {
                 Destroy(m_NavelEffectShield);
+                m_Rigidbody.useGravity = true;
             }
         }
 
-        public void SetClimb(int climbMode)
-        {
-            if (climbMode == 0)
-            {
-                climbing.EndClimbing();
-            }
-            if (climbMode == 1)
-            {
-                climbing.StartClimbing();
-            }
-            if (climbMode == 2)
-            {
-                climbing.StartDescend();
-            }
-        }
-
-        public void StartClimbing()
-        {
-            climbing.StartClimbing();
-        }
-
-        public void StopClimbing()
-        {
-            climbing.EndClimbing() ;
-        }
-
-        public void StartDescend()
-        {
-            climbing.StartDescend();
-        }
     }
 }
 
