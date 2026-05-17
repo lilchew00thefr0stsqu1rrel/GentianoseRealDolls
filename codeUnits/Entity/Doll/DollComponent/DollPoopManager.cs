@@ -27,10 +27,14 @@ namespace GentianoseRealDolls
 
         [SerializeField] private GameObject m_PeeSpotPrefab;
 
-        [SerializeField] private PoopStore ps;
+        [SerializeField] private PoopStore m_PoopStore;
 
         [SerializeField] private Poop m_PoopPrefab;
 
+        public void ConstructPoopStorage(PoopStore poopStore)
+        {
+            m_PoopStore = poopStore;
+        }
         public event Action OnPoopDeposit;
         //private PoopPosition[] m_PooPosArray = new PoopPosition[31];
         private float poopOffset = -0.013f;
@@ -88,13 +92,15 @@ namespace GentianoseRealDolls
             EndPosePoop();
         }
 
+
+
         public void Poop()
         {
             var poop = NightPool.Spawn(m_PoopPrefab, 
             m_AnusTurret.transform.position, transform.rotation);
             poop.GetComponent<Poop>().InitPoop(m_Doll.Asset);
-            PoopStore.Instance.AddPoop(poop);
-            PoopStore.SavePoop();
+            m_PoopStore.AddPoop(poop);
+            m_PoopStore.SavePoop();
             m_Doll.CareToiletStat(ToiletStat.Poo, 2.2f);
             m_Doll.CareToiletStat(ToiletStat.Pee, 2.2f);
             m_Doll.CareToiletStat(ToiletStat.AnalSpray, m_Doll.AnalGlandVolume * 0.037f);
@@ -106,7 +112,7 @@ namespace GentianoseRealDolls
         private void StartPosePoop()
         {
             print("5!!");
-            FindFirstObjectByType<FollowCamera>().Turn(-1);
+            FindAnyObjectByType<FollowCamera>().Turn(-1);
 
             m_Doll.State = 5;
             m_AnimatorGuard.SetAnimation(5);
@@ -117,7 +123,7 @@ namespace GentianoseRealDolls
         {
             print("5--");
             print(timer);
-            FindFirstObjectByType<FollowCamera>().Turn(1);
+            FindAnyObjectByType<FollowCamera>().Turn(1);
 
             m_Doll.State = 0;
 
