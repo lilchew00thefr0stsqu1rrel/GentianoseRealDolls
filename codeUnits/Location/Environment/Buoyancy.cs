@@ -1,55 +1,44 @@
 using SpaceShooter;
 using UnityEngine;
+using System.Threading.Tasks;
+using VContainer;
+using System.Collections;
 
 namespace GentianoseRealDolls
 {
-    [RequireComponent(typeof(Collider))]
     public class Buoyancy : MonoBehaviour
     {
-        [SerializeField] private float m_BuoyantForce;
-        [SerializeField] private float m_FishFactor;
-        [SerializeField] private float m_StockLiquid = -0.24f;
+        [SerializeField] private Party m_Party;
+        [Inject]
+        public void Construct(Party p)
+        {
+            m_Party = p;
+        }
+        [SerializeField] private BoxCollider m_BoxCollider;
 
-        private BoxCollider m_BoxCollider;
 
         private void Start()
         {
-            m_BoxCollider = GetComponent<BoxCollider>();    
+            m_BoxCollider = GetComponent<BoxCollider>();
+        
+            UpdateByDollSize();
         }
 
-        private void OnTriggerStay(Collider other)
+        private async void UpdateByDollSize()
         {
-            Destructible destructible = other.transform.root.GetComponent<Destructible>();
-            if (destructible != null)
+            if (m_Party.ActiveDoll.DollSize == 2)
             {
-               
-
-                if (other.transform.root.GetComponent<Doll>() != null)
-                {
-
-                    Rigidbody rb = other.transform.root.GetComponent<Rigidbody>();
-                    if (rb != null && other.transform.position.y < transform.position.y - 0.05f)
-                    {
-                        //print($"FA ");
-                        rb.AddForce(Vector3.up * rb.mass * m_BuoyantForce);
-                    }
-                    //print("Submerged");
-                }
-                if (destructible.UnitID == "20201")
-                {
-
-                    Rigidbody rb = other.GetComponent<Rigidbody>();
-                    if (rb != null && other.transform.position.y < transform.position.y)
-                    {
-                        rb.AddForce(Vector3.up * rb.mass * m_BuoyantForce * m_FishFactor);
-                        print("FA");
-                    }
-                    print("Submerged");
-                }
+                if (m_BoxCollider)
+                    m_BoxCollider.enabled = false;
             }
-
+            else
+            {
+                if (m_BoxCollider)
+                    m_BoxCollider.enabled = true;
+            }
+            await Task.Delay(500);
+            UpdateByDollSize();
         }
-
 
     }
 }
