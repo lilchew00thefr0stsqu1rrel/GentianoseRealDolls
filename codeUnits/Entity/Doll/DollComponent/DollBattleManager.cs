@@ -73,13 +73,6 @@ namespace GentianoseRealDolls
         public bool FlehmenCooldown => m_FlehmenCooldown;
         [SerializeField] private int m_HealAmount = 336;
         [SerializeField] private int m_AttackPower = 288;
-        ////       public event Action<bool> OnFlehmenCooldown;
-
-        //[SerializeField] private ProjectileProperties m_ProjectileProps;
-        //[SerializeField] private ProjectileProperties m_AlternativeProjectileProps;
-        //[SerializeField] private TurretProperties m_TurretProps;
-        //[SerializeField] private TurretProperties m_CATurretProps;
-        //[SerializeField] private TurretProperties m_ETurretProps;
 
         [SerializeField] private bool m_LesserSkillBuff;
         public bool LesserSkillBuff => m_LesserSkillBuff;
@@ -96,6 +89,9 @@ namespace GentianoseRealDolls
         }
         [SerializeField] private float m_Cooldown;
         public float Cooldown => m_Cooldown;
+
+        public bool SprayStanceOn => m_IsSprayStance;
+
         public void SetAimInput(Vector2 aimInput)
         {
             m_AimInput = aimInput;
@@ -130,6 +126,8 @@ namespace GentianoseRealDolls
                 (m_LesserSkillPart as HealSide).SetParty(party);
             }
         }
+
+
 
         private void Awake()
         {
@@ -184,11 +182,14 @@ namespace GentianoseRealDolls
 
         public void Idle()
         {
-            m_Doll.DollController.SetIdle();
-        }
-        public void LesserSkIdle()
-        {
-            m_AnimatorGuard.SetAnimation(9);
+            if (m_LesserSkillBuff)
+            {
+                m_AnimatorGuard.SetAnimation(9);
+            }
+            else
+            {
+                m_AnimatorGuard.SetAnimation(0);
+            }
         }
 
         #region Normal Attack
@@ -273,6 +274,7 @@ namespace GentianoseRealDolls
                 m_LesserSkillChargedAttackPart.Use(aimInput, m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0014"));
 
                 await Task.Delay((int)(lctime * 1000));
+                Idle();
             }
             else
             {
@@ -280,22 +282,13 @@ namespace GentianoseRealDolls
                 m_ChargedAttackPart.Use(aimInput, m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0008"));
 
                 await Task.Delay((int)(ctime * 1000));
+                Idle();
             }
 
 
             //m_AtChargedAttack = true;
             m_Doll.Sounds[2].Play();
 
-
-            if (m_LesserSkillBuff)
-            {
-                m_AnimatorGuard.SetAnimation(9);
-            }
-            else
-            {
-                print("Gonna charge");
-                m_AnimatorGuard.SetAnimation(0);
-            }
         }
 
         #endregion
