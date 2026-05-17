@@ -32,8 +32,9 @@ namespace GentianoseRealDolls
         private AllDollPositions allPositions;
 
         [SerializeField] private DollScaleValues m_ScaleValues;
-        [SerializeField] private DollPositions m_Positions;
+        [SerializeField] private DollPosition m_Positions;
 
+        [SerializeField] private Inventory m_Inventory;
 
         private const long TicksInSecond = 10000000;
         private long StatsPeriod = 9;
@@ -205,7 +206,8 @@ namespace GentianoseRealDolls
         private float[] m_ToiletStats;
         public float[] ToiletStats => m_ToiletStats;
 
-
+        [SerializeField] private int m_DollSize;
+        public int DollSize => m_DollSize;  
 
         [SerializeField] private bool m_IsActiveDollInParty;
         public bool ActiveDollInPartyStatus => m_IsActiveDollInParty;
@@ -213,19 +215,13 @@ namespace GentianoseRealDolls
         {
             m_IsActiveDollInParty = active;
         }
-        
-        public void ConstructDoll(List<float[]> dollData, AllDollCharacters adc, AllDollPositions adp)
-        {
-            allDolls = adc;
-            allPositions = adp;
-            //m_ScaleValues = allDolls.GetDoll(m_DollID);
 
-            var stats = dollData[m_DollID];
-            SetToiletStats(stats[0], stats[1], stats[2], stats[3], stats[4]);
-            SetFoodHunger(stats[5]);
-            SetSleep(stats[6]);
-            print("Pooey " + m_ScaleValues.LooPoo);
-            m_Positions = allPositions.GetDollPos(m_DollID);
+        public void ConstructDoll(DollScaleValues[] dollData, AllDollCharacters adc,
+            AllDollPositions adp, Inventory inventory)
+        {
+            m_Inventory = inventory;
+            allDolls = adc;
+            allPositions = adp;;
         }
 
 
@@ -452,7 +448,7 @@ namespace GentianoseRealDolls
 
         public void Eat(InventoryItem food)
         {
-            Inventory.Instance.AddItemInstances(food, -1);
+            m_Inventory.AddItemInstances(food, -1);
             m_FoodHunger = Mathf.Min(m_FoodHunger + food.foodBonus, MaxStat);
 
 
