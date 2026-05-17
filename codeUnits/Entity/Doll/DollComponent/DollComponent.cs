@@ -16,6 +16,7 @@ namespace GentianoseRealDolls
         protected AnimatorGuard m_AnimatorGuard;
 
         protected int m_DollIndexInParty;
+        [SerializeField] protected Inventory m_Inventory;
 
         public virtual void SetProperties(Doll doll, AnimatorGuard animatorGuard, int posInParty)
         {
@@ -26,11 +27,16 @@ namespace GentianoseRealDolls
 
         public virtual void ConstructDollCom(Party party)
         {
-            //m_Dashboard = dashboard;
             m_Party = party;
+        }
+        public virtual void ConstructDollCom(Inventory inventory)
+        {
+            m_Inventory = inventory;
         }
     }
 
 }
+
+
 
 
