@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using NTC.MonoCache;
 using Unity.VisualScripting;
 using System;
+using System.Threading.Tasks;
 
 public class CombatDashboard : MonoCache
 {
@@ -20,22 +21,27 @@ public class CombatDashboard : MonoCache
     private DollBattleManager m_DollBattleManager;
 
     [SerializeField] private Image m_SprayChargeImage;
-    [SerializeField] private GameObject m_SprayModeButton;
-    [SerializeField] private GameObject m_SprayButton;
-    [SerializeField] private GameObject m_SprayModeOffButton;
+    //[SerializeField] private GameObject m_SprayModeButton;
+    ////[SerializeField] private GameObject m_SprayButton;
+    //[SerializeField] private GameObject m_SprayModeOffButton;
 
 
     [SerializeField] private GameObject m_SprayChargeUI;
 
     [SerializeField] private SprayFeedback m_SprayUI;
 
-    [SerializeField] private SprayFeedback m_ToSprayUI;
+    [SerializeField] private Image m_SprayFill;
+    [SerializeField] private Image m_SprayIcon;
+    [SerializeField] private Image m_ToSprayIcon;
+
     [SerializeField] private Text m_LesserSkillCooldownText;
 
     [SerializeField] private Party m_Party;
 
+    bool avail_;
     private void Awake()
     {
+        avail_ = true;
     }
     [SerializeField] private Camera m_Camera;
 
@@ -63,7 +69,6 @@ public class CombatDashboard : MonoCache
         m_Camera = camera;
         m_DollBattleManager.AssignTurretCamera(m_Camera);
 
-        m_ToSprayUI.InitDollSpray(m_CurrentDoll);
 
 
 
@@ -75,9 +80,6 @@ public class CombatDashboard : MonoCache
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        m_SprayButton.SetActive(false);
-        m_SprayModeOffButton.SetActive(false);
-        m_SprayModeButton.SetActive(true);  
         
     }
     public void SetEmptyScreenActiveAsNA(bool interactable)
@@ -92,27 +94,7 @@ public class CombatDashboard : MonoCache
         m_DollBattleManager = doll.DollController.BattleManager;
         if (m_DollBattleManager != null)
         {
-            m_DollBattleManager.OnTakeSprayStance += () =>
-            {
-
-
-                m_SprayModeButton.SetActive(false);
-                m_SprayButton.SetActive(true);
-                m_SprayModeOffButton.SetActive(true);
-
-
-                m_SprayUI.InitDollSpray(m_CurrentDoll);
-            };
-
-            m_DollBattleManager.OnEndSprayStance += () =>
-            {
-
-                m_SprayButton.SetActive(false);
-                m_SprayModeOffButton.SetActive(false);
-                m_SprayModeButton.SetActive(true);
-
-                m_ToSprayUI.InitDollSpray(m_CurrentDoll);
-            };
+          
         }
         m_LesserSkillCooldownText.gameObject.SetActive(false);
 
@@ -124,24 +106,6 @@ public class CombatDashboard : MonoCache
         m_DollBattleManager = doll.DollController.BattleManager;
         if (m_DollBattleManager != null)
         {
-            m_DollBattleManager.OnTakeSprayStance -= () =>
-            {
-                m_SprayModeButton.SetActive(false);
-                m_SprayButton.SetActive(true);
-                m_SprayModeOffButton.SetActive(true);
-
-                m_SprayUI.InitDollSpray(m_CurrentDoll);
-            };
-
-            m_DollBattleManager.OnEndSprayStance -= () =>
-            {
-                m_SprayButton.SetActive(false);
-                m_SprayModeOffButton.SetActive(false);
-                m_SprayModeButton.SetActive(true);
-
-
-                m_ToSprayUI.InitDollSpray(m_CurrentDoll);
-            };
         }
         m_LesserSkillCooldownText.gameObject.SetActive(false);
     }
@@ -214,14 +178,19 @@ public class CombatDashboard : MonoCache
         m_FlehmenButton.SetInteractable(false);
     }
 
-
     public void SprayStanceOnOff()
     {
         m_DollBattleManager.SprayModeOnOff();
 
-        m_SprayModeButton.SetActive(!m_SprayModeButton.activeSelf);
-        m_SprayButton.SetActive(!m_SprayButton.activeSelf);
-        m_SprayModeOffButton.SetActive(!m_SprayModeOffButton.activeSelf);
+        if (m_DollBattleManager.SprayStanceOn)
+        {
+            m_ToSprayIcon.color = Color.yellow;
+        }
+        else
+        {
+
+            m_ToSprayIcon.color = Color.white;
+        }
     }
 
 
@@ -274,11 +243,14 @@ public class CombatDashboard : MonoCache
         m_LesserSkillCooldownText.text = time.ToString();
     }
 
-    public void UpdateDash()
+    public void UpdateDash(Doll activeDoll)
     {
-        m_CurrentDoll = m_Party.ActiveDoll;
+        m_CurrentDoll = activeDoll;
         m_DollBattleManager = m_CurrentDoll.DollController.BattleManager;
 
+
+        m_SprayIcon.sprite = m_CurrentDoll.Asset.RSkillIcon;
+        m_SprayFill.sprite = m_CurrentDoll.Asset.RSkillFill;
 
         m_SprayUI.UpdateUI();
 
