@@ -38,7 +38,7 @@ namespace GentianoseRealDolls
         public void DropItems()
         {
             print("***Drop***");
-            if (m_Drop != null && Inventory.Instance != null)
+            if (gameObject != null && m_Drop != null)
             {
                 //Inventory.Instance.AddItemInstances(m_Drop, m_DropAmount);
                 print(m_DropAmount);
