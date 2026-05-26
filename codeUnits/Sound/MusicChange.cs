@@ -10,7 +10,7 @@ public class MusicChange : MonoBehaviour
     {
         audioSource = GetComponent<AudioSource> ();
 
-
+        SetDefaultMusic();
     }
 
     [SerializeField] private AudioClip[] clips;
@@ -21,12 +21,18 @@ public class MusicChange : MonoBehaviour
         audioSource.clip = clips[musicID];
         audioSource.Play ();
     }
-    public void SetDefaultMusic(int musicID)
+    public void SetDefaultMusic()
     {
-        if (musicID == -1) return;
+        if (defaultClipID >= 0)
+        {
+            audioSource.clip = clips[defaultClipID];
+            audioSource.Play();
+        }
+        else
+        {
+            audioSource.Stop();
+        }
 
-        audioSource.clip = clips[defaultClipID];
-        audioSource.Play();
 
     }
 
