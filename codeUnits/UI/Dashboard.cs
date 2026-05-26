@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
-using static UnityEditor.Progress;
 
 public enum UIType
 {
@@ -62,6 +61,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
 
     [SerializeField] private GameObject m_VirtualGamepad;
 
+    [SerializeField] int tipID = -1;
 
     public void Show(GameObject ui)
     {
@@ -76,20 +76,22 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
     {
         yield return new WaitForSeconds(0.5f);
 
-        habitatUI.UpdateDash();
-        combatUI.UpdateDash();
+        m_CurrentDoll = m_Party.ActiveDoll;
+        m_CurrentDollController = m_Party.ActiveDollController;
+
+        habitatUI.UpdateDash(m_CurrentDoll);
+        combatUI.UpdateDash(m_CurrentDoll);
 
         m_GaitDisplay.UpdateGaitDisplay(m_Party.GaitMap);
 
         StartCoroutine(UpdateUI());
 
-        m_CurrentDoll = m_Party.ActiveDoll;
-        m_CurrentDollController = m_Party.ActiveDollController;
 
         for (int i = 0; i < m_Party.PartyDollSleeps.Length; i++)
         {
             SetSleepDoll(i, m_Party.PartyDollSleeps[i]);
         }
+
     }
 
     public void InitDoll()
@@ -113,23 +115,26 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         };
     }
 
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         GiveResource.OnWentToResource += ShowInteract(tipID, "+", m_ResourceTree); 
+        GiveResource.OnLeaveResource += () => { HideInteractTip(); }; 
+
         interactStrings = new List<string>()
         {            
-            "Приготовить",
-            "Сесть за стол",
-            "Покинуть чалку",
-            "Войти в чалку",
-            "Спать",
-            "Встать",
-            "<предмет>",
-            "Лавка мыши",
-            "Купаться",
-            "Чистить зубы",
-            "Какать"
+            "�����������",
+            "����� �� ����",
+            "�������� �����",
+            "����� � �����",
+            "�����",
+            "������",
+            "<�������>",
+            "����� ����",
+            "��������",
+            "������� ����",
+            "������"
         }; 
         
         StartCoroutine(LoadAllWhoo());
@@ -170,7 +175,6 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
     {
         m_DollSleepIndic[index].SetActive(sleep);
     }
-    [SerializeField] int tipID = -1;
 
     private bool m_LoadReady;
 
@@ -245,7 +249,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         if (tipID == 6)
         {
             m_ResourceTree.GiveResources();
-            HideInteractTip();
+            //HideInteractTip();
         }
         if (tipID == 7)
         {
@@ -372,6 +376,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
     public void HideInteractTip()
     {
         interactTip.SetActive(false);
+        tipID = -1;
     }
 
     public void SetSprayChargeUIVisible(bool visible)
@@ -385,6 +390,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         m_CurrentDoll.Eat(food);
         InventoryController.Instance.InitAllItems();
     }
+
     public void ToMainMenu()
     {
         CloseInventory();
