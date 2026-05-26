@@ -84,6 +84,7 @@ public class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
         print("mdtrkk");
         OnDrag(eventData);
+
     }
 
     public void OnPointerUp(PointerEventData eventData)
