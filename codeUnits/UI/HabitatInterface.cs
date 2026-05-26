@@ -49,7 +49,7 @@ namespace GentianoseRealDolls
         {
         }
 
-        public void UpdateDash()
+        public void UpdateDash(Doll activeDoll)
         {
             if (m_Party == null) 
             {
@@ -68,6 +68,7 @@ namespace GentianoseRealDolls
             m_BathroomText.text = m_Party.ActiveDoll.Bathroom.ToString("F0");
             m_SleepText.text = m_Party.ActiveDoll.Sleep.ToString();
             
+            SetCurrentDoll(activeDoll);
         }
 
         public void StartPoop()
@@ -111,10 +112,10 @@ namespace GentianoseRealDolls
 
             UpdatePoop();
 
-            if (Input.GetKeyDown(KeyCode.F4))
-            {
-                m_CurrentDoll.OhPoop();
-            }
+            //if (Input.GetKeyDown(KeyCode.F4))
+            //{
+            //    m_CurrentDoll.OhPoop();
+            //}
 
         }
 
@@ -156,57 +157,11 @@ namespace GentianoseRealDolls
 
             if (m_CurrentDoll.PooPoints <= 7.7f)
             {
-                if (SarvaToilet.CanPoop && Input.GetKeyDown(KeyCode.R))
-                {
-                    m_PoopManager.ToPoop();
-                }
-            }
-
-          
-
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                m_PoopManager.OutPoop();
+               
             }
 
 
 
-            #region TimerCooldown_invent
-
-            if (Input.GetKeyDown(KeyCode.T))
-            {
-                m_PoopManager.ToTwerk();
-            }
-
-            //if (addTime)
-            //{
-            //    timer += Time.deltaTime;
-            //}
-
-            //if (timer >= 0.2f)
-            //{
-            //    addTime = false;
-            //}
-
-            if (Input.GetKeyDown(KeyCode.T))
-            {
-                m_PoopManager.OutTwerk();
-            }
-
-            #endregion
-            if (Input.GetMouseButtonDown(1))
-            {
-               // m_PoopManager.ToLiftTail(); 
-            }
-            if (Input.GetMouseButtonDown(1))
-            {
-              // m_PoopManager.OutLiftTail();
-            }
-
-            if (Input.GetKeyDown(KeyCode.Q))
-            {
-                m_PoopManager.ToPee();
-            }
 
 
 
