@@ -18,7 +18,7 @@ public class MusicZone : MonoBehaviour
     {
         if (other.GetComponent<Party>())
         {
-            m_MusicChangeManager.SetDefaultMusic(m_MusicID);
+            m_MusicChangeManager.SetDefaultMusic();
         }
     }
 
