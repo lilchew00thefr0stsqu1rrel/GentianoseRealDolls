@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace GentianoseRealDolls
 {
@@ -20,9 +21,10 @@ namespace GentianoseRealDolls
             inventoryItems = new List<InventoryItem>();
             inventoryAmount = new List<int>();
 
-
+            gameObject.SetActive(false);
             
         }
+
 
         private void Update()
         {
@@ -30,6 +32,11 @@ namespace GentianoseRealDolls
             //{ 
             //    inventoryUI.SetActive(false);
             //}
+        }
+
+        private void OnEnable()
+        {
+            InventoryController.Instance.InitAllItems();
         }
     }
 
