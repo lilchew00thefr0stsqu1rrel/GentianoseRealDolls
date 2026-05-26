@@ -1,9 +1,16 @@
 using UnityEngine;
+using VContainer;
 
 namespace GentianoseRealDolls
 {
     public class StoveUI : MonoBehaviour
     {
+        [Inject]
+        public void Construct(Inventory obj)
+        {
+            m_Inventory = obj;
+        }
+        [SerializeField] private Inventory m_Inventory;
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
@@ -24,10 +31,7 @@ namespace GentianoseRealDolls
         // Update is called once per frame
         void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                gameObject.SetActive(false);
-            }
+
         }
         
         [SerializeField] private ItemIcon[] ingredIcons;
@@ -44,7 +48,7 @@ namespace GentianoseRealDolls
 
             for (int i = 0; i < recipe.ingredients.Length; i++)
             {
-                canCook &= Inventory.Instance.MayRemove(recipe.ingredients[i], recipe.amounts[i]);
+                canCook &= m_Inventory.MayRemove(recipe.ingredients[i], recipe.amounts[i]);
 
                 ingredIcons[i].InitialiseSetItem(recipe.ingredients[i]);
             }
@@ -55,10 +59,10 @@ namespace GentianoseRealDolls
             {
                 for (int i = 0; i < recipe.ingredients.Length; i++)
                 {
-                    Inventory.Instance.AddItemInstances(recipe.ingredients[i], -recipe.amounts[i]);
+                    m_Inventory.AddItemInstances(recipe.ingredients[i], -recipe.amounts[i]);
                 }
 
-                Inventory.Instance.AddItemInstances(recipe.result, 1);
+                m_Inventory.AddItemInstances(recipe.result, 1);
 
                 InventoryController.Instance.InitAllItems();
 
@@ -68,4 +72,3 @@ namespace GentianoseRealDolls
     }
 
 }
-
