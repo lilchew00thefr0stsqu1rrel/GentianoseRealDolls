@@ -61,6 +61,16 @@ namespace GentianoseRealDolls
                 AddDollPosition(i, 1, 0, 0, 0);
             }
 
+            CreateTableInventory();
+
+            // Seed data.
+            for (int i = 0; i < 16; i++)
+            {
+                if (i < 2)
+                    AddItem(i, 2);
+                else
+                    AddItem(i, 0);
+            }
         }
 
         public void CreateTablePosition()
@@ -87,6 +97,32 @@ namespace GentianoseRealDolls
             }
         }
 
+
+
+        public void CreateTableInventory()
+        {
+            print("Whew");
+            using (var connection = new SqliteConnection(dbPathURI))
+            {
+                print("Dolly");
+
+                print($"Dolly {connection != null}");
+
+                connection.Open(); /// !!~~!
+                print("Mink");
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = "CREATE TABLE IF NOT EXISTS inventory (itemID INTEGER PRIMARY KEY, amount INTEGER)";
+                    command.ExecuteNonQuery();
+                }
+
+                print("-inve- table was created");
+
+                connection.Close();
+            }
+        }
+
         public void AddDollPosition(int petDollID, int petLevelID, float petX, float petY, float petZ)
         {
             using (var connection = new SqliteConnection(dbPathURI))
@@ -95,8 +131,26 @@ namespace GentianoseRealDolls
 
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = "INSERT INTO positions (dollID, levelID, x, y, z) VALUES ('" + petDollID +
+                    command.CommandText =
+                    "INSERT OR IGNORE INTO positions (dollID, levelID, x, y, z) VALUES ('" + petDollID +
                         "', '" + petLevelID + "', '" + petX + "', '" + petY + "', '" + petZ + "');";
+                    command.ExecuteNonQuery();
+                }
+
+                connection.Close();
+            }
+            print("Doll position was added!!!");
+        }
+        public void AddItem(int itemID, int amount)
+        {
+            using (var connection = new SqliteConnection(dbPathURI))
+            {
+                connection.Open();
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = "INSERT OR IGNORE INTO inventory (itemID, amount) VALUES ('" + itemID +
+                        "', '" + amount + "');";
                     command.ExecuteNonQuery();
                 }
 
@@ -121,6 +175,23 @@ namespace GentianoseRealDolls
                 connection.Close();
             }
         }
+        public void ChangeItemAmount(int itemID, int amount)
+        {
+            using (var connection = new SqliteConnection(dbPathURI))
+            {
+                connection.Open();
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $"UPDATE inventory SET " +
+                        $"amount='{amount}' WHERE itemID='{itemID}';";
+                    command.ExecuteNonQuery();
+                }
+
+                connection.Close();
+            }
+        }
+
 
         public bool CheckDollPositionPresent(int petDollID)
         {
@@ -185,6 +256,37 @@ namespace GentianoseRealDolls
 
 
             return new DollPosition(petDollID, map, pos, Quaternion.identity);
+        }
+
+        public int[] GetItemAmounts()
+        {
+            int[] ia = new int[16];
+
+
+            using (var connection = new SqliteConnection(dbPathURI))
+            {
+                connection.Open();
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $"SELECT * FROM inventory;";
+
+                    using (IDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            ia[int.Parse(reader["itemID"].ToString())] = int.Parse(reader["amount"].ToString());
+
+                            
+                        }
+                    }
+                }
+
+                connection.Close();
+            }
+
+
+            return ia;
         }
 
         public int GetDollAmount()
