@@ -43,9 +43,14 @@ namespace GentianoseRealDolls
         }
         public void UpdateGaitDisplay(int[] gaitMap)
         {
+            signs = new string[3];
+            signs[0] = oneCross;
+            signs[1] = twoCrosses;
+            signs[2] = threeCrosses;
+
             if (m_GaitTexts.Length != 0)
             {
-                for (int i = 0; i <  gaitMap.Length; i++) 
+                for (int i = 0; i < gaitMap.Length; i++) 
                 {
                     m_GaitTexts[i].text = signs[gaitMap[i]-1];
                 }
