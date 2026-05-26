@@ -19,6 +19,8 @@ namespace GentianoseRealDolls
         [SerializeField] private DollController m_TargetDoll;
         [SerializeField] private Animator m_Animator;
 
+        [SerializeField] private GaitInputController m_GaitInputController;
+
         //lemur
         public static bool mouseTorque = true;
 
@@ -85,6 +87,8 @@ namespace GentianoseRealDolls
                 ControlKeyboardAndMobile();
             }
         }
+
+
         private void ControlNew()
         {
             float thrust = 0;
@@ -105,13 +109,22 @@ namespace GentianoseRealDolls
         
         private void ControlMobile()
         {
+            m_TargetShip.ThrustControl = 0;
+            m_TargetShip.TorqueControl = 0;
+
             Vector3 dir = m_VirtualGamePad.VirtualJoystick.Value;
 
             if (dir != Vector3.zero)
             {
                 m_TargetShip.ThrustControl = dir.y;
                 m_TargetShip.TorqueControl = -dir.x;
-            }   
+
+                m_GaitInputController.StartGait();
+            }
+            else
+            {
+                m_GaitInputController.StopGait();
+            }
         }
 
         public void Leap()
@@ -119,23 +132,23 @@ namespace GentianoseRealDolls
             m_TargetShip.Leap();
         }
 
-        // Этот метод вызывается Player Input,
-        // когда срабатывает действие Move
+        // ���� ����� ���������� Player Input,
+        // ����� ����������� �������� Move
         public void OnMove(InputAction.CallbackContext context)
         {
-            // Считываем значение Vector2 из Input System
-            // Оно описывает направление движения
+            // ��������� �������� Vector2 �� Input System
+            // ��� ��������� ����������� ��������
             moveInput = context.ReadValue<Vector2>();
 
             
         }  
       
 
-        // Этот метод вызывается при нажатии кнопки Jump
+        // ���� ����� ���������� ��� ������� ������ Jump
         public void OnJump(InputAction.CallbackContext context)
         {
-            // Проверяем, что действие именно выполнено,
-            // а не отменено или в процессе
+            // ���������, ��� �������� ������ ���������,
+            // � �� �������� ��� � ��������
             if (!context.performed) return;
 
             Leap();
@@ -147,6 +160,8 @@ namespace GentianoseRealDolls
         {
             ControlNew();
             ControlMobile();
+
+            m_GaitInputController.Move(moveInput);
         }
 
         
