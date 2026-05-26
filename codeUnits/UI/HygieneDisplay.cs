@@ -1,11 +1,22 @@
 using GentianoseRealDolls;
+using SpaceShooter;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
-using SpaceShooter;
+using VContainer;
 
 public class HygieneDisplay : MonoBehaviour
 {
+
+
+    [SerializeField] private Party m_Party;
+    ////[Inject]
+    //public void Construct(Party obj)
+    //{
+    //    m_Party = obj;
+    //}
+
     [SerializeField] private Text m_PooText;
     [SerializeField] private Text m_SprayText;
     [SerializeField] private Text m_PeeText;
@@ -18,24 +29,31 @@ public class HygieneDisplay : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        currentDoll = Party.Instance.ActiveDoll;
+        currentDoll = m_Party.ActiveDoll;
+
+        gameObject.SetActive(false);
     }
+
 
     private void OnEnable()
     {
-        currentDoll = Party.Instance.ActiveDoll;
+        if (m_Party) 
+            currentDoll = m_Party.ActiveDoll;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (!m_Party) return;
         if (!currentDoll) return;
 
+       
 
-        m_PooText.text = $"Кишечник: {Mathf.Round(currentDoll.ToiletStats[0] * 10) / 10}/11.0";
-        m_SprayText.text = $"Параанальные железы: {Mathf.Round(currentDoll.AnalGlandHealth * 10) / 10}/11.0";
-        m_PeeText.text = $"Моча: {Mathf.Round(currentDoll.ToiletStats[2] * 10) / 10}/11.0";
-        m_BathText.text = $"Ванная: {Mathf.Round(currentDoll.ToiletStats[3] * 10) / 10}/34.0";
-        m_BrushTeethText.text = $"Чистка зубов: {Mathf.Round(currentDoll.ToiletStats[4] * 10) / 10}/33.0";
+        m_PooText.text = $"РљРёС€РµС‡РЅРёРє: {Mathf.Round(currentDoll.ToiletStats[0] * 10) / 10}/11.0";
+        m_SprayText.text = $"РџР°СЂР°Р°РЅР°Р»СЊРЅС‹Рµ Р¶РµР»РµР·С‹: {Mathf.Round(currentDoll.AnalGlandHealth * 10) / 10}/11.0";
+        m_PeeText.text = $"РњРѕС‡Р°: {Mathf.Round(currentDoll.ToiletStats[2] * 10) / 10}/11.0";
+        m_BathText.text = $"Р’Р°РЅРЅР°СЏ: {Mathf.Round(currentDoll.ToiletStats[3] * 10) / 10}/34.0";
+        m_BrushTeethText.text = $"Р§РёСЃС‚РєР° Р·СѓР±РѕРІ: {Mathf.Round(currentDoll.ToiletStats[4] * 10) / 10}/33.0";
+        
     }
 }
