@@ -164,6 +164,7 @@ namespace GentianoseRealDolls
 
             //m_Items = m_ItemsList.ToArray();
 
+            m_DollBase.ChangeItemAmount(invItem.itemID, m_ItemsMap[invItem.itemID]);
 
             Saver<List<int>>.Save(WhooSettings.fileNameInv, m_ItemsMap);
         }
@@ -208,6 +209,9 @@ namespace GentianoseRealDolls
             {
                 m_ItemsMap[invItem.itemID] -= amount;
             }
+
+            
+            m_DollBase.ChangeItemAmount(invItem.itemID, m_ItemsMap[invItem.itemID]);
 
             Saver<List<int>>.Save(WhooSettings.fileNameInv, m_ItemsMap);
 
