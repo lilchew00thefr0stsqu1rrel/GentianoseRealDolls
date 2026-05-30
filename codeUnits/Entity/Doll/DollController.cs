@@ -90,7 +90,6 @@ namespace GentianoseRealDolls
         [SerializeField] private GameObject m_NavelEffectPrefab;
         private GameObject m_NavelEffectShield;
 
-        public Transform Nose => climbing.Nose; 
         
         // Unity Event
 
