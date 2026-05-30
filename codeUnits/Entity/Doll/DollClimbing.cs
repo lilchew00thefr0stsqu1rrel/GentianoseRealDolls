@@ -3,13 +3,15 @@ using NTC.MonoCache;
 using SpaceShooter;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 namespace GentianoseRealDolls
 {
     public class DollClimbing : MonoCache
     {
-        [SerializeField] private Transform m_Nose;
-        public Transform Nose => m_Nose;
+        [SerializeField] private BoxCollider m_NoseButton;
+        [SerializeField] private BoxCollider m_HandButton;
+
         [SerializeField] private Transform m_Hand;
         [SerializeField] private SpaceShip m_PetAsSpaceShip;
         [SerializeField] private Rigidbody m_Rigid;
@@ -28,6 +30,7 @@ namespace GentianoseRealDolls
 
         // TODO: 60
         [SerializeField] private float m_ClimbThreshold = 30;
+        [SerializeField] private float m_ClimbNormalForce = 500;
 
         private float m_HillAngle;
         public float HillAngle => m_HillAngle;
@@ -82,14 +85,25 @@ namespace GentianoseRealDolls
 
         public void ChangeClimb(int gait)
         {
-            if (m_HillAngle < -m_ClimbThreshold)
+            var front = Physics.OverlapBox(m_NoseButton.center, m_NoseButton.bounds.extents);
+            if (front != null && front.Length != 0)
             {
                 StartClimbing();
             }
+            else
+            {
+                EndClimbing(gait);
+            }
 
-            else if (m_HillAngle > m_ClimbThreshold)
+            var hands = Physics.OverlapBox(m_HandButton.center, m_HandButton.bounds.extents);
+            if (hands != null && hands.Length == 0)
             {
                 StartDescend();
+            }
+
+            else
+            {
+                EndClimbing(gait);
             }
         }
 
@@ -101,7 +115,10 @@ namespace GentianoseRealDolls
 
          
                 
-            
+            if (m_DollClimbMode != ClimbMode.NonClimb)
+            {
+                m_Rigid.AddForce(-transform.parent.up * m_ClimbNormalForce);
+            }
 
             var rHit = Physics.RaycastAll(m_FootRayOrigin.position, -transform.parent.up, m_DistanceToFloorFoot);
 
@@ -132,47 +149,6 @@ namespace GentianoseRealDolls
 
                         transform.parent.rotation = Quaternion.Slerp(transform.parent.rotation, dollRotation, m_InterpolationAngular * Time.deltaTime);
                     }
-
-
-                }
-            }
-
-           
-
-            if (m_HandRayOrigin != null)
-            {
-                var fHit = Physics.Raycast(m_HandRayOrigin.position, -transform.parent.up, m_DistanceToFloorHand);
-               
-
-
-                if (!fHit)
-                {
-                    if (moveInput.y > 0)
-                    {
-                        var dollEuler = transform.parent.eulerAngles;
-                        var dollRotation = transform.parent.rotation;
-                        dollRotation = Quaternion.AngleAxis(90, transform.parent.right);
-                        transform.parent.rotation = Quaternion.Slerp(transform.parent.rotation, dollRotation, m_InterpolationAngular * Time.deltaTime);
-
-                    }
-                    // Поворот куклы на 60 о
-                   
-                }
-
-
-            }
-            var nHit = Physics.Raycast(m_Nose.position, transform.parent.forward, m_DistanceToWallNose);
-
-           
-            if (nHit)
-            {
-                if (moveInput.y > 0)
-                {
-                    // Поворот куклы на 60 о
-                    var dollEuler = transform.parent.eulerAngles;
-                    var dollRotation = transform.parent.rotation;
-                    dollRotation = Quaternion.AngleAxis(-90, transform.parent.right);
-                    transform.parent.rotation = Quaternion.Slerp(transform.parent.rotation, dollRotation, m_InterpolationAngular * Time.deltaTime);
                 }
             }
         }
@@ -187,9 +163,8 @@ namespace GentianoseRealDolls
             Gizmos.color = Color.red;
             Gizmos.DrawLine(m_HandRayOrigin.position, m_HandRayOrigin.position - transform.parent.up * m_DistanceToFloorHand); 
 
-            Gizmos.color = Color.blue;
-            Gizmos.DrawLine(m_Nose.position, m_Nose.position + transform.parent.forward * m_DistanceToWallNose);
         }
     }
 }
+
 
