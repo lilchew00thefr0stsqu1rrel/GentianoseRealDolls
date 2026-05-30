@@ -13,7 +13,6 @@ namespace GentianoseRealDolls
 
         public static bool CanPoop;
 
-        [SerializeField] private Collider m_Collider;
 
         protected override void OnDollCome(Party p)
         {
@@ -23,11 +22,10 @@ namespace GentianoseRealDolls
                 CanPoop = true;
         }
 
-        protected override void OnDollGone(Party p)
+        protected override void OnDollGone()
         {
             if (m_Dashboard)
                 m_Dashboard.HideInteractTip();
-            if (p != null)
                 CanPoop = false;
         }
     }
