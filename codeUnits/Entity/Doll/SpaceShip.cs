@@ -12,18 +12,18 @@ namespace GentianoseRealDolls
         [SerializeField] private Sprite m_PreviewImage;
 
         [SerializeField] private Vector3 m_CenterOfMass;
-        /// Масса для автоматической установки у ригида.
+        /// РњР°СЃСЃР° РґР»СЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРѕР№ СѓСЃС‚Р°РЅРѕРІРєРё Сѓ СЂРёРіРёРґР°.
         /// </summary>
         [Header("Space ship")]
         [SerializeField] private float m_Mass;
 
         /// <summary>
-        /// Толкающая вперёд сила
+        /// РўРѕР»РєР°СЋС‰Р°СЏ РІРїРµСЂС‘Рґ СЃРёР»Р°
         /// </summary>
         [SerializeField] private float m_Thrust;
 
         /// <summary>
-        /// Вращающая сила.
+        /// Р’СЂР°С‰Р°СЋС‰Р°СЏ СЃРёР»Р°.
         /// </summary>
         [SerializeField] private float m_Mobility;
 
@@ -33,12 +33,12 @@ namespace GentianoseRealDolls
 
 
         /// <summary>
-        /// Максимальная линейная скорость.
+        /// РњР°РєСЃРёРјР°Р»СЊРЅР°СЏ Р»РёРЅРµР№РЅР°СЏ СЃРєРѕСЂРѕСЃС‚СЊ.
         /// </summary>
         [SerializeField] private float m_MaxLinearVelocity;
 
         /// <summary>
-        /// Максимальная вращательная скорость. В градусах.
+        /// РњР°РєСЃРёРјР°Р»СЊРЅР°СЏ РІСЂР°С‰Р°С‚РµР»СЊРЅР°СЏ СЃРєРѕСЂРѕСЃС‚СЊ. Р’ РіСЂР°РґСѓСЃР°С….
         /// </summary>
         [SerializeField] private float m_MaxAngularVelocity;
 
@@ -46,7 +46,7 @@ namespace GentianoseRealDolls
         [SerializeField] private float m_MaxJumpVelocity;
 
         /// <summary>
-        /// Сохранённая ссылка на ригид.
+        /// РЎРѕС…СЂР°РЅС‘РЅРЅР°СЏ СЃСЃС‹Р»РєР° РЅР° СЂРёРіРёРґ.
         /// </summary>
         private Rigidbody m_Rigid;
 
@@ -68,17 +68,17 @@ namespace GentianoseRealDolls
         #region Public API
 
         /// <summary>
-        /// Управление линейной тягой. -1.0 до +1.0
+        /// РЈРїСЂР°РІР»РµРЅРёРµ Р»РёРЅРµР№РЅРѕР№ С‚СЏРіРѕР№. -1.0 РґРѕ +1.0
         /// </summary>
         public float ThrustControl { get; set; }
 
         /// <summary>
-        /// Управление вращательной тягой. -1.0 до +1.0
+        /// РЈРїСЂР°РІР»РµРЅРёРµ РІСЂР°С‰Р°С‚РµР»СЊРЅРѕР№ С‚СЏРіРѕР№. -1.0 РґРѕ +1.0
         /// </summary>
         public float TorqueControl { get; set; }
 
         /// <summary>
-        /// Управление прыжком. 0.0 до +1.0
+        /// РЈРїСЂР°РІР»РµРЅРёРµ РїСЂС‹Р¶РєРѕРј. 0.0 РґРѕ +1.0
         /// </summary>
         public float JumpControl { get; set; }
 
@@ -130,7 +130,7 @@ namespace GentianoseRealDolls
        
         /// <summary>
         /// 
-        /// Метод добавления сил кораблю для движения.
+        /// РњРµС‚РѕРґ РґРѕР±Р°РІР»РµРЅРёСЏ СЃРёР» РєРѕСЂР°Р±Р»СЋ РґР»СЏ РґРІРёР¶РµРЅРёСЏ.
         /// </summary>
         private void UpdateRigidBody()
         {
@@ -162,8 +162,8 @@ namespace GentianoseRealDolls
 */
 
         /// <summary>
-        /// TODO: заменить временный метод-заглушку.
-        /// Используется ИИ.
+        /// TODO: Р·Р°РјРµРЅРёС‚СЊ РІСЂРµРјРµРЅРЅС‹Р№ РјРµС‚РѕРґ-Р·Р°РіР»СѓС€РєСѓ.
+        /// РСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РР.
         /// </summary>
         /// <param name="mode"></param>
         public void Fire(TurretMode mode)
@@ -207,8 +207,8 @@ namespace GentianoseRealDolls
         */
 
         /// <summary>
-        /// TODO: Заменить временный метод-заглушку.
-        /// Используется турелями.
+        /// TODO: Р—Р°РјРµРЅРёС‚СЊ РІСЂРµРјРµРЅРЅС‹Р№ РјРµС‚РѕРґ-Р·Р°РіР»СѓС€РєСѓ.
+        /// РСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ С‚СѓСЂРµР»СЏРјРё.
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>
@@ -218,8 +218,8 @@ namespace GentianoseRealDolls
       }
 
      /// <summary>
-     /// TODO: Заменить временный метод-заглушку.
-     /// Используется турелями.
+     /// TODO: Р—Р°РјРµРЅРёС‚СЊ РІСЂРµРјРµРЅРЅС‹Р№ РјРµС‚РѕРґ-Р·Р°РіР»СѓС€РєСѓ.
+     /// РСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ С‚СѓСЂРµР»СЏРјРё.
      /// </summary>
      /// <param name="count"></param>
      /// <returns></returns>
@@ -301,7 +301,7 @@ namespace GentianoseRealDolls
 
             IEnumerator LeapTick()
             {
-                m_Rigid.AddForce(m_Leap * ((transform.up + transform.forward) * 0.5f), ForceMode.Force);
+                m_Rigid.AddForce(m_Leap * (transform.up  + transform.forward * 0.5f), ForceMode.Force);
                 count++;
                 yield return new WaitForSeconds(0.05f);
 
