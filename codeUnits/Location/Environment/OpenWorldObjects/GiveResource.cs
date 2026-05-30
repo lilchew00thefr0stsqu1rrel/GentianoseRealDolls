@@ -50,7 +50,7 @@ namespace GentianoseRealDolls
             }
         }
 
-        protected override void OnDollGone(Party p)
+        protected override void OnDollGone()
         {
             OnLeaveResource();
             print("Awayy~~!");
