@@ -1,8 +1,11 @@
-using UnityEngine;
 using GentianoseRealDolls;
+using UnityEngine;
+using UnityEngine.Animations;
+using UnityEngine.InputSystem;
+using VContainer;
 namespace SpaceShooter
 {
-    public class FollowCamera : MonoBehaviour, IDependency<Party>
+    public class FollowCamera : MonoBehaviour, ICamera
     {
         [SerializeField] private Transform m_Target;
 
@@ -14,6 +17,11 @@ namespace SpaceShooter
 
         [SerializeField] private float m_ForwardOffset;
 
+        [SerializeField] private float m_CameraBackStep = 0.1f;
+        [SerializeField] private float m_CameraBackStepBirdEye = 0.016f;
+        [SerializeField] private float m_CameraUpStep = 0.05f;
+        [SerializeField] private float m_CameraUpStepBirdEye = 0.1f;
+
         [SerializeField] private float m_UpOffset; // back up like a cat urine spray
         [SerializeField] private float m_UpAngleOffset;
 
@@ -22,7 +30,7 @@ namespace SpaceShooter
         public Camera ProperCamera => m_ProperCamera;
         
 
-        // 1, если камера смотрит вперёд относительно зверя; -1, если назад
+        // 1, ���� ������ ������� ����� ������������ �����; -1, ���� �����
         private int m_Forward = 1;
 
         [SerializeField] private int m_MaxCameraBackOffset;
@@ -39,6 +47,17 @@ namespace SpaceShooter
         }
         [SerializeField] private float zz;
 
+
+        float mouseScrollInput;
+        // ���� ����� ���������� Player Input,
+        // ����� ����������� �������� Move
+        public void OnZoom(InputAction.CallbackContext context)
+        {
+            // ��������� �������� Vector2 �� Input System
+            // ��� ��������� ����������� ��������
+            mouseScrollInput = context.ReadValue<float>();
+        }
+
         private bool m_BirdEye;
         private void FixedUpdate()
         {
@@ -46,30 +65,33 @@ namespace SpaceShooter
 
 
 
-            if (Input.GetAxis("Mouse ScrollWheel") > 0.05f)
+
+            //  if (Input.GetAxis("Mouse ScrollWheel") > 0.05f)
+            if (mouseScrollInput > 0.05f)
             {
-                if (!m_BirdEye && m_CameraBackOffset < m_MaxCameraBackOffset && m_UpOffset < m_MaxUpOffset)
+                if (!m_BirdEye && m_CameraBackOffset < m_MaxCameraBackOffset)
                 {
-                    m_CameraBackOffset += 0.1f;
-                    m_UpOffset += 0.05f;
+                    m_CameraBackOffset += m_CameraBackStep;
+                    m_UpOffset += m_CameraUpStep;
                 }
-                if (m_BirdEye && m_UpOffset < m_MaxUpOffset && m_CameraBackOffset < m_MaxCameraBackOffset)
+                if (m_BirdEye && m_UpOffset < m_MaxUpOffset)
                 {
-                    m_UpOffset += 0.1f;
-                    m_CameraBackOffset += 0.016f;
+                    m_UpOffset += m_CameraUpStepBirdEye;
+                    m_CameraBackOffset += m_CameraBackStepBirdEye;
                 }
             }
-            if (Input.GetAxis("Mouse ScrollWheel") < -0.05f)
-            {
-                if (!m_BirdEye && m_CameraBackOffset > m_MinCameraBackOffset && m_UpOffset > m_MinUpOffset)
+            //if (Input.GetAxis("Mouse ScrollWheel") < -0.05f)
+            if (mouseScrollInput < -0.05f)
                 {
-                    m_CameraBackOffset -= 0.1f;
-                    m_UpOffset -= 0.05f;
+                if (!m_BirdEye && m_CameraBackOffset > m_MinCameraBackOffset)
+                {
+                    m_CameraBackOffset -= m_CameraBackStep;
+                    m_UpOffset -= m_CameraUpStep;
                 }
-                if (m_BirdEye && m_UpOffset > m_MinUpOffset && m_CameraBackOffset > m_MinCameraBackOffset)
+                if (m_BirdEye && m_UpOffset > m_MinUpOffset)
                 {
-                    m_UpOffset -= 0.1f;
-                    m_CameraBackOffset -= 0.016f;
+                    m_UpOffset -= m_CameraUpStepBirdEye;
+                    m_CameraBackOffset -= m_CameraBackStepBirdEye;
                 }
             }
 
@@ -187,11 +209,6 @@ namespace SpaceShooter
         }
 
 
-        
-        public void Construct(Party obj)
-        {
-            m_Target = obj.transform;
-        }
     }
 }
 

@@ -6,13 +6,13 @@ namespace GentianoseRealDolls
 
     public class Bed : InteractableObject
     {
-    [SerializeField] private Material m_SheetMaterial;
-    [SerializeField] private MeshRenderer m_MattressSheet;
-    [SerializeField] private Material m_WoodMaterial;
-    [SerializeField] private MeshRenderer[] m_Wood;
+        [SerializeField] private Material m_SheetMaterial;
+        [SerializeField] private MeshRenderer m_MattressSheet;
+        [SerializeField] private Material m_WoodMaterial;
+        [SerializeField] private MeshRenderer[] m_Wood;
 
 
-    [SerializeField] private int m_OffTipID = 5;
+        [SerializeField] private int m_OffTipID = 5;
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {

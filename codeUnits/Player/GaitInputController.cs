@@ -1,28 +1,38 @@
+using NTC.MonoCache;
 using SpaceShooter;
 using System;
 using System.Collections;
-using UnityEngine;
-
-using NTC.MonoCache;
-using Unity.VisualScripting;
 using System.Threading.Tasks;
+using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using VContainer;
 
 namespace GentianoseRealDolls
 {
-    public class GaitInputController : MonoCache, IDependency<Party>
+    public class GaitInputController : MonoCache
     {
-        private Party m_Party;
-        public void Construct(Party obj)
-        {
-            m_Party = obj;
-            m_CurrentDoll = m_Party.ActiveDoll;
-        }
-        // Делегат для события изменения аллюра
+        [Header("***")]
+        [SerializeField] private Party m_Party;
+
+        [SerializeField] private VirtualGamePad m_VirtualGamePad;
+
+
+
+        ////[Inject]
+        //public void Construct(Party obj)
+        //{
+        //    m_Party = obj;
+        //    m_CurrentDoll = m_Party.ActiveDoll;
+        //}
+        // ������� ��� ������� ��������� ������
         public delegate void GaitChanged(int indexInParty, int gaitState);
         public event GaitChanged OnGaitChanged;
 
+        [Header("***")]
         [SerializeField] private Doll m_CurrentDoll;
         [SerializeField] private DollController m_CurrentDollController;
+        [SerializeField] private DollGaitManager m_GaitManager;
         [SerializeField] private Animator m_Animator;
 
 
@@ -30,16 +40,15 @@ namespace GentianoseRealDolls
 
         
         [SerializeField] private int[] m_GaitMap = new int[3] { 2, 2, 2 };
+        public int[] GaitMap => m_GaitMap;
 
         [SerializeField] private int[] gaitCodes = new int[4];
-        [SerializeField] private float[] gaitSpeeds = new float[4];
+
         private bool addTime;
         private float timer;
         private bool isMoving;
 
         private bool m_AtTransition;
-
-        [SerializeField] private VirtualGamePad m_VirtualGamePad;
 
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -56,7 +65,7 @@ namespace GentianoseRealDolls
 
         protected override void Run()
         {
-            UpdateGait();
+            //UpdateGait();
 
 
             OnGaitChanged?.Invoke(0, m_GaitMap[0]);
@@ -77,7 +86,7 @@ namespace GentianoseRealDolls
             m_CurrentDollController = doll;
             m_Animator = doll.Animator;
             spaceShip = doll.Doll.PetAsSpaceShip;
-
+            m_GaitManager = doll.GaitManager;
 
             m_ActiveDollInPartyIndex = doll.DollIndexInParty;
         }
@@ -88,119 +97,101 @@ namespace GentianoseRealDolls
         {
             if (!m_AtTransition)
             {
-                m_GaitMap[m_ActiveDollInPartyIndex] = Mathf.Clamp(gaitState, 1, 3);
+                m_GaitMap[dollIndexInParty] = Mathf.Clamp(gaitState, 1, 3);
+                m_Party.SetGaitMap(m_GaitMap);
 
-                //gaitManager.DownGaitState(Party.Instance.ActiveDollIndexInParty);
                 gm.SetGaitState(m_GaitMap[m_ActiveDollInPartyIndex]);
 
-                OnGaitChanged?.Invoke(dollIndexInParty, gaitState);
+                ////OnGaitChanged?.Invoke(dollIndexInParty, gaitState);
 
 
                 if (gaitState == 1) m_Party.Camera.BirdEye(); else m_Party.Camera.ReBirdEye();
             }
-          
         }
-
+        
         public async void GaitUp()
-        {;
+        {
             if (!m_AtTransition)
             {
-                SetDollGait(m_CurrentDollController.GaitManager, m_ActiveDollInPartyIndex, m_GaitMap[m_ActiveDollInPartyIndex] + 1);
+                SetDollGait(m_GaitManager, m_ActiveDollInPartyIndex, m_Party.GaitMap[m_ActiveDollInPartyIndex] + 1);
                 m_AtTransition = true;
 
-                await Task.Delay(300);
+                await Task.Delay(200);
                 m_AtTransition = false;
+
+                if (moveInput.y > 0)
+                {
+                    m_GaitManager.StartGait();
+                }
             }
         }
         public async void GaitDown()
         {
             if (!m_AtTransition)
             {
-                SetDollGait(m_CurrentDollController.GaitManager, m_ActiveDollInPartyIndex, m_GaitMap[m_ActiveDollInPartyIndex] - 1); m_AtTransition = true;
+                SetDollGait(m_GaitManager, m_ActiveDollInPartyIndex, m_Party.GaitMap[m_ActiveDollInPartyIndex] - 1); 
+                m_AtTransition = true;
 
-                await Task.Delay(300);
+                await Task.Delay(200);
                 m_AtTransition = false;
-            }
-        }
 
-        void UpdateGait()
-        {
-            //var doll = m_CurrentDoll;
-
-            if (m_CurrentDollController)
-            {
-                var gaitManager = m_CurrentDollController.GaitManager;
-
-
-               // print(gaitManager.PartyDollID);
-
-                if (!m_CurrentDollController.Sleeping)
+                if (moveInput.y > 0)
                 {
-
-                    //if (Input.GetKeyDown(KeyCode.LeftControl))
-                    {
-                        //SetDollGait(gaitManager, m_ActiveDollInPartyIndex, m_GaitMap[m_ActiveDollInPartyIndex] - 1);
-
-                        //print("la");
-
-                    }
-
-                    //if (Input.GetKeyDown(KeyCode.LeftShift))
-                    {
-                    //    SetDollGait(gaitManager, m_ActiveDollInPartyIndex, m_GaitMap[m_ActiveDollInPartyIndex] + 1);
-
-
-                    //    print("tui");
-                        //m_GaitMap[m_ActiveDollInPartyIndex] = Mathf.Clamp(m_GaitMap[m_ActiveDollInPartyIndex] + 1, 1, 3);
-                        ////gaitManager.UpGaitState(Party.Instance.ActiveDollIndexInParty);
-                        //gaitManager.SetGaitState(m_GaitMap[m_ActiveDollInPartyIndex]);
-
-                    }
-
-
-                    if ((Input.GetKeyDown(KeyCode.W)  || m_VirtualGamePad.VirtualJoystick.Value.y > 0)
-                        || (gaitManager.GaitState == 1 && 
-                       (Input.GetKeyDown(KeyCode.S) || m_VirtualGamePad.VirtualJoystick.Value.y < 0)))
-                    {
-                        print(gaitCodes[1]);
-                        if (gaitManager.GaitState == 1)
-                            gaitManager.Walk();
-                        if (gaitManager.GaitState == 2)
-                            gaitManager.SecondGait();
-                        if (gaitManager.GaitState == 3)
-                            gaitManager.Gallop();
-
-                        if (gaitManager.GaitState == 2)
-                        {
-                            
-                            m_CurrentDoll?.Sounds[1].Play();
-                        }
-
-                        if (gaitManager.GaitState == 3)
-                        {
-                            m_CurrentDoll?.Sounds[2].Play();
-                        }
-
-                    }
-
-
-
-                    if ((Input.GetKeyDown(KeyCode.LeftControl) || Input.GetMouseButtonDown(2))
-                        && (Input.GetKey(KeyCode.W) || m_VirtualGamePad.VirtualJoystick.Value.y > 0))
-                    {
-                        gaitManager.StartGait();
-                    }
-
-                    if (Input.GetKeyUp(KeyCode.W))
-                    {
-                        gaitManager.StopGait(); 
-                    }
+                    m_GaitManager.StartGait();
                 }
             }
         }
+        public void OnGaitUp(InputAction.CallbackContext context)
+        {
 
-        [SerializeField] private BoxCollider m_ColliderClimb;
-        [SerializeField] private BoxCollider m_ColliderOutClimb;
+            // ���������, ��� �������� ������ ���������,
+            // � �� �������� ��� � ��������
+            if (!context.performed) return;
+
+            GaitUp();
+        }
+        public void OnGaitDown(InputAction.CallbackContext context)
+        {
+
+            // ���������, ��� �������� ������ ���������,
+            // � �� �������� ��� � ��������
+            if (!context.performed) return;
+
+            GaitDown();
+        }
+        [SerializeField] private float m_TestWS;
+
+        public void StartGait()
+        {
+            m_GaitManager?.StartGait();
+        }
+        public void StopGait()
+        {
+            m_GaitManager?.StopGait();
+        }
+
+        public void OnStartGait(InputAction.CallbackContext context)
+        {
+            if (!context.performed) return;
+
+            StartGait();
+        }
+        public void OnStopGait(InputAction.CallbackContext context)
+        {
+            if (!context.performed) return;
+
+            StopGait();
+        }
+
+        [SerializeField] Vector2 moveInput;
+
+        public void Move(Vector2 move)
+        {
+            moveInput = move;
+        }
+
+         
+
 
        
         public Action<int> SetPartyDollNumber()
@@ -214,5 +205,4 @@ namespace GentianoseRealDolls
 
     }
 }
-
 

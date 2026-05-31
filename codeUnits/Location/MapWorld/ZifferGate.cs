@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using VContainer;
 
 namespace GentianoseRealDolls
@@ -21,6 +22,7 @@ namespace GentianoseRealDolls
             //var tb = FindAnyObjectByType<TeleportBeasts>();
            
             m_Teleporter.InitScene(m_LevelID);
+
         }
     }
 }
