@@ -358,7 +358,7 @@ namespace GentianoseRealDolls
 
             for (int i = 0; i < m_DollPrefabs.Length; i++)
             {
-                var doll = Instantiate(m_DollPrefabs[i]);
+                var doll = Instantiate(m_DollPrefabs[i], m_AllDollPositions.GetDollPositions(m_DollPrefabs[i].DollID) + Vector3.up * 2, Quaternion.identity);
                 print($"Hello! I'm {doll.DollSpecies} My name is {doll.CharacterName}");
 
                 doll.DollController.SetLocationIndex(m_MapID);
