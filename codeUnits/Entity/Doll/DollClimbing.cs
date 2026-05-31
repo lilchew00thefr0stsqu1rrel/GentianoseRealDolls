@@ -1,9 +1,7 @@
 using UnityEngine;
 using NTC.MonoCache;
-using SpaceShooter;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
+using System.Threading.Tasks;
 
 namespace GentianoseRealDolls
 {
@@ -46,7 +44,9 @@ namespace GentianoseRealDolls
             Ascend,
             Descend
         }
-  
+
+       
+
 
         private ClimbMode m_DollClimbMode;
         public ClimbMode DollClimbMode => m_DollClimbMode;
@@ -111,16 +111,16 @@ namespace GentianoseRealDolls
 
         protected override void Run()
         {
-            m_HillAngle = Vector3.SignedAngle(Vector3.up, transform.parent.up, transform.parent.right);
+            m_HillAngle = Vector3.SignedAngle(Vector3.up, transform.up, transform.right);
 
          
                 
             if (m_DollClimbMode != ClimbMode.NonClimb)
             {
-                m_Rigid.AddForce(-transform.parent.up * m_ClimbNormalForce);
+                m_Rigid.AddForce(-transform.up * m_ClimbNormalForce);
             }
 
-            var rHit = Physics.RaycastAll(m_FootRayOrigin.position, -transform.parent.up, m_DistanceToFloorFoot);
+            var rHit = Physics.RaycastAll(m_FootRayOrigin.position, -transform.up, m_DistanceToFloorFoot);
 
 
             List<RaycastHit> rearHit = new List<RaycastHit>();
@@ -142,12 +142,12 @@ namespace GentianoseRealDolls
                     {
                         var upNormal = rearHit[0].normal;
                         
-                        var dollEuler = transform.parent.eulerAngles;
-                        var dollRotation = transform.parent.rotation;
+                        var dollEuler = transform.eulerAngles;
+                        var dollRotation = transform.rotation;
                         
                         dollRotation = Quaternion.Euler(Vector3.Angle(Vector3.up, rearHit[0].normal), dollEuler.y, dollEuler.z);
 
-                        transform.parent.rotation = Quaternion.Slerp(transform.parent.rotation, dollRotation, m_InterpolationAngular * Time.deltaTime);
+                        transform.rotation = Quaternion.Slerp(transform.rotation, dollRotation, m_InterpolationAngular * Time.deltaTime);
                     }
                 }
             }
@@ -158,13 +158,12 @@ namespace GentianoseRealDolls
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.green;
-            Gizmos.DrawLine(m_FootRayOrigin.position, m_FootRayOrigin.position - transform.parent.up * m_DistanceToFloorFoot);
+            Gizmos.DrawLine(m_FootRayOrigin.position, m_FootRayOrigin.position - transform.up * m_DistanceToFloorFoot);
 
             Gizmos.color = Color.red;
-            Gizmos.DrawLine(m_HandRayOrigin.position, m_HandRayOrigin.position - transform.parent.up * m_DistanceToFloorHand); 
+            Gizmos.DrawLine(m_HandRayOrigin.position, m_HandRayOrigin.position - transform.up * m_DistanceToFloorHand); 
 
         }
     }
 }
-
 
