@@ -141,12 +141,13 @@ public class BeastPositionManager : MonoCache
 
         m_Location = loc;
     }
+    
 
     public void TakeAndSetDollPos(int loc, int index)
     {
         m_Location = loc;
 
-        m_Position = allDollPositions.GetDollPositions(dollID);
+        m_Position = allDollPositions.GetDollPositions(dollID) + new Vector3(0, 1.6f, 0);
 
         if (m_Position == null)
         {
