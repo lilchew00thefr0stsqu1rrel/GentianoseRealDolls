@@ -190,7 +190,10 @@ namespace GentianoseRealDolls
 
         IEnumerator TimePoo()
         {
-            yield return new WaitUntil(() => DateTime.Now.Minute % 15 == 0);
+            yield return new WaitUntil(() => DateTime.Now.Minute % 15 == 14);
+            yield return new WaitUntil(() => DateTime.Now.Second == 59);
+
+            yield return new WaitForSeconds(1);
 
             ReducePartyStatsLongTime();
 
@@ -199,7 +202,10 @@ namespace GentianoseRealDolls
         }
         IEnumerator TimeBath()
         {
-            yield return new WaitUntil(() => DateTime.Now.Minute % 5 == 0);
+            yield return new WaitUntil(() => DateTime.Now.Minute % 5 == 4);
+            yield return new WaitUntil(() => DateTime.Now.Second == 59);
+
+            yield return new WaitForSeconds(1);
 
             ReducePartyStatsMidTime();
 
