@@ -3,8 +3,10 @@ using SpaceShooter;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
 
 public enum UIType
 {
@@ -15,25 +17,19 @@ public enum UIType
     Shop
 }
 
-public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<Party>, IDependency<CurrentScene>
+public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
 {
-    private Party m_Party;
-    public void Construct(Party obj)
-    {
-        m_Party = obj;
-    }
-    public void Construct(FollowCamera obj)
-    {
-        m_Camera = obj.ProperCamera;
-    }
-    CurrentScene currentScene;
-    public void Construct(CurrentScene obj)
-    {
-        currentScene = obj;
-    }
+    ////[Inject]
+    //public void Construct(CurrentSceneData obj)
+    //{
+    //    currentScene = obj;
+    //}
 
+    [SerializeField] private Party m_Party;
+    [SerializeField] CurrentSceneData currentScene;
     [SerializeField] private HabitatInterface habitatUI;
     [SerializeField] private CombatDashboard combatUI;
+    public CombatDashboard CombatUI => combatUI;
     [SerializeField] private InventoryDisplay inventoryDisplay;
     [SerializeField] private GameObject stoveUI;
     [SerializeField] private GameObject m_ShopDisplay;
@@ -41,7 +37,7 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
 
     public event Action<UIType> ChangeWindow;
 
-    private Dictionary<int, string> interactStrings;
+    private List<string> interactStrings;
 
     [SerializeField] private GaitDisplay m_GaitDisplay;
 
@@ -51,6 +47,7 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
     [SerializeField] private Text interactText;
 
     [SerializeField] private GiveResource m_ResourceTree;
+    [SerializeField] private Mechanism m_Mechanism;
 
     [SerializeField] private GameObject[] m_ActiveDollIndic;
 
@@ -64,23 +61,83 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
 
     [SerializeField] private GameObject m_VirtualGamepad;
 
+    [SerializeField] int tipID = -1;
+
+    public void Show(GameObject ui)
+    {
+        ui.SetActive(true);
+    }
+    public void Hide(GameObject ui)
+    {
+        ui.SetActive(false);
+    }
+
+    private IEnumerator UpdateUI()
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        m_CurrentDoll = m_Party.ActiveDoll;
+        m_CurrentDollController = m_Party.ActiveDollController;
+
+        habitatUI.UpdateDash(m_CurrentDoll);
+        combatUI.UpdateDash(m_CurrentDoll);
+
+        m_GaitDisplay.UpdateGaitDisplay(m_Party.GaitMap);
+
+        StartCoroutine(UpdateUI());
+
+
+        for (int i = 0; i < m_Party.PartyDollSleeps.Length; i++)
+        {
+            SetSleepDoll(i, m_Party.PartyDollSleeps[i]);
+        }
+
+    }
+
+    public void InitDoll()
+    {
+        m_CurrentDoll = m_Party.ActiveDoll;
+        m_CurrentDollController = m_Party.ActiveDoll.DollController;
+        habitatUI.SetCurrentDoll(m_CurrentDoll);
+        combatUI.SetDoll(m_CurrentDoll);
+
+        for (int i = 0; i < m_Party.PartyDollSleeps.Length; i++)
+        {
+            SetSleepDoll(i, m_Party.PartyDollSleeps[i]);
+        }
+    }
+
+    Action<int, string, GiveResource> ShowInteract(int tipID, string itemName, GiveResource resource)
+    {
+        return (tipID, itemName, resource) =>
+        {
+            ShowInteractTip(tipID, itemName, resource);
+        };
+    }
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        interactStrings = new Dictionary<int, string>()
-        {
-            [0] = "Приготовить",
-            [1] = "Сесть за стол",
-            [2] = "Покинуть чалку",
-            [3] = "Войти в чалку",
-            [4] = "Спать",
-            [5] = "Встать",
-            [6] = "<предмет>",
-            [7] = "Лавка мыши",
-            [8] = "Купаться",
-            [9] = "Чистить зубы",
-        }; StartCoroutine(LoadAllWhoo());
+        GiveResource.OnWentToResource += ShowInteract(tipID, "+", m_ResourceTree); 
+        GiveResource.OnLeaveResource += () => { HideInteractTip(); }; 
+
+        interactStrings = new List<string>()
+        {            
+            "�����������",
+            "����� �� ����",
+            "�������� �����",
+            "����� � �����",
+            "�����",
+            "������",
+            "<�������>",
+            "����� ����",
+            "��������",
+            "������� ����",
+            "������"
+        }; 
+        
+        StartCoroutine(LoadAllWhoo());
 
 
         inventoryDisplay.gameObject.SetActive(false);
@@ -95,11 +152,14 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
 
         m_Party.OnActiveDollChanged += ShowActiveDoll;
 
+        StartCoroutine(UpdateUI());
+
     }
     private void OnDestroy()
     {
         m_Party.OnActiveDollChanged -= ShowActiveDoll;
         Destroy(gameObject);
+        GiveResource.OnWentToResource -= ShowInteract(tipID, "+", m_ResourceTree);
     }
 
     public void ShowActiveDoll(int index)
@@ -115,7 +175,6 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
     {
         m_DollSleepIndic[index].SetActive(sleep);
     }
-    int tipID = -1;
 
     private bool m_LoadReady;
 
@@ -125,23 +184,32 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
         m_LoadReady = true;
     }
 
+    public void OnEscape()
+    {
+        if (uiType == UIType.World)
+            OpenInventory();
+        else
+            CloseInventory();
+    }
+
     public void OpenInventory()
     {
         habitatUI.HideAdditiveDashboard();
-        inventoryDisplay.gameObject.SetActive(true);
+        Show(inventoryDisplay.gameObject);
         uiType = UIType.Inventory;
         m_Party.PauseAllDolls();
     }
     public void CloseInventory()
     {
-        inventoryDisplay.gameObject.SetActive(false);
+        Hide(inventoryDisplay.gameObject);
 
-        m_Map.SetActive(false);
+        Hide(m_Map);
+        Hide(stoveUI);
+        Hide(m_ShopDisplay);
+        
         uiType = UIType.World;
         m_Party.UnPauseAllDolls();
-
-
-    } // Update is called once per frame
+    } 
 
     public void ShowMap()
     {
@@ -160,10 +228,12 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
         }
         if (tipID == 2)
         {
+            m_Mechanism.Activate();
             HideInteractTip();
         }
         if (tipID == 3)
         {
+            m_Mechanism.Activate();
             HideInteractTip();
         }
         if (tipID == 4)
@@ -179,11 +249,11 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
         if (tipID == 6)
         {
             m_ResourceTree.GiveResources();
-            HideInteractTip();
+            //HideInteractTip();
         }
         if (tipID == 7)
         {
-            m_ShopDisplay.SetActive(true);
+            ShowShopUI();
             HideInteractTip();
         }
         if (tipID == 8)
@@ -193,6 +263,10 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
         if (tipID == 9)
         {
             BathInterface.Instance.BrushTeeth(m_CurrentDoll);
+        }
+        if (tipID == 10)
+        {
+            m_Party.ActiveDoll.DollController.PoopManager.ToPoop();
         }
     }
 
@@ -209,42 +283,6 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
             combatUI.gameObject.SetActive(true);
         }
 
-        if (control.Control == ControlModeData.ControlMode.Keyboard)
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                if (uiType == UIType.World)
-                {
-                    OpenInventory();
-                }
-                else
-                {
-                    if (uiType == UIType.Inventory)
-                    {
-                        CloseInventory();
-                    }
-                    if (uiType == UIType.Map)
-                    {
-                        m_Map.SetActive(false);
-                        uiType = UIType.World;
-                    }
-                }
-
-            }
-            if (Input.GetKeyDown(KeyCode.F))
-            {
-                Interact();
-            }
-            if (Input.GetKeyDown(KeyCode.M))
-            {
-                ShowMap();
-            }
-
-        }
-
-
-
-
         if (m_Party)
             m_StaminaImageFill.fillAmount = m_Party.Stamina / 37f;
     }
@@ -253,7 +291,11 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
         combatUI.RefreshCooldownButtonLesserSkill();
     }
 
-
+    public void ShowShopUI()
+    {
+        uiType = UIType.Shop;
+        m_ShopDisplay.SetActive(true);
+    }
 
     public void UpdateCooldown(float time)
     {
@@ -275,7 +317,6 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
             SetDollOpenWorld(doll);
             SetDollOpenWorldCamera();
         }
-
     }
     public void SetDollHabitat(Doll doll)
     {
@@ -296,9 +337,6 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
         combatUI.SetCamera(cam);
     }
 
-
-
-
     public void EnterStove()
     {
         stoveUI.gameObject.SetActive(true);
@@ -316,6 +354,7 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
 
     public void ShowInteractTip(int interactID)
     {
+        print("Interact!!");
         tipID = interactID;
         interactText.text = interactStrings[tipID];
         interactTip.SetActive(true);
@@ -327,11 +366,23 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
         interactTip.SetActive(true);
         m_ResourceTree = resTile;
     }
+    public void ShowInteractTip(int interactID, Mechanism mechanism)
+    {
+        tipID = interactID;
+        interactText.text = interactStrings[tipID];
+        interactTip.SetActive(true);
+        m_Mechanism = mechanism;
+    }
     public void HideInteractTip()
     {
         interactTip.SetActive(false);
+        tipID = -1;
     }
 
+    public void SetSprayChargeUIVisible(bool visible)
+    {
+        combatUI.SetSprayChargeUIVisible(visible);
+    }
 
 
     public void Eat(InventoryItem food)
@@ -339,16 +390,12 @@ public class Dashboard : MonoBehaviour, IDependency<FollowCamera>, IDependency<P
         m_CurrentDoll.Eat(food);
         InventoryController.Instance.InitAllItems();
     }
+
     public void ToMainMenu()
     {
         CloseInventory();
-
 
         SceneHelper.ToMainMenu();
     }
 
 }
-  
-
-
-

@@ -2,64 +2,92 @@ using SpaceShooter;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using TowerDefense;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 
 namespace GentianoseRealDolls
 {
-    public class Party : MonoBehaviour, IParty
+    public class Party : MonoBehaviour
     {
+        [SerializeField] private Inventory inventory;
 
 
-        ////// public IObjectResolver _objectResolver;
-
-
-        [SerializeField] private TeleportBeasts m_TeleportBeasts;
+        // TODO: сделать поля открытыми для UI
+        // звери больше не зависят от UI, требования принципа DI
+        // Каждые 0.1 с обновляется HUD
 
         // Делегат для события изменения здоровья
         public delegate void ActiveDollChanged(int dollIndexInParty);
         public event ActiveDollChanged OnActiveDollChanged;
 
 
-        private const string fileName1 = "timeCurr.dat";
-        private const string fileName2 = "timePrev.dat";
+        ////// public IObjectResolver _objectResolver;
 
-
-
-        [SerializeField] private Doll[] m_PartyMembers;
-        [SerializeField] private List<Doll> m_PartyList;
-        [SerializeField] private List<DollController> m_PartyControllerList;
-
-        [SerializeField] private Doll[] m_DollPrefabs;
-
-        [SerializeField] private Doll m_ActiveDoll;
-        public Doll ActiveDoll => m_ActiveDoll;
-
-        private DollController m_ActiveDollController;
+        [Header("Services")]
+        [SerializeField] private int m_MapID;
+        [SerializeField] private CurrentSceneData m_CurrentScene;
+        [SerializeField] private TimePastStats m_TimePastStats;
+        [SerializeField] private TeleportBeasts m_TeleportBeasts;
 
         [SerializeField] private FollowCamera m_Camera;
         public FollowCamera Camera => m_Camera;
+        [SerializeField] private Camera m_ProperCamera;
         [SerializeField] private GaitInputController m_GaitInputController;
         [SerializeField] private MoveInputController m_ShipInputController;
+
+
+        [Header("UI")]
 
         [SerializeField] private CombatDashboard m_CombatDashboard;
         [SerializeField] private HabitatInterface m_HabitatInterface;
 
-        // [SerializeField] private Dashboard m_Dashboard;
 
-        //private IDollSettable m_Dashboard;
+        [Header("Dependencies")]
+         
+        [SerializeField] private AllDollCharacters m_AllDollCharacters;
+        [SerializeField] private DollScaleValues[] m_DollData;
+        [SerializeField] private AllDollPositions m_AllDollPositions;
+        [SerializeField] private AllDollSleeps m_AllSleeps;
+        [SerializeField] private List<bool> m_SleepData;
+        [SerializeField] private PoopStore m_PoopStore;
 
-        [SerializeField] private Camera m_ProperCamera;
 
-        [SerializeField] private DollAsset[] m_DollAssets;
+        [SerializeField] private Inventory m_Inventory;
+        [Inject]
+        public void Construct(Inventory obj)
+        {
+            m_Inventory = obj;
+        }
 
-        [SerializeField] private CurrentSceneData m_CurrentScene;
+        [Header("Dolls at the moment")]
 
+        [SerializeField] private Doll[] m_DollPrefabs;
+
+        [SerializeField] private List<Doll> m_PartyList;
+        [SerializeField] private List<DollController> m_PartyControllerList;
+
+        [SerializeField] private Doll[] m_PartyMembers;
 
         [SerializeField] private bool[] m_Sleeps;
+        [SerializeField] private int[] m_GaitMap;
+        public int[] GaitMap => m_GaitMap;
+        public void SetGaitMap(int[] gm)
+        {
+            m_GaitMap = gm;
+        }
+
+        [SerializeField] private Doll m_ActiveDoll;
+        public Doll ActiveDoll => m_ActiveDoll;
+
+        [Range(0.0f, 37.0f)]
+        [SerializeField] private int m_Stamina;
+        public int Stamina => m_Stamina;
+
+        private DollController m_ActiveDollController;
+        public DollController ActiveDollController => m_ActiveDollController;
+
+
+        [SerializeField] private DollAsset[] m_DollAssets;
 
 
         private int m_ActiveDollIndexInParty;
@@ -74,36 +102,7 @@ namespace GentianoseRealDolls
         private long m_TimeDifference;
 
         public static event Action OnChangeActiveDoll;
-
-        [Range(0.0f, 37.0f)]
-        [SerializeField] private int m_Stamina;
-        public int Stamina => m_Stamina;
-        [SerializeField] private AllDollCharacters m_AllDollCharacters;
-        [SerializeField] private AllDollPositions m_AllDollPositions;
-        [SerializeField] private AllDollSleeps m_AllSleeps;
-        // private Level m_Level;
-
-
-        //[Inject]
-        public void Construct(AllDollCharacters adc)
-        {
-            m_AllDollCharacters = adc;
-        }
-        // [Inject]
-        public void Construct(AllDollPositions adp)
-        {
-            m_AllDollPositions = adp;
-        }
-        // [Inject]
-        public void Construct(AllDollSleeps ads)
-        {
-            m_AllSleeps = ads;
-        }
-        // [Inject]
-        public void Construct(CurrentSceneData currentSceneData)
-        {
-            m_CurrentScene = currentSceneData;
-        }
+       
 
 
 
@@ -125,25 +124,27 @@ namespace GentianoseRealDolls
             StartCoroutine(RestoreStaminaCorout());
         }
 
-        // Аллюры
+        // Аллюры (шаг -> рысь -> галоп)
         public void GaitUp()
         {
             m_GaitInputController?.GaitUp();
         }
-        // Аллюры
+
+        // Аллюры (галоп -> рысь -> шаг) 
         public void GaitDown()
         {
             m_GaitInputController?.GaitDown();
         }
+
         // Прыжок
         public void Jump()
         {
             m_ShipInputController?.Leap();
         }
-        private bool a_ = false;
 
 
         // Изменение вида камеры
+        private bool a_ = false;
         public void LookAtWisp()
         {
             a_ = !a_;
@@ -155,89 +156,71 @@ namespace GentianoseRealDolls
             }
             if (!a_)
             {
-
                 m_Camera.SetTarget(m_ActiveDoll.transform);
                 m_Camera.SetMinOffsetDoll();
             }
         }
 
-
         private void Awake()
         {
-            ////// _objectResolver.InjectGameObject(gameObject);
-
             m_PartyMembers = new Doll[3];
+            m_Sleeps = new bool[3] {false, false, false};
+            m_GaitMap = new int[3] {2, 2, 2} ;
 
-            m_Sleeps = new bool[3];
+            //StartCoroutine(TimeSave());
+            //m_TimeDifference = m_TimePastStats.ReadTime();
 
-
-            StartCoroutine(TimeSave());
-
-            Saver<long>.TryLoad(fileName1, ref m_CurrentTime);
-            Saver<long>.TryLoad(fileName2, ref m_PreviousTime);
-            print("Prev  " + m_PreviousTime);
-
-
-            m_TimeDifference = m_CurrentTime - m_PreviousTime;
+            print("~~~ " + m_SimplePosDB.GetDollPosition(0).Position);
         }
-
-
+        
         // Изменение шкал кукол по времени
         IEnumerator TimeSave()
         {
-            m_CurrentTime = DateTime.Now.Ticks / 600000000;
-
-            Saver<long>.Save(fileName1, m_CurrentTime);
-
-
-
             yield return new WaitUntil(() => DateTime.Now.Second == 59);
 
             yield return new WaitForSeconds(1);
             //            
             ReducePartyStats();
-            
+
             StartCoroutine(TimeSave());
             print("ToDrain");
-
-
         }
 
         private void OnDestroy()
         {
-            m_PreviousTime = m_CurrentTime;
-            Saver<long>.Save(fileName2, m_PreviousTime);
         }
-
-        private void Start()
-        {
-        }
+        [SerializeField] private GameObject m_Visual;
         [SerializeField] float dH = 0.7f;
         private void Update()
         {
             if (m_PartyList[m_ActiveDollIndexInParty] != null)
             {
-                transform.position = m_PartyList[m_ActiveDollIndexInParty].transform.position + Vector3.up * dH
-                    + m_PartyList[m_ActiveDollIndexInParty].transform.forward;
+                m_Visual.SetActive(true);
+                transform.position = m_PartyList[m_ActiveDollIndexInParty].transform.position + Vector3.up * dH;
                 transform.forward = m_PartyList[m_ActiveDollIndexInParty].transform.forward;
             }
-
-            if (Input.GetMouseButtonDown(1))
+            else
             {
-                a_ = !a_;
-
-                if (a_)
-                {
-                    m_Camera.SetTarget(transform);
-                    m_Camera.SetMinOffsetWisp();
-                }
-                if (!a_)
-                {
-
-                    m_Camera.SetTarget(m_ActiveDoll.transform);
-                    m_Camera.SetMinOffsetDoll();
-                }
+                transform.position = Vector3.zero;  
+                m_Visual.SetActive(false);
             }
+
+            //if (Input.GetMouseButtonDown(1))
+            //{
+            //    a_ = !a_;
+
+            //    if (a_)
+            //    {
+            //        m_Camera.SetTarget(transform);
+            //        m_Camera.SetMinOffsetWisp();
+            //    }
+            //    if (!a_)
+            //    {
+
+            //        m_Camera.SetTarget(m_ActiveDoll.transform);
+            //        m_Camera.SetMinOffsetDoll();
+            //    }
+            //}
           
         }
 
@@ -248,32 +231,15 @@ namespace GentianoseRealDolls
 
         [SerializeField] private bool m_FromWaypoint;
 
-        // Переместить кукол
-        public void PlaceDolls(int loc, Vector3 wp)
+
+        [SerializeField] private DollBase m_SimplePosDB;
+
+        
+
+        // Переместить часть или всех кукол
+        public void PlaceSomeOrAllDolls(int loc, Vector3 wp)
         {
-
             m_Waypoint = wp;
-
-            m_CurrentScene.SetLocationIndex(loc);
-
-            for (int i = 0; i < m_PartyList.Count; i++)
-            {
-                if (m_PartyList[i] != null)
-                {
-                    m_PartyList[i].DollController.SetDollPosFromWaypoint(loc, m_Waypoint, i);
-                }
-            }
-
-
-        }
-
-        // Переместить часть кукол
-        public void PlaceSomeDolls(int loc, Vector3 wp)
-        {
-
-
-            m_Waypoint = wp;
-
 
             for (int i = 0; i < m_PartyList.Count; i++)
             {
@@ -285,9 +251,24 @@ namespace GentianoseRealDolls
                     }
                 }
             }
+        } 
+        
+        // Взять прошлую позицию кукол и поставить их в данную точку
+        public void TakeDollsToLastPoint(int loc)
+        {
+            for (int i = 0; i < m_PartyList.Count; i++)
+            {
 
-
+                if (m_PartyList[i] != null)
+                {
+                    if (!m_PartyControllerList[i].Sleeping)
+                    {
+                        m_PartyList[i].DollController.TakeAndSetDollPos(loc, i);
+                    }
+                }
+            }
         }
+
 
 
 
@@ -298,8 +279,75 @@ namespace GentianoseRealDolls
         [SerializeField] private int sessionHouseMap = 0;
 
         // Создать кукол
-        public void InitDolls(int mapID)
+        // Переменные:
+        // локация (домик, город)
+        // Файлы характеристик кукол, положения и сна (спит/бодрствует)
+        // Разность времени, получаемая из Файлов времени 
+        // Положение зверька в отряде
+
+        // Интерфейс пользователя зависит от зверей, а не наоборот
+
+        public void InitPoop(PoopStore poopStore)
         {
+            m_PoopStore = poopStore;
+            m_PoopStore.InitPoop();
+        }
+
+        public void InitInventory(Inventory inventory)
+        {
+            m_Inventory = inventory;
+            m_Inventory.InitInventory();
+        }
+
+        public void InitDollStats(AllDollCharacters adc)
+        {
+            m_TimeDifference = m_TimePastStats.ReadTime();
+            m_AllDollCharacters = adc;
+            m_DollData = adc.ReadStats();
+        }
+
+        public void InitDollPos(int mapID, AllDollPositions adp)
+        {
+            m_MapID = mapID;
+            adp.InitPositions();
+        }
+
+        public void InitDollSleep(List<bool> sleepData, AllDollSleeps ads)
+        {
+            m_SleepData = sleepData;
+            ads.InitSleeps();
+            m_AllSleeps = ads;
+        }
+
+        public void InitDolls(int mapID, long time)
+        {
+            InitControllerDoll(time);
+
+            TakeDollsToLastPoint(mapID);
+
+            print("Pets are ready");
+        }
+
+        public void InitDolls(int mapID, long time, Vector3 waypoint)
+        {
+            InitControllerDoll(time);
+
+
+            PlaceSomeOrAllDolls(mapID, waypoint);
+        }
+
+        // 16.05.26 20:47
+        private void OnApplicationPause(bool pause)
+        {
+            if (pause)
+            {
+                sessionHouseMap = 0;
+            }
+        }
+
+        private void InitControllerDoll(long time)
+        {
+
             sessionHouseMap++;
 
 
@@ -307,105 +355,63 @@ namespace GentianoseRealDolls
             m_PartyControllerList.Clear();
             print($"Welcome to location #{m_CurrentScene.LocationIndex}");
 
-            int index = 0;
 
-            m_AllSleeps.InitSleeps();
-
-            foreach (var dl in m_DollPrefabs)
+            for (int i = 0; i < m_DollPrefabs.Length; i++)
             {
-                print("Position " + m_AllDollPositions.GetDollPos(dl.DollID).Positions[mapID]);
-                var doll = Instantiate(dl);
-                ////// _objectResolver.Inject(doll);
+                var doll = Instantiate(m_DollPrefabs[i], m_AllDollPositions.GetDollPositions(m_DollPrefabs[i].DollID) + Vector3.up * 2, Quaternion.identity);
+                print($"Hello! I'm {doll.DollSpecies} My name is {doll.CharacterName}");
 
-                print($"{doll} Hoary!!");
+                doll.DollController.SetLocationIndex(m_MapID);
 
+                //doll.DollController.ConstructDoll(dollData, adc, adp, sleepData, ads, this);
+                doll.DollController.ConstructDollParty(this);
 
+                doll.DollController.ConstructDollStats(m_DollData, m_AllDollCharacters, m_AllDollPositions, m_Inventory);
+                doll.DollController.ConstructInventory(m_Inventory);
+                doll.DollController.ConstructPos(m_AllDollPositions, m_AllSleeps);
+                doll.DollController.ConstructSleep(m_SleepData, m_AllSleeps);
+                doll.DollController.ConstructPoop(m_PoopStore);
+                doll.DollController.SetDollProperties();
 
-                doll.DollController.ConstructDoll(m_AllDollCharacters, m_AllDollPositions, m_AllSleeps, this);
+                // Нужно ли уменьшать шкалы на время вне игры?
+                // В начале
+                if (sessionHouseMap <= 1)
+                    doll.DollController.TimeActionStats(time, i, m_TeleportBeasts, m_DollData, m_AllSleeps);
+                // При смене карты (домик/город)
+                if (sessionHouseMap > 1)
+                    doll.DollController.TakeStats(i, m_AllDollCharacters, m_AllSleeps);
 
-
-                if (m_Waypoint != Vector3.zero)
-                {
-                    doll.DollController.SetDollPosFromWaypoint(mapID, m_Waypoint, index);
-
-                    print("Bushbaby 6}");
-                }
-                else
-                {
-                    doll.DollController.TakeAndSetDollPos(mapID, index);
-                }
-
-                //// print($"Bushbaby 7{doll}");
                 m_PartyList.Add(doll);
                 m_PartyControllerList.Add(doll.DollController);
-                index++;
 
-                print("Bushbaby 8");
+
+                doll.DollController.SetDollIndexInParty(i);
             }
 
-
-            for (int i = 0; i < m_PartyControllerList.Count; i++)
-            {
-                //// Аварийная часть
-                m_PartyControllerList[i].ConstructDoll(m_AllDollCharacters, m_AllDollPositions, m_AllSleeps, this);//// ~~~
-                if (m_Waypoint != Vector3.zero)
-                {
-                    m_PartyControllerList[i].SetDollPosFromWaypoint(mapID, m_Waypoint, index);
-
-                    transform.position = m_Waypoint;
-
-                    print("Bushbaby 6}");
-                }
-
-                //// Кц аварийнай яачть
-
-                print($"Bushbaby 9 {m_PartyControllerList[i]}");
-                // Изменить значения шкал согласно пройденному времени вне игры 
-                if (sessionHouseMap <= 1)
-                    m_PartyControllerList[i].TimeActionStats(m_TimeDifference, i);
-                if (sessionHouseMap > 1)
-                    m_PartyControllerList[i].TakeStats(i);
-                print($"Bushbaby 10 {m_PartyControllerList[i]}");
-
-                m_PartyControllerList[i].SetDollIndexInParty(i);
-                print($"Bushbaby 11 {m_PartyControllerList[i]}");
-            }
-
-            print("Bushbaby 12");
             m_PartyMembers = m_PartyList.ToArray();
 
-            print("Bushbaby 12");
+            StartCoroutine(TimeSave());
+
             SetActiveDoll(0);
 
-            print($"Bushbaby 13 {m_ActiveDoll} ");
 
             m_Camera.SetTarget(m_ActiveDoll.transform);
 
-            print($"Bushbaby 14 {m_ShipInputController}  {m_GaitInputController}");
             m_ShipInputController.SetTargetDoll(m_ActiveDollController);
             m_GaitInputController.SetCurrentDoll(m_ActiveDollController);
-            
 
-            print("Bushbaby 15");
-            // print(m_Dashboard != null);
-            print(m_ActiveDoll);
-            print(m_Camera.ProperCamera != null);
-            ////m_Dashboard.SetDoll(m_ActiveDoll);
+           
 
             SetDollsPatrol();
-
-
-            print($"Bushbaby 16 {m_ActiveDoll} ");
-
-
 
             print("whooo");
 
             WriteDollSleepState(m_PartyList);
 
             StartCoroutine(RestoreStaminaCorout());
-            print($"Bushbaby 17 {m_ActiveDoll} ");
+
         }
+
 
         #endregion
 
@@ -482,17 +488,11 @@ namespace GentianoseRealDolls
 
                     character.GetComponent<AIController>().SetPatrolBehaviour(transform.GetComponent<AIPointPatrol>());
                     character.NavelEffect(true);
-
-
                 }
                 else
                 {
-
                     character.NavelEffect(false);
                 }
-
-
-                
             }
         }
 
@@ -500,9 +500,16 @@ namespace GentianoseRealDolls
 
         public void ReducePartyStats()
         {
-            foreach (var chrct in m_PartyMembers)
-                chrct.DollController.StatsReduce();
+            if (m_PartyMembers == null)
+            {
+                print("NO DOLL");
+                return;
+            }
 
+            foreach (var chrct in m_PartyMembers)
+            {
+                chrct.DollController.StatsReduce();
+            }
         }
 
         // Лечение 
@@ -548,8 +555,6 @@ namespace GentianoseRealDolls
             m_PartyDollSleeps[partyIndex] = v;
         }
         #endregion
-
-
 
     }
 

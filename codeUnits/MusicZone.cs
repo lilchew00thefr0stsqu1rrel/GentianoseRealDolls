@@ -8,7 +8,7 @@ public class MusicZone : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.transform.root.GetComponent<Doll>())
+        if (other.GetComponent<Party>())
         {
             m_MusicChangeManager.SetMusic(m_MusicID);
         }
@@ -16,7 +16,7 @@ public class MusicZone : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.transform.root.GetComponent<Doll>())
+        if (other.GetComponent<Party>())
         {
             m_MusicChangeManager.SetDefaultMusic(m_MusicID);
         }

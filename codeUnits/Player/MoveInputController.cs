@@ -1,0 +1,170 @@
+using NTC.MonoCache;
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+namespace GentianoseRealDolls
+{
+    public class MoveInputController : MonoCache
+    {
+        [Header("***")]
+        [SerializeField] private ControlModeData controlModeData;
+
+        [SerializeField] private VirtualGamePad m_VirtualGamePad;
+        [SerializeField] private CombatDashboard m_CombatDashboard;
+        [SerializeField] private Party m_Party;
+
+        [Header("***")]
+
+        [SerializeField] private SpaceShip m_TargetShip;
+        [SerializeField] private DollController m_TargetDoll;
+        [SerializeField] private Animator m_Animator;
+
+        [SerializeField] private GaitInputController m_GaitInputController;
+
+        //lemur
+        public static bool mouseTorque = true;
+
+        Vector2 moveInput;
+        public void SetTargetShip(SpaceShip ship) => m_TargetShip = ship;
+
+
+        public void SetTargetDoll(DollController doll)
+        {
+            m_TargetDoll = doll;
+            m_TargetShip = doll.PetAsSpaceShip;
+        }
+
+        public void Construct(VirtualGamePad virtualGamePad)
+        {
+            m_VirtualGamePad = virtualGamePad;
+        }
+
+        //private bool m_Landed;
+
+        private void Start()
+        {
+            m_TargetShip = m_Party.ActiveDoll.PetAsSpaceShip;
+
+            if (controlModeData.Control == ControlModeData.ControlMode.Keyboard)
+            {
+                m_VirtualGamePad.VirtualJoystick.gameObject.SetActive(false);
+
+                m_VirtualGamePad.MobileGait.SetActive(false);
+
+                m_VirtualGamePad.MobileJump.gameObject.SetActive(false);
+                m_VirtualGamePad.MobileLookAtWisp.gameObject.SetActive(false);
+                m_VirtualGamePad.MobileNormalAttack.gameObject.SetActive(false);
+
+                m_CombatDashboard.NormalAttackButtonScreen.gameObject.SetActive(true);
+            }            
+                          
+            else
+            {
+                m_VirtualGamePad.VirtualJoystick.gameObject.SetActive(true);
+
+                m_VirtualGamePad.MobileGait.SetActive(true);
+
+                m_VirtualGamePad.MobileNormalAttack.gameObject.SetActive(true);
+                m_VirtualGamePad.MobileJump.gameObject.SetActive(true);
+                m_VirtualGamePad.MobileLookAtWisp.gameObject.SetActive(true);
+
+                m_CombatDashboard.NormalAttackButtonScreen.gameObject.SetActive(false);
+            }         
+        }
+        protected override void Run()
+        {
+            if (m_TargetShip == null) return;
+
+
+            if (controlModeData.Control == ControlModeData.ControlMode.Keyboard)
+                ControlNew();
+
+            if (controlModeData.Control == ControlModeData.ControlMode.Mobile)
+                ControlMobile();
+
+            if (controlModeData.Control == ControlModeData.ControlMode.KeyboardAndMobile)
+            {
+                ControlKeyboardAndMobile();
+            }
+        }
+
+
+        private void ControlNew()
+        {
+            float thrust = 0;
+            float torque = 0;
+
+            if (moveInput != Vector2.zero)
+            {
+                thrust = moveInput.y;
+                torque = -moveInput.x;
+            }
+
+            m_TargetShip.ThrustControl = thrust;
+            m_TargetShip.TorqueControl = torque;
+
+            
+            m_TargetDoll?.UpdateMoveInput(moveInput);
+        }
+        
+        private void ControlMobile()
+        {
+            m_TargetShip.ThrustControl = 0;
+            m_TargetShip.TorqueControl = 0;
+
+            Vector3 dir = m_VirtualGamePad.VirtualJoystick.Value;
+
+            if (dir != Vector3.zero)
+            {
+                m_TargetShip.ThrustControl = dir.y;
+                m_TargetShip.TorqueControl = -dir.x;
+
+                m_GaitInputController.StartGait();
+            }
+            else
+            {
+                m_GaitInputController.StopGait();
+            }
+        }
+
+        public void Leap()
+        {
+            m_TargetShip.Leap();
+        }
+
+        // ���� ����� ���������� Player Input,
+        // ����� ����������� �������� Move
+        public void OnMove(InputAction.CallbackContext context)
+        {
+            // ��������� �������� Vector2 �� Input System
+            // ��� ��������� ����������� ��������
+            moveInput = context.ReadValue<Vector2>();
+
+            
+        }  
+      
+
+        // ���� ����� ���������� ��� ������� ������ Jump
+        public void OnJump(InputAction.CallbackContext context)
+        {
+            // ���������, ��� �������� ������ ���������,
+            // � �� �������� ��� � ��������
+            if (!context.performed) return;
+
+            Leap();
+        }
+
+       
+
+        private void ControlKeyboardAndMobile()
+        {
+            ControlNew();
+            ControlMobile();
+
+            m_GaitInputController.Move(moveInput);
+        }
+
+        
+    }
+}
+

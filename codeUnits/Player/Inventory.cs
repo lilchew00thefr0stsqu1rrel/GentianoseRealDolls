@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
-using TowerDefense;
 using System.Linq;
-using Unity.VisualScripting;
+using TowerDefense;
+using UnityEngine;
 
 
 namespace GentianoseRealDolls
@@ -46,77 +45,139 @@ namespace GentianoseRealDolls
 
     }
 
-    public class Inventory : SingletonBase<Inventory>
+    public class Inventory : MonoBehaviour
     {
-        private const string fileName = "inventory.dat";
+        private string fileName;
+        private string path;
 
-        private static ItemAmount[] items;
-        private static List<ItemAmount> itemsList;
+        [SerializeField] private ItemAmount[] m_Items;
+        [SerializeField] private List<ItemAmount> m_ItemsList;
 
         [SerializeField] private InventoryItem m_Kuklon;
 
+        [SerializeField] private List<int> m_ItemsMap;
+        [SerializeField] private UnityEngine.UI.Text m_DebugText;
 
-        private new void Awake()
+        [SerializeField] private DollBase m_DollBase;
+
+
+        Action<InventoryItem, int> TakeResource(InventoryItem item, int amount)
         {
-            base.Awake();
+            return (item, amount) =>
+            {
+                AddItemInstances(item, amount);
+            };
+        }
+        private InventoryItem baseItem;
+        private int baseAmount;
 
-            Saver<ItemAmount[]>.TryLoad(fileName, ref items);
+        
+
+        public void InitInventory()
+        {
+            GiveResource.OnTake += TakeResource(baseItem, baseAmount); 
+
+            Saver<List<int>>.TryLoad(WhooSettings.fileNameInv, ref m_ItemsMap);
+
+
+
+            m_ItemsMap = m_DollBase.GetItemAmounts().ToList();
+
             //FindInv();
-            itemsList = items.ToList();
 
+            //if (m_Items.Length == 0 || m_Items != null)
+            //{
+            //    m_Items = new ItemAmount[16];
+            //    Saver<List<int>>.Save(WhooSettings.fileNameInv, m_ItemsMap);
+            //}
+
+            //m_ItemsList = m_Items.ToList();
+
+            if (m_ItemsMap == null || m_ItemsMap.Count == 0)
+                m_ItemsMap = new List<int>(16);
+
+
+            //for (int i = 0; i < m_ItemsList.Count; i++)
+            //{
+            //    m_ItemsMap[i] = m_ItemsList[i].amount;
+            //}
+
+            InventoryController.Instance.InitAllItems();
         }
 
-        public static void SaveInventory()
-        {
-            if (Instance)
-            {
+        
 
-                Instance.SaveItems();
-                
-            }
-            else
-            {
-                Debug.Log($"Backpack= ");
-            }
+        private void Awake()
+        {
+            //Saver<ItemAmount[]>.TryLoad(WhooSettings.fileNameInv, ref m_Items);
+            ////FindInv();
+
+            //if (m_Items != null)
+            //{
+            //    m_ItemsList = m_Items.ToList();
+            //}
+            //else
+            //{
+            //    m_ItemsList = new List<ItemAmount>();
+            //}
+        }
+        private void OnApplicationPause(bool pause)
+        {
+            GiveResource.OnTake -= TakeResource(baseItem, baseAmount);
+        }
+
+        private void OnDestroy()
+        {
+            GiveResource.OnTake -= TakeResource(baseItem, baseAmount);
+        }
+        public void SaveInventory()
+        {
+            SaveItems();
         }
 
         private void SaveItems()
         {
-            items = itemsList.ToArray();
-            Saver<ItemAmount[]>.Save(fileName, items);
+            m_Items = m_ItemsList.ToArray();
+            Saver<List<int>>.Save(WhooSettings.fileNameInv, m_ItemsMap);
         }
 
         public void AddItemInstances(InventoryItem invItem, int amount)
         {
             
-            var itemAmount = FindItemByID(invItem.itemID);
-            if (itemAmount == null)
-            {
-                itemAmount = AddItemKind(invItem);
-                itemsList.Add(itemAmount);
-            }
+            //var itemAmount = FindItemByID(invItem.itemID);
+            //if (itemAmount == null)
+            //{
+            //    itemAmount = AddItemKind(invItem);
+            //    m_ItemsList.Add(itemAmount);
+            //}
             
             
-            print(itemAmount.itemName);
-            itemAmount.amount += amount;
-           
+            //print(itemAmount.itemName);
+            //itemAmount.amount += amount;
+
             
-                
-          
-            items = itemsList.ToArray();
+
+
+            m_ItemsMap[invItem.itemID] += amount;
             
-                
-            Saver<ItemAmount[]>.Save(fileName, items);
+
+            m_DollBase.ChangeItemAmount(invItem.itemID, m_ItemsMap[invItem.itemID]);
+            //m_Items = m_ItemsList.ToArray();
+
+
+            Saver<List<int>>.Save(WhooSettings.fileNameInv, m_ItemsMap);
         }
 
         public ItemAmount AddItemKind(InventoryItem invItem)
         {
             print("amount = 0");
             ItemAmount itemAmount = new ItemAmount(invItem);
-            itemsList.Add(itemAmount);
-            items = itemsList.ToArray();
+            m_ItemsList.Add(itemAmount);
+            m_Items = m_ItemsList.ToArray();
 
-            Saver<ItemAmount[]>.Save(fileName, items);
+            Saver<List<int>>.Save(WhooSettings.fileNameInv, m_ItemsMap);
+
+
 
             return itemAmount;
         }
@@ -125,28 +186,34 @@ namespace GentianoseRealDolls
         public void RemoveItemInstances(InventoryItem invItem, int amount)
         {
 
-            var itemAmount = FindItemByID(invItem.itemID);
-            if (itemAmount == null)
+            //var itemAmount = FindItemByID(invItem.itemID);
+            //if (itemAmount == null)
+            //{
+            //    itemAmount = AddItemKind(invItem);
+            //    m_ItemsList.Add(itemAmount);
+            //}
+
+
+            //print(itemAmount.itemName);
+            //if (itemAmount.amount >= amount)
+            //{
+            //    itemAmount.amount -= amount;
+
+            //    m_Items = m_ItemsList.ToArray();
+
+
+            //}
+
+            if (m_ItemsMap[invItem.itemID] >= amount)
             {
-                itemAmount = AddItemKind(invItem);
-                itemsList.Add(itemAmount);
+                m_ItemsMap[invItem.itemID] -= amount;
             }
 
 
-            print(itemAmount.itemName);
-            if (itemAmount.amount >= amount)
-            {
-                itemAmount.amount -= amount;
-
-                items = itemsList.ToArray();
+            m_DollBase.ChangeItemAmount(invItem.itemID, m_ItemsMap[invItem.itemID]);
 
 
-                Saver<ItemAmount[]>.Save(fileName, items);
-            }
-                
-
-
-
+            Saver<List<int>>.Save(WhooSettings.fileNameInv, m_ItemsMap);
 
         }
 
@@ -160,41 +227,43 @@ namespace GentianoseRealDolls
             AddItemInstances(m_Kuklon, sum);
         }
 
-        
 
 
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
-        {
 
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Return))
-            {
-                SaveItems();
-            }
-        }
-
-      
 
         public int GetItemAmount(int id)
         {
-            foreach (var data in items)
+
+            //Saver<ItemAmount[]>.TryLoad(WhooSettings.fileNameInv, ref m_Items);
+            //FindInv();
+            //if (m_Items != null)
+            //{
+            //    m_ItemsList = m_Items.ToList();
+
+            //    foreach (var data in m_Items)
+            //    {
+            //        if (data != null) return 0;
+            //        if (data.itemID == id)
+            //        {
+            //            return data.amount;
+            //        }
+            //    }
+            //}
+            if (m_ItemsMap != null && m_ItemsMap.Count > id)
             {
-                if (data.itemID == id)
-                {
-                    return data.amount;
-                }
+                return m_ItemsMap[id];
             }
+            else
+            {
+                m_ItemsList = new List<ItemAmount>();
+            }
+            print("***");
             return 0;
         }
 
-        private static ItemAmount FindItemByID(int id)
+        private ItemAmount FindItemByID(int id)
         {
-            foreach (var data in items)
+            foreach (var data in m_Items)
             {
                 if (data.itemID == id)
                 {
@@ -204,10 +273,18 @@ namespace GentianoseRealDolls
             return null;
         }
 
+        private int GetItemAmountByID(int id)
+        {
+            if (m_ItemsMap.Count > id)
+                return m_ItemsMap[id];
+                else
+                return 0;
+        }
+
         public bool MayRemove(InventoryItem inventoryItem, int v)
         {
-            var item = FindItemByID(inventoryItem.itemID);
-            if (item.amount >= v)
+            var item = GetItemAmountByID(inventoryItem.itemID);
+            if (item >= v)
             {
                 return true;
             }

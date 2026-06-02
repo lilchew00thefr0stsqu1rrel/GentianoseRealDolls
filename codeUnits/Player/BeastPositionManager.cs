@@ -8,10 +8,14 @@ using NTC.MonoCache;
 [RequireComponent (typeof(Doll))]
 public class BeastPositionManager : MonoCache
 {
+    
+
+    [SerializeField] private AllDollCharacters allDolls;
+    [SerializeField] private AllDollSleeps allDollSleeps;
+    [SerializeField] private AllDollPositions allDollPositions;
+
 
     [SerializeField] private DollPositions m_DollPositions;
-
-  //  [SerializeField] private DollCurrentStats m_CurrentStats;
 
     [SerializeField] private int m_Location;
     public int Location => m_Location;
@@ -25,21 +29,42 @@ public class BeastPositionManager : MonoCache
 
     private Vector3 m_WaypointWarpPosition;
     [SerializeField] private int m_MapsNumber = 3;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+
+
+    public void ResetLocation()
+    {
+        m_Location = 0;
+    }
+
+    public void ConstructDolls(AllDollCharacters dolls, AllDollPositions positions, AllDollSleeps sleeps)
+    {
+        allDolls = dolls;
+        allDollPositions = positions;
+        allDollSleeps = sleeps;
+
+        InitDoll();
+    }
+
+
+    private void InitDoll()
     {
         m_Doll = GetComponent<Doll>();
         dollID = m_Doll.DollID;
+        /// РЅР°С‡Р°Р»Рѕ Р±СЂРµРґР°
+        /// 
 
-        if (AllDollCharacters.Instance.GetDollPositions(dollID).Length == 0)
+        if (allDollPositions.GetDollPositions(dollID).Length == 0)
         {
             m_Positions = new Vector3[m_MapsNumber];
+            print("Created positions file");
         }
         else
         {
-            m_Positions = AllDollCharacters.Instance.GetDollPositions(dollID);
+            m_Positions = allDollPositions.GetDollPositions(dollID);
+            print("Position fetch~");
         }
-        m_Rotation = new Quaternion();
+        m_Rotation = Quaternion.identity;
+
 
         StartCoroutine(AndSavePos());
 
@@ -47,13 +72,17 @@ public class BeastPositionManager : MonoCache
         if (m_DollPositions == null)
         {
             m_DollPositions = new DollPositions();
-            AllDollCharacters.Instance.AddDollPos(m_DollPositions);
+            allDollPositions.AddDollPos(m_DollPositions);
         }
     }
+
+    
 
     // Update is called once per frame
     protected override void Run()
     {
+        if (m_Positions == null) return;
+
         m_Positions[m_Location] = transform.position;
 
 
@@ -70,9 +99,6 @@ public class BeastPositionManager : MonoCache
     {
         int scene = int.Parse(address[..2]);
 
-        //print(address[2..10]);
-        //  print(address[10..18]);
-        // print(address[18..26]);
         float x = float.Parse(address[2..10]);
 
         float y = float.Parse(address[10..18]);
@@ -86,8 +112,6 @@ public class BeastPositionManager : MonoCache
     }
     IEnumerator AndSavePos()
     {
-
-        //       print("!*!");
 
         int numberOfLocations = Doll.LocationsNumber;
 
@@ -106,11 +130,11 @@ public class BeastPositionManager : MonoCache
 
 
     /// <summary>
-    /// Телепортировать зверьков 
+    /// РўРµР»РµРїРѕСЂС‚РёСЂРѕРІР°С‚СЊ Р·РІРµСЂСЊРєРѕРІ 
     /// </summary>
-    /// <param name="loc">локация (домик или город)</param>
-    /// <param name="waypoint">координаты точки телепортации</param>
-    /// <param name="index">индекс куклы (нужен для того, чтобы зверьки (вся команда) не были отправлены в одну точку)"</param>
+    /// <param name="loc">Р»РѕРєР°С†РёСЏ (РґРѕРјРёРє РёР»Рё РіРѕСЂРѕРґ)</param>
+    /// <param name="waypoint">РєРѕРѕСЂРґРёРЅР°С‚С‹ С‚РѕС‡РєРё С‚РµР»РµРїРѕСЂС‚Р°С†РёРё</param>
+    /// <param name="index">РёРЅРґРµРєСЃ РєСѓРєР»С‹ (РЅСѓР¶РµРЅ РґР»СЏ С‚РѕРіРѕ, С‡С‚РѕР±С‹ Р·РІРµСЂСЊРєРё (РІСЃСЏ РєРѕРјР°РЅРґР°) РЅРµ Р±С‹Р»Рё РѕС‚РїСЂР°РІР»РµРЅС‹ РІ РѕРґРЅСѓ С‚РѕС‡РєСѓ)"</param>
     
     public void SetDollPosFromWaypoint(int loc, Vector3 waypoint, int index)
     {
@@ -127,18 +151,17 @@ public class BeastPositionManager : MonoCache
     {
         m_Location = loc;
 
+        m_Positions = allDollPositions.GetDollPositions(dollID);
 
-       
-        
-        m_Positions = AllDollCharacters.Instance.GetDollPositions(dollID);
+        if (m_Positions[loc] == null)
+        {
+            transform.position = new Vector3(0, 0, 0);
+        }
+        else
+        {
+            transform.position = m_Positions[loc];
+        }
 
-        transform.forward = Vector3.forward;
-
-        transform.position = Level.Instance.SpawnPoint.position + Vector3.right * index;
-
-
-        transform.SetPositionAndRotation(Level.Instance.SpawnPoint.position
-            + Vector3.right, m_Rotation);
 
         print("What " + transform.position.x + ", " + transform.position.y + ", " + transform.position.z);
 
@@ -166,20 +189,17 @@ public class BeastPositionManager : MonoCache
 
 
 
-        AllDollCharacters.Instance.SetDollPos(m_DollPositions);
+        allDollPositions.SetDollPos(m_DollPositions);
     }
 
     private bool m_IsSleeping;
     public void TimeActionStats(long timeDifference)
     {
-        m_IsSleeping = AllDollSleeps.GetSleepingByID(dollID);
+        m_IsSleeping = allDollSleeps.GetSleepingByID(dollID);
 
         if (m_IsSleeping)
         {
-            WarpDoll(Level.Instance.Beds[dollID]);
-            //  GoToBed();
-            // Прибавить сон. 1 процент за минуту сна. PreviousTime в минутах от 0001 г.
-
+            //WarpDoll(m_Level.Beds[dollID]);
         }
         SavePos();
     }

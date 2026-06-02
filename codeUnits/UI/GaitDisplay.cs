@@ -2,118 +2,92 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System;
+using Unity.VisualScripting;
 
 namespace GentianoseRealDolls
 {
-    public class GaitDisplay : SingletonBase<GaitDisplay>
+    public class GaitDisplay : MonoBehaviour
     {
         const string oneCross = "+";
         const string twoCrosses = "++";
         const string threeCrosses = "+++";
 
-        [SerializeField] private Text m_GaitText1;
-        [SerializeField] private Text m_GaitText2;
-        [SerializeField] private Text m_GaitText3;
+        [SerializeField] private Text[] m_GaitTexts;
         [SerializeField] private List<DollGaitManager> m_Party;
 
-        private static Text[] texts = new Text[3];
-        private new void Awake()
-        {
-            base.Awake();
-            m_Party = new List<DollGaitManager>();
-            texts[0] = m_GaitText1;
-            texts[1] = m_GaitText2;
-            texts[2] = m_GaitText3;
-        }
-        public void SetDolls(Doll[] dolls)
-        {
-            texts[0] = m_GaitText1;
-            texts[1] = m_GaitText2;
-            texts[2] = m_GaitText3;
+        private string[] signs = new string[3];
 
-            m_Party.Clear();
-            for (int i = 0; i < dolls.Length; i++)
-            {
-                m_Party.Add(dolls[i].DollController.GaitManager);
-                
-            }
+        [SerializeField] private GaitInputController m_InputController;
+
+        
+
+        private void Awake()
+        {
+
+
+            signs[0] = oneCross;
+            signs[1] = twoCrosses;
+            signs[2] = threeCrosses;
         }
+        
+       
+        
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
+            m_InputController.OnGaitChanged += UpdateGaitDisplay;
         }
-
-
-
-        // Update is called once per frame
-        public static Action<int, int> UpdateText()
+        private void OnDestroy()
         {
-            return (dollPartyID, gaitState) =>
+            m_InputController.OnGaitChanged -= UpdateGaitDisplay;
+        }
+        public void UpdateGaitDisplay(int[] gaitMap)
+        {
+            signs = new string[3];
+            signs[0] = oneCross;
+            signs[1] = twoCrosses;
+            signs[2] = threeCrosses;
+
+            if (m_GaitTexts.Length != 0)
             {
-                //  print($" {dollPartyID} {gaitState} Blip ");
-
-                //   print("Texts0"+texts[0]);
-                if (texts[0] && texts[1] && texts[2])
+                for (int i = 0; i < gaitMap.Length; i++) 
                 {
-                    switch (dollPartyID)
-                    {
-                        case 0:
-                            switch (gaitState)
-                            {
-                                case 1:
-                                    texts[0].text = oneCross; break;
-                                case 2:
-                                    texts[0].text = twoCrosses; break;
-                                case 3:
-                                    texts[0].text = threeCrosses; break;
-                            }
-                            break;
-                        case 1:
-                            switch (gaitState)
-                            {
-                                case 1:
-                                    texts[1].text = oneCross; break;
-                                case 2:
-                                    texts[1].text = twoCrosses; break;
-                                case 3:
-                                    texts[1].text = threeCrosses; break;
-                            }
-                            break;
-                        case 2:
-                            switch (gaitState)
-                            {
-                                case 1:
-                                    texts[2].text = oneCross; break;
-                                case 2:
-                                    texts[2].text = twoCrosses; break;
-                                case 3:
-                                    texts[2].text = threeCrosses; break;
-                            }
-                            break;
-
-                    }
+                    m_GaitTexts[i].text = signs[gaitMap[i]-1];
                 }
-                
 
-            };
+            }
+
+
+            //!!!!!!!!!!!!!
+            // print("Huh1!");
         }
 
-        public void TextChange(int dollPartyID, int gaitState)
+        public void UpdateGaitDisplay(int indexInParty, int gaitState)
         {
-            
+            if (m_GaitTexts.Length != 0)
+            {
 
-            if (gaitState == 0) m_GaitText1.text = oneCross;
+                indexInParty = Mathf.Clamp(indexInParty, 0, 2);
+                gaitState = Mathf.Clamp(gaitState, 1, 3);
 
-            if (gaitState == 1) m_GaitText2.text = twoCrosses;
+                m_GaitTexts[indexInParty].text = signs[gaitState - 1];
+            }
 
-            if (gaitState == 2) m_GaitText3.text = threeCrosses;
+
+            //!!!!!!!!!!!!!
+            // print("Huh1!");
         }
+
+        [SerializeField] private int dollInParty;
+
+
 
         [SerializeField] private Doll m_ActiveDoll;
         public void SetActiveDoll(Doll doll)
         {
             m_ActiveDoll = doll;
         }
+
     }
 
 

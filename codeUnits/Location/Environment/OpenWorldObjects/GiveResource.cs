@@ -1,53 +1,78 @@
+using NTC.Pool;
 using System;
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace GentianoseRealDolls
 {
-    public class GiveResource : MonoBehaviour
+    public class GiveResource : InteractableObject
     {
+        public static event Action<int, string, GiveResource> OnWentToResource;
+        public static event Action OnLeaveResource;
+
+        public static event Action<InventoryItem, int> OnTake;
+
         [SerializeField] private InventoryItem m_Item;
         [SerializeField] private int m_YieldAmount;
 
         [SerializeField] private List<GameObject> m_ItemsInWorld;
+
+        [Inject]
+        public void Construct(Inventory obj)
+        {
+            m_Inventory = obj;
+        }
+        [SerializeField] private Inventory m_Inventory;
+
 
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
             print("00");
-            __ = false;
+            __ = false; 
+            tipID = 6;
         }
 
         private DateTime useDateTime;
-        // Update is called once per frame
-        void Update()
-        {
-          
-        }
+
         private bool __;
-        int tipID = 6;
-        private void OnTriggerEnter(Collider other)
+
+
+        protected override void OnDollCome(Party p)
         {
             if (m_Item != null && !__ && m_ItemsInWorld.Count > 0)
             {
-                if (other.transform.root.GetComponent<Doll>() != null)
-                {
-                    Dashboard.Instance.ShowInteractTip(tipID, m_Item.itemName, this);
-                }
+                print("Resources!");
+                OnWentToResource(tipID, m_Item.itemName, this);
             }
-
-            print(Inventory.Instance != null);
         }
+
+        protected override void OnDollGone()
+        {
+            OnLeaveResource();
+            print("Awayy~~!");
+        }
+      
+
         public void GiveResources()
         {
             if (m_ItemsInWorld.Count > 0)
             {
-                Inventory.Instance.AddItemInstances(m_Item, 1);
+                OnTake(m_Item, 1);
+                //m_Inventory.AddItemInstances(m_Item, 1);
                 print("do");
                 InventoryController.Instance.InitAllItems();
-                Destroy(m_ItemsInWorld[0]);
+                NightPool.Despawn(m_ItemsInWorld[0]);
                 m_ItemsInWorld.RemoveAt(0);
+
+
+                if (m_ItemsInWorld.Count == 0)
+                {
+                    OnLeaveResource();
+                }
             }
             
         }

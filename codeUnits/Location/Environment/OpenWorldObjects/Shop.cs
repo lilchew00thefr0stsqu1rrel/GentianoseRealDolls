@@ -1,37 +1,37 @@
+using Unity.VisualScripting;
 using UnityEngine;
+using VContainer;
 
 namespace GentianoseRealDolls
 {
-    public class Shop : MonoBehaviour
+    public class Shop : InteractableObject
     {
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
-        {
+        /// <summary>
+        /// Русикова, Пунова...
+        /// BDUF - антипаттерн
+        /// /// </summary>
 
+        [SerializeField] private int m_ShopID;
+        private void Start()
+        {
+            tipID = 7;
         }
 
-        // Update is called once per frame
-        void Update()
-        {
+        //private void OnTriggerEnter(Collider other)
+        //{
+        //    if (other.transform.root.GetComponent<Doll>() != null)
+        //    {
+        //        m_Dashboard.ShowInteractTip(tipID);
+        //    }
+        //}
 
-        }
-
-        private int m_TipID = 7;
-        private void OnTriggerEnter(Collider other)
-        {
-            if (other.transform.root.GetComponent<Doll>() != null)
-            {
-                Dashboard.Instance.ShowInteractTip(m_TipID);
-            }
-        }
-
-        private void OnTriggerExit(Collider other)
-        {
-            if (other.transform.root.GetComponent<Doll>() != null)
-            {
-                Dashboard.Instance.HideInteractTip();
-            }
-        }
+        //private void OnTriggerExit(Collider other)
+        //{
+        //    if (other.transform.root.GetComponent<Doll>() != null)
+        //    {
+        //        m_Dashboard.HideInteractTip();
+        //    }
+        //}
     }
 }
 

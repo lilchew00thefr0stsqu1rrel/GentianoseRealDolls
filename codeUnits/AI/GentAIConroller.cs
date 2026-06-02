@@ -1,0 +1,102 @@
+using SpaceShooter;
+using TowerDefense;
+using UnityEngine;
+using UnityEngine.Events;
+
+namespace GentianoseRealDolls
+{
+    public class GentAIConroller : AIController
+    {
+        [SerializeField] private DollController m_DollController;
+        DollGaitManager gaitManager;
+
+        protected new void Start()
+        {
+            base.Start();
+
+            if (m_DollController != null)
+            {
+                gaitManager = m_DollController.GaitManager;
+            }
+        }
+        protected override void ActionChangeGait()
+        {
+            if (gaitManager == null) return;
+
+            if (m_PatrolPoint != null)
+            {
+                var distance = (m_PatrolPoint.transform.position - transform.position).magnitude;
+
+                //    print(distance);
+
+                if (distance < 2)
+                {
+                    gaitManager.SetGaitState(1);
+                }
+                if (distance >= 2 && distance < 5)
+                {
+                    gaitManager.SetGaitState(2);
+                }
+                if (distance >= 5 && distance < 7)
+                {
+                    gaitManager.SetGaitState(3);
+                }
+                if (distance > 12)
+                {
+                    transform.position = m_PatrolPoint.transform.position;
+                    gaitManager.StopGait();
+                }
+            }
+            
+            
+            
+
+        }
+        [SerializeField] private Path m_Path;
+
+        [SerializeField] private int pathIndex;
+
+        [SerializeField] private UnityEvent OnEndPath;
+        public void SetPath(Path newPath)
+        {
+            m_Path = newPath;
+            SetPatrolBehaviour(m_Path[pathIndex]);
+        }
+
+        protected override void GetNewPoint()
+        {
+            if (m_Path == null) return;
+
+            pathIndex += 1;
+            if (m_Path.Length > pathIndex)
+            {
+                SetPatrolBehaviour(m_Path[pathIndex]);
+                
+            }
+            else
+            {
+                pathIndex = 0;
+                SetPatrolBehaviour(m_Path[0]);
+            }
+        }
+
+
+        public void WakePatrolBehaviour()
+        {
+            if (!m_DollController) return;
+
+            if (!m_DollController.ActiveDollInPartyStatus)
+            {
+                StartPatrolBehaviour();
+            }
+        }
+        public void SleepPatrolBehaviour()
+        {
+            StopPatrolBehaviour();
+        }
+
+    }       
+    
+
+}
+
