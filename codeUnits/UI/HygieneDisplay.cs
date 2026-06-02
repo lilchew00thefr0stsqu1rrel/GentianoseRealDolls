@@ -49,11 +49,11 @@ public class HygieneDisplay : MonoBehaviour
 
        
 
-        m_PooText.text = $"Кишечник: {Mathf.Round(currentDoll.ToiletStats[0] * 10) / 10}/11.0";
-        m_SprayText.text = $"Параанальные железы: {Mathf.Round(currentDoll.AnalGlandHealth * 10) / 10}/11.0";
-        m_PeeText.text = $"Моча: {Mathf.Round(currentDoll.ToiletStats[2] * 10) / 10}/11.0";
-        m_BathText.text = $"Ванная: {Mathf.Round(currentDoll.ToiletStats[3] * 10) / 10}/34.0";
-        m_BrushTeethText.text = $"Чистка зубов: {Mathf.Round(currentDoll.ToiletStats[4] * 10) / 10}/33.0";
+        m_PooText.text = $"Кишечник: {Mathf.Round(currentDoll.ToiletStats[0] * 10) / 10}/10";
+        m_SprayText.text = $"Параанальные железы: {Mathf.Round(currentDoll.AnalGlandHealth) * 10 / 10}/10";
+        m_PeeText.text = $"Моча: {Mathf.Round(currentDoll.ToiletStats[2] * 10) / 10}/10";
+        m_BathText.text = $"Ванная: {Mathf.Round(currentDoll.ToiletStats[3] * 10) / 10}/40";
+        m_BrushTeethText.text = $"Чистка зубов: {Mathf.Round(currentDoll.ToiletStats[4] * 10) / 10}/30";
         
     }
 }
