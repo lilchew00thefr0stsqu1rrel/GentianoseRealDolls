@@ -31,12 +31,25 @@ public class AllDollPositions : MonoBehaviour, IAllDolls
     private const string fileName2 = "dPositions.dat";
 
     [Tooltip("-1 meaning this scene is not a location")]
-    // ������� ����
+    // включая меню
     private int m_Scene;
 
     [SerializeField] private Text m_DebugText;
     [SerializeField] private DollPosition[] allPositions;
 
+
+    [SerializeField] private int[] m_PositionsInt;
+
+    [SerializeField]
+    private string[] m_FieldNames = new string[]
+    {
+        "dollID",
+        "levelID",
+        "x",
+        "y",
+        "z"
+
+    };
 
 
     [SerializeField] private DollBase m_SimpleDB;
@@ -62,7 +75,7 @@ public class AllDollPositions : MonoBehaviour, IAllDolls
     {
         m_Scene = scene;
     }
-
+    
     public void InitPositions()
     {
 
@@ -84,7 +97,14 @@ public class AllDollPositions : MonoBehaviour, IAllDolls
             {
                 if (m_SimpleDB.CheckDollPositionPresent(i))
                 {
-                    allPositions[i] = m_SimpleDB.GetDollPosition(i);
+                    //allPositions[i] = m_SimpleDB.GetDollPosition(i);
+
+                    int[] positionsInt = new int[5];
+
+                    m_SimpleDB.GetRecord(i, $"SELECT * FROM positions WHERE dollID = {i};", ref positionsInt, m_FieldNames);
+
+                    allPositions[i] = new DollPosition(positionsInt[0], positionsInt[1], 
+                        new Vector3(positionsInt[2], positionsInt[3], positionsInt[4]), Quaternion.identity);
                 }
             }
         }
@@ -104,14 +124,25 @@ public class AllDollPositions : MonoBehaviour, IAllDolls
 
     public DollPosition GetDollPos(int id)
     {
+
         if (allPositionsList == null)
         {
             allPositions = new DollPosition[WhooSettings.NumberOfDolls]; 
         }
 
+        
+
+
         allPositionsList = allPositions.ToList();
 
-        return allPositionsList[id];
+        // return allPositionsList[id];
+
+        if (m_SimpleDB.CheckDollPositionPresent(id))
+        {
+            allPositions[id] = m_SimpleDB.GetDollPosition(id);
+        }
+
+        return allPositions[id];
     }
    
 
@@ -134,14 +165,23 @@ public class AllDollPositions : MonoBehaviour, IAllDolls
         {
             if (m_SimpleDB.CheckDollPositionPresent(i))
             {
-                m_SimpleDB.ChangeDollPosition(allPositions[i].dollID, allPositions[i].Scene,
-                    allPositions[i].Position.x, allPositions[i].Position.y,
-                    allPositions[i].Position.z);
+                ChangeDoll(i);
             }
             else
             {
                 m_SimpleDB.AddDollPosition(i, 1, 0, 0, 0);
             }
         }
+    }
+
+    private void ChangeDoll(int dollID)
+    {
+        int x = (int)Mathf.Ceil(allPositions[dollID].Position.x);
+        int y = (int) Mathf.Ceil(allPositions[dollID].Position.y);
+        int z = (int)Mathf.Ceil(allPositions[dollID].Position.z);
+
+        string query = $"UPDATE positions SET levelID='{allPositions[dollID].Scene}'," +
+                        $"x='{x}', y='{y}', z='{z}' WHERE dollID='{dollID}';";
+        m_SimpleDB.AddOrChangeRecord(query);
     }
 }
