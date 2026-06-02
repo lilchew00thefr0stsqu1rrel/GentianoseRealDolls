@@ -1,8 +1,8 @@
 using Mono.Data.Sqlite;
 using System.Data;
 using System.IO;
-using UnityEngine;
 using System.Runtime.InteropServices;
+using UnityEngine;
 
 namespace GentianoseRealDolls
 {
@@ -28,14 +28,18 @@ namespace GentianoseRealDolls
         {
             dbPath = GetDBPath(fileName);
             dbPathURI = GetDBPathURI(fileName);
+
+
+            sqlite3_initialize();
+
+            CreateDB();
         }
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-            sqlite3_initialize();
 
-            CreateDB();
+
         }
 
         [DllImport("sqlite3.dll")]
@@ -49,27 +53,34 @@ namespace GentianoseRealDolls
             if (!File.Exists(dbPath))
             {
                 SqliteConnection.CreateFile(dbPath);
-
             }
 
-
-            CreateTablePosition();
+            var q1 = "CREATE TABLE IF NOT EXISTS positions (dollID INTEGER PRIMARY KEY, levelID INTEGER, x INTEGER, y INTEGER, z INTEGER)";
+            CreateTable(q1);
+            //CreateTablePosition();
 
             // Seed data.
             for (int i = 0; i < WhooSettings.NumberOfDolls; i++)
             {
-                AddDollPosition(i, 1, 0, 0, 0);
+                //AddDollPosition(i, 1, 0, 0, 0);
+
+                AddOrChangeRecord("INSERT OR IGNORE INTO positions (dollID, levelID, x, y, z) VALUES ('" + i +
+                        "', '" + 1 + "', '" + 0 + "', '" + 0 + "', '" + 0 + "');");
             }
 
-            CreateTableInventory();
+            var q2 = "CREATE TABLE IF NOT EXISTS inventory (itemID INTEGER PRIMARY KEY, amount INTEGER)";
+
+            CreateTable(q2);
 
             // Seed data.
             for (int i = 0; i < 16; i++)
             {
                 if (i < 2)
-                    AddItem(i, 2);
-                else
-                    AddItem(i, 0);
+                    AddOrChangeRecord("INSERT OR IGNORE INTO inventory (itemID, amount) VALUES ('" + i +
+                        "', '" + 2 + "');");
+                else 
+                    AddOrChangeRecord("INSERT OR IGNORE INTO inventory (itemID, amount) VALUES ('" + i +
+                        "', '" + 0 + "');");
             }
         }
 
@@ -87,7 +98,7 @@ namespace GentianoseRealDolls
 
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = "CREATE TABLE IF NOT EXISTS positions (dollID INTEGER PRIMARY KEY, levelID INTEGER, x FLOAT, y FLOAT, z FLOAT)";
+                    command.CommandText = "CREATE TABLE IF NOT EXISTS positions (dollID INTEGER PRIMARY KEY, levelID INTEGER, x INTEGER, y INTEGER, z INTEGER)";
                     command.ExecuteNonQuery();
                 }
 
@@ -314,8 +325,90 @@ namespace GentianoseRealDolls
             }
             return i;
         }
+
+        // Абстрактн.
+
+        public void CreateTable(string query)
+        {
+            print("Whew");
+            using (var connection = new SqliteConnection(dbPathURI))
+            {
+                print("Dolly");
+
+                print($"Dolly {connection != null}");
+
+                connection.Open(); /// !!~~!
+                print("Mink");
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = query;
+                    command.ExecuteNonQuery();
+                }
+
+                print("-inve- table was created");
+
+                connection.Close();
+            }
+        }
+
+        public bool GetRecord(int index, string query, ref int[] dataInt, string[] fieldNames)
+        {
+            int[] arr = new int[7];
+            int row = 0;
+            using (var connection = new SqliteConnection(dbPathURI))
+            {
+                connection.Open();
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = query;
+
+                    using (IDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            if (row == index)
+                            {
+                                for (int i = 0; i < fieldNames.Length; i++)
+                                {
+                                    arr[i] = int.Parse(reader[fieldNames[i]].ToString());
+                                }
+                                return true;
+                            }
+                            row++;
+                        }
+                    }
+                }
+                connection.Close();
+            }
+
+            return false;
+        }
+
+
+
+        public void AddOrChangeRecord(string query)
+        {
+            using (var connection = new SqliteConnection(dbPathURI))
+            {
+                connection.Open();
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = query;
+                    command.ExecuteNonQuery();
+                }
+
+                connection.Close();
+            }
+        }
+
+
+
     }
 
+    
+        
 
-
-}
+    }
