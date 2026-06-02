@@ -100,6 +100,8 @@ namespace GentianoseRealDolls
         private long m_PreviousTime;
 
         private long m_TimeDifference;
+        private long m_TimeDifference5;
+        private long m_TimeDifference15;
 
         public static event Action OnChangeActiveDoll;
        
@@ -174,17 +176,37 @@ namespace GentianoseRealDolls
         }
         
         // Изменение шкал кукол по времени
-        IEnumerator TimeSave()
+        IEnumerator TimeFood()
         {
             yield return new WaitUntil(() => DateTime.Now.Second == 59);
 
             yield return new WaitForSeconds(1);
-            //            
-            ReducePartyStats();
 
-            StartCoroutine(TimeSave());
+            ReducePartyStatsShortTime();
+
+            StartCoroutine(TimeFood());
             print("ToDrain");
         }
+
+        IEnumerator TimePoo()
+        {
+            yield return new WaitUntil(() => DateTime.Now.Minute % 15 == 0);
+
+            ReducePartyStatsLongTime();
+
+            StartCoroutine(TimePoo());
+            print("ToDrain");
+        }
+        IEnumerator TimeBath()
+        {
+            yield return new WaitUntil(() => DateTime.Now.Minute % 5 == 0);
+
+            ReducePartyStatsMidTime();
+
+            StartCoroutine(TimeBath());
+            print("ToDrain");
+        }
+
 
         private void OnDestroy()
         {
@@ -319,18 +341,18 @@ namespace GentianoseRealDolls
             m_AllSleeps = ads;
         }
 
-        public void InitDolls(int mapID, long time)
+        public void InitDolls(int mapID, long time1, long time5, long time15)
         {
-            InitControllerDoll(time);
+            InitControllerDoll(time1, time5, time15);
 
             TakeDollsToLastPoint(mapID);
 
             print("Pets are ready");
         }
 
-        public void InitDolls(int mapID, long time, Vector3 waypoint)
+        public void InitDolls(int mapID, long time1, long time5, long time15, Vector3 waypoint)
         {
-            InitControllerDoll(time);
+            InitControllerDoll(time1, time5, time15);
 
 
             PlaceSomeOrAllDolls(mapID, waypoint);
@@ -345,7 +367,7 @@ namespace GentianoseRealDolls
             }
         }
 
-        private void InitControllerDoll(long time)
+        private void InitControllerDoll(long time1, long time5, long time15)
         {
 
             sessionHouseMap++;
@@ -376,7 +398,12 @@ namespace GentianoseRealDolls
                 // Нужно ли уменьшать шкалы на время вне игры?
                 // В начале
                 if (sessionHouseMap <= 1)
-                    doll.DollController.TimeActionStats(time, i, m_TeleportBeasts, m_DollData, m_AllSleeps);
+                {
+                    doll.DollController.TimeActionFoodSleepStats(time1, i, m_TeleportBeasts, m_DollData, m_AllSleeps);
+                    doll.DollController.TimeActionBathStats(time5, i, m_TeleportBeasts, m_DollData, m_AllSleeps);
+                    doll.DollController.TimeActionPooStats(time15, i, m_TeleportBeasts, m_DollData, m_AllSleeps);
+                }
+                   
                 // При смене карты (домик/город)
                 if (sessionHouseMap > 1)
                     doll.DollController.TakeStats(i, m_AllDollCharacters, m_AllSleeps);
@@ -390,7 +417,9 @@ namespace GentianoseRealDolls
 
             m_PartyMembers = m_PartyList.ToArray();
 
-            StartCoroutine(TimeSave());
+            StartCoroutine(TimeFood());
+            StartCoroutine(TimeBath());
+            StartCoroutine(TimePoo());
 
             SetActiveDoll(0);
 
@@ -498,7 +527,7 @@ namespace GentianoseRealDolls
 
         // Уменьшить значения характеристик
 
-        public void ReducePartyStats()
+        public void ReducePartyStatsShortTime()
         {
             if (m_PartyMembers == null)
             {
@@ -508,7 +537,34 @@ namespace GentianoseRealDolls
 
             foreach (var chrct in m_PartyMembers)
             {
-                chrct.DollController.StatsReduce();
+                chrct.DollController.ShortStatsReduce();
+            }
+        }
+        public void ReducePartyStatsMidTime()
+        {
+            if (m_PartyMembers == null)
+            {
+                print("NO DOLL");
+                return;
+            }
+
+            foreach (var chrct in m_PartyMembers)
+            {
+                chrct.DollController.MidStatsReduce();
+            }
+        }
+
+        public void ReducePartyStatsLongTime()
+        {
+            if (m_PartyMembers == null)
+            {
+                print("NO DOLL");
+                return;
+            }
+
+            foreach (var chrct in m_PartyMembers)
+            {
+                chrct.DollController.LongStatsReduce();
             }
         }
 
