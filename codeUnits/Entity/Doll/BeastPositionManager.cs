@@ -147,7 +147,7 @@ public class BeastPositionManager : MonoCache
     {
         m_Location = loc;
 
-        m_Position = allDollPositions.GetDollPositions(dollID) + new Vector3(0, 1.6f, 0);
+        m_Position = allDollPositions.GetDollPositions(dollID) + new Vector3(0, 2.0f, 0);
 
         if (m_Position == null)
         {
