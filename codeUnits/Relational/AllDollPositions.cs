@@ -69,7 +69,21 @@ public class AllDollPositions : MonoBehaviour, IAllDolls
 
 
 
+    private void Start()
+    {
+        var q1 = "CREATE TABLE IF NOT EXISTS positions (dollID INTEGER PRIMARY KEY, levelID INTEGER, x INTEGER, y INTEGER, z INTEGER)";
+        m_SimpleDB.CreateTable(q1);
+        //CreateTablePosition();
 
+        // Seed data.
+        for (int i = 0; i < WhooSettings.NumberOfDolls; i++)
+        {
+            //AddDollPosition(i, 1, 0, 0, 0);
+
+            m_SimpleDB.AddOrChangeRecord("INSERT OR IGNORE INTO positions (dollID, levelID, x, y, z) VALUES ('" + i +
+                    "', '" + 1 + "', '" + 0 + "', '" + 0 + "', '" + 0 + "');");
+        }
+    }
 
     public void SetScene(int scene)
     {
@@ -78,30 +92,18 @@ public class AllDollPositions : MonoBehaviour, IAllDolls
     
     public void InitPositions()
     {
-
-        //Saver<DollPosition[]>.TryLoad(WhooSettings.fileNamePos, ref allPositions);
-
-        //if (allPositions.Length == 0)
-        //{
-        //    allPositions = new DollPosition[WhooSettings.NumberOfDolls];
-        //    Saver<DollPosition[]>.Save(WhooSettings.fileNamePos, allPositions);
-        //}
-
-
-
         if (m_SimpleDB.GetDollAmount() > 0)
         {
             allPositions = new DollPosition[WhooSettings.NumberOfDolls];
 
             for (int i = 0; i < WhooSettings.NumberOfDolls; i++)
             {
-                if (m_SimpleDB.CheckDollPositionPresent(i))
+                if (m_SimpleDB.CheckRecordPresent(i, "positions"))
                 {
                     //allPositions[i] = m_SimpleDB.GetDollPosition(i);
 
-                    int[] positionsInt = new int[5];
 
-                    m_SimpleDB.GetRecord(i, $"SELECT * FROM positions WHERE dollID = {i};", ref positionsInt, m_FieldNames);
+                    int[]  positionsInt =  m_SimpleDB.GetRecord("positions", "dollID", i, m_FieldNames);
 
                     allPositions[i] = new DollPosition(positionsInt[0], positionsInt[1], 
                         new Vector3(positionsInt[2], positionsInt[3], positionsInt[4]), Quaternion.identity);
@@ -129,18 +131,8 @@ public class AllDollPositions : MonoBehaviour, IAllDolls
         {
             allPositions = new DollPosition[WhooSettings.NumberOfDolls]; 
         }
-
-        
-
-
         allPositionsList = allPositions.ToList();
 
-        // return allPositionsList[id];
-
-        if (m_SimpleDB.CheckDollPositionPresent(id))
-        {
-            allPositions[id] = m_SimpleDB.GetDollPosition(id);
-        }
 
         return allPositions[id];
     }
@@ -159,7 +151,6 @@ public class AllDollPositions : MonoBehaviour, IAllDolls
 
     public void SaveAllDolls()
     {
-        //Saver<DollPosition[]>.Save(WhooSettings.fileNamePos, allPositions);
 
         for (int i = 0; i < 3; i++)
         {
@@ -169,7 +160,8 @@ public class AllDollPositions : MonoBehaviour, IAllDolls
             }
             else
             {
-                m_SimpleDB.AddDollPosition(i, 1, 0, 0, 0);
+                m_SimpleDB.AddOrChangeRecord("INSERT OR IGNORE INTO positions (dollID, levelID, x, y, z) VALUES ('" + i +
+                        "', '" + 0 + "', '" + 0 + "', '" +0 + "', '" + 0 + "');");
             }
         }
     }
