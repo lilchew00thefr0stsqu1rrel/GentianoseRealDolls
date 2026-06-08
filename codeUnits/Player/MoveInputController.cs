@@ -1,4 +1,5 @@
 using NTC.MonoCache;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -86,6 +87,10 @@ namespace GentianoseRealDolls
             {
                 ControlKeyboardAndMobile();
             }
+
+            m_Party.DollCarryWisp(m_TargetShip.transform.position, m_TargetShip.transform.rotation);
+
+
         }
 
 
@@ -106,7 +111,9 @@ namespace GentianoseRealDolls
             
             m_TargetDoll?.UpdateMoveInput(moveInput);
         }
-        
+
+        private float m_MobileXQuotient = 0.3f;
+
         private void ControlMobile()
         {
             m_TargetShip.ThrustControl = 0;
@@ -117,7 +124,7 @@ namespace GentianoseRealDolls
             if (dir != Vector3.zero)
             {
                 m_TargetShip.ThrustControl = dir.y;
-                m_TargetShip.TorqueControl = -dir.x;
+                m_TargetShip.TorqueControl = -dir.x * m_MobileXQuotient;
 
                 m_GaitInputController.StartGait();
             }
@@ -132,23 +139,23 @@ namespace GentianoseRealDolls
             m_TargetShip.Leap();
         }
 
-        // ���� ����� ���������� Player Input,
-        // ����� ����������� �������� Move
+        // Этот метод вызывается Player Input,
+        // когда срабатывает действие Move
         public void OnMove(InputAction.CallbackContext context)
         {
-            // ��������� �������� Vector2 �� Input System
-            // ��� ��������� ����������� ��������
+            // Считываем значение Vector2 из Input System
+            // Оно описывает направление движения
             moveInput = context.ReadValue<Vector2>();
 
             
         }  
       
 
-        // ���� ����� ���������� ��� ������� ������ Jump
+        // Этот метод вызывается при нажатии кнопки Jump
         public void OnJump(InputAction.CallbackContext context)
         {
-            // ���������, ��� �������� ������ ���������,
-            // � �� �������� ��� � ��������
+            // Проверяем, что действие именно выполнено,
+            // а не отменено или в процессе
             if (!context.performed) return;
 
             Leap();
@@ -164,7 +171,6 @@ namespace GentianoseRealDolls
             m_GaitInputController.Move(moveInput);
         }
 
-        
     }
 }
 
