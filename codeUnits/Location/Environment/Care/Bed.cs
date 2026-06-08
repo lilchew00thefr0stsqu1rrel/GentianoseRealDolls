@@ -34,7 +34,7 @@ namespace GentianoseRealDolls
 
         protected override void OnDollCome(Party partyWisp)
         {
-            if (partyWisp.ActiveDoll.DollController.Sleeping)
+            if (partyWisp.ActiveDoll.DollController.SleepSystem.IsSleeping)
             {
                 m_Dashboard.ShowInteractTip(m_OffTipID);
             }
