@@ -24,11 +24,11 @@ namespace GentianoseRealDolls
         }
 
 
-        public void UpdateUI()
+        public void UpdateUI(Doll activeDoll)
         {
-            m_FillImage.fillAmount = (float)m_Party.ActiveDoll.AnalSprayAmount / m_Party.ActiveDoll.AnalGlandVolume;
-            m_FluidText.text = $"{Mathf.Round(m_Party.ActiveDoll.AnalSprayAmount) / 10} / " +
-                $"{Mathf.Round(m_Party.ActiveDoll.AnalGlandVolume) / 10} мл";
+            m_FillImage.fillAmount = (float)activeDoll.AnalSprayAmount / activeDoll.AnalGlandVolume;
+            m_FluidText.text = $"{Mathf.Round(activeDoll.AnalSprayAmount) / 10} / " +
+                $"{Mathf.Round(activeDoll.AnalGlandVolume) / 10} мл";
         }
 
 
