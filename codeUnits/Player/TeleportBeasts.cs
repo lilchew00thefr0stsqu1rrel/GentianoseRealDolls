@@ -61,13 +61,13 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
                // m_Party.InitDolls(SceneHelper.SceneToLevel(city), m_AllCharacters.ReadStats(),
                   //  m_AllCharacters, m_AllPositions, m_AllSleeps.ReadSleeping(), m_AllSleeps, 0, pos);
 
-                m_Party.InitInventory(m_Inventory);
-                m_Party.InitDollPos(lv, m_AllPositions);
-                m_Party.InitDollStats(m_AllCharacters);
-                m_Party.InitDollSleep(m_AllSleeps.ReadSleeping(), m_AllSleeps);
-                m_Party.InitPoop(m_PoopStore);
+                //m_Party.InitInventory(m_Inventory);
+                //m_Party.InitDollPos(lv, m_AllPositions);
+                //m_Party.InitDollStats(m_AllCharacters);
+                //m_Party.InitDollSleep(m_AllSleeps.ReadSleeping(), m_AllSleeps);
+                //m_Party.InitPoop(m_PoopStore);
 
-                m_Party.InitDolls(lv, 0L, 0L, 0L);
+                m_Party.InitDolls(lv, 0L);
 
                 m_Party.PlaceSomeOrAllDolls(lv, pos);
             }
@@ -114,16 +114,14 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
         //m_Party.InitDolls(levelID, m_AllCharacters.ReadStats(), m_AllCharacters, m_AllPositions,
           //  m_AllSleeps.ReadSleeping(), m_AllSleeps, m_TimePastStats.ReadTime());
 
-        m_Party.InitInventory(m_Inventory);
+        //m_Party.InitInventory(m_Inventory);
 
-        m_Party.InitDollPos(levelID, m_AllPositions);
-        m_Party.InitDollStats(m_AllCharacters);
-        m_Party.InitDollSleep(m_AllSleeps.ReadSleeping(), m_AllSleeps);
-        m_Party.InitPoop(m_PoopStore);
+        //m_Party.InitDollPos(levelID, m_AllPositions);
+        //m_Party.InitDollStats(m_AllCharacters);
+        //m_Party.InitDollSleep(m_AllSleeps.ReadSleeping(), m_AllSleeps);
+        //m_Party.InitPoop(m_PoopStore);
 
-        m_Party.InitDolls(levelID, m_TimePastStats.ReadTime(), 
-            m_TimePastStats.ReadTime(TimePastStats.TimeIntervals.BathTime),
-            m_TimePastStats.ReadTime(TimePastStats.TimeIntervals.PooTime));
+        m_Party.InitDolls(levelID, m_TimePastStats.ReadTime());
 
         currentScene.SetLocationIndex(levelID);
 
