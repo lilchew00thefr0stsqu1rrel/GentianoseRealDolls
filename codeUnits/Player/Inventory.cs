@@ -144,20 +144,6 @@ namespace GentianoseRealDolls
         public void AddItemInstances(InventoryItem invItem, int amount)
         {
             
-            //var itemAmount = FindItemByID(invItem.itemID);
-            //if (itemAmount == null)
-            //{
-            //    itemAmount = AddItemKind(invItem);
-            //    m_ItemsList.Add(itemAmount);
-            //}
-            
-            
-            //print(itemAmount.itemName);
-            //itemAmount.amount += amount;
-
-            
-
-
             m_ItemsMap[invItem.itemID] += amount;
             
 
@@ -185,24 +171,6 @@ namespace GentianoseRealDolls
 
         public void RemoveItemInstances(InventoryItem invItem, int amount)
         {
-
-            //var itemAmount = FindItemByID(invItem.itemID);
-            //if (itemAmount == null)
-            //{
-            //    itemAmount = AddItemKind(invItem);
-            //    m_ItemsList.Add(itemAmount);
-            //}
-
-
-            //print(itemAmount.itemName);
-            //if (itemAmount.amount >= amount)
-            //{
-            //    itemAmount.amount -= amount;
-
-            //    m_Items = m_ItemsList.ToArray();
-
-
-            //}
 
             if (m_ItemsMap[invItem.itemID] >= amount)
             {
