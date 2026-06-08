@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace GentianoseRealDolls
@@ -18,6 +13,6 @@ namespace GentianoseRealDolls
     public interface IDollSettable
     {
         public void SetDoll(Doll doll);
-        public void SetSleepDoll(int index, bool sleep);
+        public void SetSleepDoll();
     }
 }
