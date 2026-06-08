@@ -34,6 +34,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
     [SerializeField] private GameObject stoveUI;
     [SerializeField] private GameObject m_ShopDisplay;
     [SerializeField] private GameObject m_Map;
+    [SerializeField] private GameObject m_VirtualJoystickForRotation;
 
     public event Action<UIType> ChangeWindow;
 
@@ -77,20 +78,19 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         yield return new WaitForSeconds(0.5f);
 
         m_CurrentDoll = m_Party.ActiveDoll;
-        m_CurrentDollController = m_Party.ActiveDollController;
+        if (m_CurrentDoll != null)
+        {
 
-        habitatUI.UpdateDash(m_CurrentDoll);
-        combatUI.UpdateDash(m_CurrentDoll);
+            m_CurrentDollController = m_Party.ActiveDollController;
 
-        m_GaitDisplay.UpdateGaitDisplay(m_Party.GaitMap);
+            habitatUI.UpdateDash(m_CurrentDoll);
+            combatUI.UpdateDash(m_CurrentDoll);
+
+            m_GaitDisplay.UpdateGaitDisplay(m_Party.GaitMap);
+            SetSleepDoll();
+        }
 
         StartCoroutine(UpdateUI());
-
-
-        for (int i = 0; i < m_Party.PartyDollSleeps.Length; i++)
-        {
-            SetSleepDoll(i, m_Party.PartyDollSleeps[i]);
-        }
 
     }
 
@@ -101,10 +101,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         habitatUI.SetCurrentDoll(m_CurrentDoll);
         combatUI.SetDoll(m_CurrentDoll);
 
-        for (int i = 0; i < m_Party.PartyDollSleeps.Length; i++)
-        {
-            SetSleepDoll(i, m_Party.PartyDollSleeps[i]);
-        }
+        SetSleepDoll();
     }
 
     Action<int, string, GiveResource> ShowInteract(int tipID, string itemName, GiveResource resource)
@@ -124,17 +121,17 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
 
         interactStrings = new List<string>()
         {            
-            "�����������",
-            "����� �� ����",
-            "�������� �����",
-            "����� � �����",
-            "�����",
-            "������",
-            "<�������>",
-            "����� ����",
-            "��������",
-            "������� ����",
-            "������"
+            "Приготовить",
+            "Сесть за стол",
+            "Покинуть чалку",
+            "Войти в чалку",
+            "Спать",
+            "Встать",
+            "<предмет>",
+            "Лавка мыши",
+            "Купаться",
+            "Чистить зубы",
+            "Какать"
         }; 
         
         StartCoroutine(LoadAllWhoo());
@@ -171,9 +168,12 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         }
         m_ActiveDollIndic[index].SetActive(true);
     }
-    public void SetSleepDoll(int index, bool sleep)
+    public void SetSleepDoll()
     {
-        m_DollSleepIndic[index].SetActive(sleep);
+        bool sp = m_Party.ActiveDoll.DollController.SleepSystem.IsSleeping;
+        int indexsp = 0;
+        indexsp = m_Party.ActiveDollIndexInParty;
+        m_DollSleepIndic[indexsp].SetActive(sp);
     }
 
     private bool m_LoadReady;
@@ -194,6 +194,9 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
 
     public void OpenInventory()
     {
+
+        m_VirtualJoystickForRotation.SetActive(false);
+
         habitatUI.HideAdditiveDashboard();
         Show(inventoryDisplay.gameObject);
         uiType = UIType.Inventory;
@@ -206,6 +209,8 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         Hide(m_Map);
         Hide(stoveUI);
         Hide(m_ShopDisplay);
+
+        m_VirtualJoystickForRotation.SetActive(true);
         
         uiType = UIType.World;
         m_Party.UnPauseAllDolls();
@@ -238,12 +243,12 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         }
         if (tipID == 4)
         {
-            m_CurrentDollController.GoToBed();
+            m_CurrentDollController.GoToBed(new int[] { m_CurrentDoll.DollID, 1 });
             HideInteractTip();
         }
         if (tipID == 5)
         {
-            m_CurrentDollController.WakeDoll();
+            m_CurrentDollController.GoToBed(new int[] { m_CurrentDoll.DollID, 0 });
             HideInteractTip();
         }
         if (tipID == 6)
