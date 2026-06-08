@@ -40,7 +40,7 @@ namespace GentianoseRealDolls
 
         [SerializeField] private DollPoopManager m_PoopManager;
 
-        [SerializeField] private GameObject m_ToiletDashboard;
+        [SerializeField] private HygieneDisplay m_ToiletDashboard;
 
 
         [SerializeField] private Text m_DollPitchText;
@@ -51,23 +51,12 @@ namespace GentianoseRealDolls
 
         public void UpdateDash(Doll activeDoll)
         {
-            if (m_Party == null) 
-            {
-                print("NO PArty");
-                return;
-            }
+            m_FoodHungerText.text = activeDoll.FoodHunger.ToString();
+            m_BathroomText.text = activeDoll.Bathroom.ToString();
+            m_SleepText.text = activeDoll.Sleep.ToString();
 
+            m_ToiletDashboard.UpdateUI(activeDoll);
 
-            if (m_Party.ActiveDoll == null)
-            {
-                print("NO ACTIVEDOLL");
-                return;
-            }
-
-            m_FoodHungerText.text = m_Party.ActiveDoll.FoodHunger.ToString();
-            m_BathroomText.text = m_Party.ActiveDoll.Bathroom.ToString("F0");
-            m_SleepText.text = m_Party.ActiveDoll.Sleep.ToString();
-            
             SetCurrentDoll(activeDoll);
         }
 
@@ -85,15 +74,13 @@ namespace GentianoseRealDolls
         }
         public void DashboardVisible()
         {
-            m_ToiletDashboard.SetActive(!m_ToiletDashboard.activeSelf);
+            m_ToiletDashboard.gameObject.SetActive(!m_ToiletDashboard.gameObject.activeSelf);
         }
 
 
         // Update is called once per frame
         void Update()
         {
-            if (m_CurrentDoll)
-                print("Doll bathroom "+ m_CurrentDoll.Bathroom);
 
             if (m_CurrentDoll != null)
             {
@@ -168,13 +155,13 @@ namespace GentianoseRealDolls
         }
         public void AdditiveDashboardChangeVisible()
         {
-            m_ToiletDashboard.SetActive(!m_ToiletDashboard.activeSelf);
+            m_ToiletDashboard.gameObject.SetActive(!m_ToiletDashboard.gameObject.activeSelf);
             print("Beisht");
         }
 
         public void HideAdditiveDashboard()
         {
-            m_ToiletDashboard.SetActive(false);
+            m_ToiletDashboard.gameObject.SetActive(false);
         }
         [SerializeField] private PoopStore m_PoopStore;
 
