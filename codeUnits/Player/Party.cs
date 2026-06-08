@@ -377,6 +377,7 @@ namespace GentianoseRealDolls
             if (m_ActiveDoll) DestroyImmediate(m_ActiveDoll.gameObject);
             m_ActiveDoll = Instantiate(m_DollPrefabs[index], m_ParentOfLeadDoll);
 
+            m_ActiveDoll.DollController.SetDollAsActive(true);
 
             m_ActiveDoll.DollController.PositionManager.Fill(m_Position.ToArray());
 
@@ -422,6 +423,18 @@ namespace GentianoseRealDolls
             //m_Dashboard.SetDoll(m_ActiveDoll);
 
             SetDollsPatrol();
+        }
+
+        /// <summary>
+        /// Всё то же, только без m_ActiveDoll.DollController.SetDollAsActive(true); и без
+        ///    m_Camera.SetTarget(m_ActiveDoll.transform);
+        ///    m_ShipInputController.SetTargetDoll(m_ActiveDoll.DollController);
+        ///    m_GaitInputController.SetCurrentDoll(m_ActiveDollController);
+        ///    Куклы синхронизируются, а не патрулируют в обычном смысле
+        /// </summary>
+        private void SetTrailDolls()
+        {
+        
         }
 
 
