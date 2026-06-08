@@ -26,7 +26,7 @@ namespace GentianoseRealDolls
             {
                 m_AnimatorGuard.SetAnimation(19);
 
-                FindAnyObjectByType<FollowCamera>().Turn(-1);
+                FindAnyObjectByType<CameraAroundDoll>().Turn(-1);
 
 
                 int count = 0;
@@ -43,7 +43,7 @@ namespace GentianoseRealDolls
                     else
                     {
                         m_AnimatorGuard.SetAnimation(0);
-                        FindAnyObjectByType<FollowCamera>().Turn(1);
+                        FindAnyObjectByType<CameraAroundDoll>().Turn(1);
                     }
                 }
 
