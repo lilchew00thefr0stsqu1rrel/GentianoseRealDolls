@@ -15,6 +15,11 @@ namespace GentianoseRealDolls
         {
             m_AttackTrigger = GetComponent<Collider>();
             m_AttackTrigger.enabled = false;
+
+            if (m_Perm)
+            {
+                m_AttackTrigger.enabled = true;
+            }
         }
 
         
@@ -78,39 +83,32 @@ namespace GentianoseRealDolls
         [SerializeField] private Destructible parent;
 
         [SerializeField] private float m_Multiplier = 1;
+        [SerializeField] private bool m_Perm;
  
         private void OnTriggerEnter(Collider other)
         {
-            print("cll");
-            if (parent == null) return;
-
-
-            // если попадает именно коллайдер твёрдости, а не лечащего поля куклы
-            if (other != null && !other.isTrigger)
+            if (other != null)
             {
-                Destructible dest = other.transform.root.GetComponent<Destructible>();
+                Destructible dest = other.GetComponent<Destructible>();
 
                 if (dest != null)
                 {
-                    if (m_BelongsToDoll && !dest.GetComponent<Doll>() || !m_BelongsToDoll)
+                    if (dest.TeamId != m_TeamID)
                     {
-                        if (dest != parent)
+                        if (!m_Cooldown)
                         {
-                            if (!m_Cooldown)
+                            if (m_SprayType)
                             {
-                                if (m_SprayType)
-                                {
-                                    dest.ApplyDamage(m_AttackDamage);
-                                    dest.ApplyDebuff(m_StatusID, m_Multiplier, 14);
-                                    m_Cooldown = true;
-                                }
-                                else
-                                {
-                                    dest.ApplyDamage(m_AttackDamage);
-                                    m_Cooldown = true;
-                                }
+                                dest.ApplyDamageOverTime(m_AttackDamage, 14);
+                                m_Cooldown = true;
+                            }
+                            else
+                            {
+                                dest.ApplyDamage(m_AttackDamage);
+                                m_Cooldown = true;
                             }
                         }
+                        
                     }
                 }
 
@@ -118,4 +116,6 @@ namespace GentianoseRealDolls
         }
     }
 }
+
+
 
