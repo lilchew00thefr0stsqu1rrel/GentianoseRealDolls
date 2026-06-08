@@ -1,4 +1,4 @@
-
+    
 using System.Collections.Generic;
 using TowerDefense;
 using UnityEngine;
@@ -12,25 +12,25 @@ namespace Common
 {
 
     /// <summary>
-    /// Уничтожаемый объект на сцене. То, что может иметь хит поинты.
+    /// РЈРЅРёС‡С‚РѕР¶Р°РµРјС‹Р№ РѕР±СЉРµРєС‚ РЅР° СЃС†РµРЅРµ. РўРѕ, С‡С‚Рѕ РјРѕР¶РµС‚ РёРјРµС‚СЊ С…РёС‚ РїРѕРёРЅС‚С‹.
     /// </summary>
     public abstract class DestructibleBase : Entity
     {
         #region Properties
         /// <summary>
-        /// Объект игнорирует повреждения.
+        /// РћР±СЉРµРєС‚ РёРіРЅРѕСЂРёСЂСѓРµС‚ РїРѕРІСЂРµР¶РґРµРЅРёСЏ.
         /// </summary>
         [SerializeField] private bool m_Indestructible;
         public bool IsIndestructible => m_Indestructible;
 
         /// <summary>
-        /// Стартовое количество хит поинтов
+        /// РЎС‚Р°СЂС‚РѕРІРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ С…РёС‚ РїРѕРёРЅС‚РѕРІ
         /// </summary>
         [SerializeField] private int m_HitPoints;
         public int MaxHitPoints => m_HitPoints;
 
         /// <summary>
-        /// Текущие хит поинты.
+        /// РўРµРєСѓС‰РёРµ С…РёС‚ РїРѕРёРЅС‚С‹.
         /// </summary>
         [SerializeField] private int m_CurrentHitPoints;
         public int HitPoints => m_CurrentHitPoints;
@@ -48,7 +48,10 @@ namespace Common
             m_CurrentHitPoints = Mathf.Clamp(m_CurrentHitPoints, 1, m_HitPoints);
         }
 
-
+        public void FillHitPoints(int hp)
+        {
+            m_CurrentHitPoints = Mathf.Clamp(hp, 0, m_OriginalHitPoints);
+        }
         #endregion
 
 
@@ -58,7 +61,7 @@ namespace Common
         {
             m_CurrentHitPoints = m_HitPoints;
 
-            transform.SetParent(null);  // У меня и без этой строки объект помещается в корень сцены.
+            // // transform.SetParent(null);  // РЈ РјРµРЅСЏ Рё Р±РµР· СЌС‚РѕР№ СЃС‚СЂРѕРєРё РѕР±СЉРµРєС‚ РїРѕРјРµС‰Р°РµС‚СЃСЏ РІ РєРѕСЂРµРЅСЊ СЃС†РµРЅС‹.
         }
 
         #endregion
@@ -72,9 +75,9 @@ namespace Common
 
         [SerializeField] private bool m_Resilient;
         /// <summary>
-        /// Применение дамага к объекту.
+        /// РџСЂРёРјРµРЅРµРЅРёРµ РґР°РјР°РіР° Рє РѕР±СЉРµРєС‚Сѓ.
         /// </summary>
-        /// <param name="damage"> Урон наносимый объекту</param>
+        /// <param name="damage"> РЈСЂРѕРЅ РЅР°РЅРѕСЃРёРјС‹Р№ РѕР±СЉРµРєС‚Сѓ</param>
         public void ApplyDamage(int damage)
         {
             if (m_Indestructible) return;
@@ -132,7 +135,7 @@ namespace Common
         
 
         /// <summary>
-        /// Переопределяемое событие уничтожения объекта, когда хит поинты ниже нуля.
+        /// РџРµСЂРµРѕРїСЂРµРґРµР»СЏРµРјРѕРµ СЃРѕР±С‹С‚РёРµ СѓРЅРёС‡С‚РѕР¶РµРЅРёСЏ РѕР±СЉРµРєС‚Р°, РєРѕРіРґР° С…РёС‚ РїРѕРёРЅС‚С‹ РЅРёР¶Рµ РЅСѓР»СЏ.
         /// </summary>
         protected virtual void OnDeath()
         {
