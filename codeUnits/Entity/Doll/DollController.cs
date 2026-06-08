@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
 namespace GentianoseRealDolls
@@ -25,7 +26,7 @@ namespace GentianoseRealDolls
         private AllDollCharacters allDolls;
         private AllDollPositions allPositions;
         private AllDollSleeps allSleeps;
-       
+
 
         [Header("Doll Base Attributes")]
         [SerializeField] private Doll m_Doll;
@@ -41,7 +42,7 @@ namespace GentianoseRealDolls
         [SerializeField] private AnimatorGuard m_AnimatorGuard;
         public AnimatorGuard AnimatorGuard => m_AnimatorGuard;
         [SerializeField] private BeastPositionManager positionManager;
-
+        public BeastPositionManager PositionManager => positionManager;
         [SerializeField] private DollClimbing climbing;
         public DollClimbing Climbing => climbing;
 
@@ -62,24 +63,27 @@ namespace GentianoseRealDolls
         [SerializeField] private DollBath bathSystem;
 
         [SerializeField] private DollSleep sleepSystem;
+        public DollSleep SleepSystem => sleepSystem;
 
         [SerializeField] private Inventory m_Inventory;
 
-        
+
         [Header("Doll's particular parts, e.g. weapons and scent glands")]
 
 
         [SerializeField] private Vector2 m_AimInput;
         [SerializeField] private Vector2 m_MoveInput;
+        [SerializeField] private string m_Bed;
 
         private Dashboard m_Dashboard;
         private Party m_Party;
-        public bool Sleeping => sleepSystem.Sleeping;
+        private bool m_IsSleeping;
+        public bool Sleeping => m_IsSleeping;
 
         private int m_DollIndexInParty;
 
         public int DollIndexInParty => m_DollIndexInParty;
-        private DollScaleValues m_ScaleValues;
+        [SerializeField] private DollScaleValues m_ScaleValues;
         private int dollID;
         private Rigidbody m_Rigidbody;
 
@@ -90,7 +94,6 @@ namespace GentianoseRealDolls
         [SerializeField] private GameObject m_NavelEffectPrefab;
         private GameObject m_NavelEffectShield;
 
-        
         // Unity Event
 
         private void Awake()
@@ -151,6 +154,10 @@ namespace GentianoseRealDolls
 
             
         }
+        public void FillCombatStats(int[] stats)
+        {
+            m_Doll.FillCombatStats(stats);
+        }
 
         // Передача управления движением (WASD)
         public void UpdateMoveInput(Vector2 moveInput)
@@ -175,6 +182,8 @@ namespace GentianoseRealDolls
         public void ConstructInventory(Inventory inventory)
         {
             m_Inventory = inventory;
+
+
             gaitGear.ConstructDollCom(m_Inventory);
             battler.ConstructDollCom(m_Inventory);
 
@@ -182,21 +191,12 @@ namespace GentianoseRealDolls
 
             bathSystem.ConstructDollCom(m_Inventory);
             sleepSystem.ConstructDollCom(m_Inventory);
+
+            m_Doll.ConstructDoll(m_Inventory);
         }
 
-        public void ConstructSleep(List<bool> sleepData, AllDollSleeps sleeps)
-        {
-            allSleeps = sleeps;
-            sleepSystem.ConstructDollCom(m_Party); ;
-            sleepSystem.ConstructSleep(sleeps);
-        }
+      
 
-        public void ConstructPos(AllDollPositions positions, AllDollSleeps sleeps)
-        {
-            allPositions = positions;
-
-            positionManager.ConstructDolls( positions, sleeps);
-        }
 
         public void ConstructPoop(PoopStore ps)
         {
@@ -213,15 +213,12 @@ namespace GentianoseRealDolls
             pooper.ConstructDollCom(m_Party);
 
             bathSystem.ConstructDollCom(m_Party);
+
+            sleepSystem.ConstructDollCom(m_Party);
         }
 
-        // TODO: Создать компонент DollEat
-        public void ConstructDollStats(DollScaleValues[] dollData, AllDollCharacters dolls, AllDollPositions positions, Inventory inventory)
-        {
-            allDolls = dolls;
 
-            m_Doll.ConstructDoll(dollData, dolls, positions, inventory);
-        }
+
         public void SetDollProperties()
         {
             gaitGear.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
@@ -231,117 +228,86 @@ namespace GentianoseRealDolls
             sleepSystem.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
         }
         // Настроить компоненты куклы (после создания куклы, работает как зависимости)
-        public void ConstructDoll(List<float[]> dollData, AllDollCharacters dolls, AllDollPositions positions, 
-            List<bool> sleepData, AllDollSleeps sleeps, Party party)
-        {
-
-            // Здесь ещё правильно
-            print("Snowor" + dolls.GetDoll(0).LooPoo);
-            // Начало бреда
-
-
-
-            gaitGear.ConstructDollCom(m_Party);
-            battler.ConstructDollCom(m_Party);
-
-            pooper.ConstructDollCom(m_Party);
-
-            bathSystem.ConstructDollCom(m_Party);
-           
-        }
 
         // Изменение значений характеристик заботы за время отсутствия игрока (в том числе сон)
-        public void TimeActionStats(long timeDifference, int partyIndex, TeleportBeasts telep, DollScaleValues[] ds, AllDollSleeps allSleeps)
+        public void TimeActionStats(long timeDifference, int[] stats, int[] sleepData)
         {
-            m_ScaleValues = ds[dollID];
+            print("Molly");
 
-            bool isSleeping = allSleeps.GetSleepingByID(m_Doll.DollID);
+            stats[1] = Mathf.Clamp(stats[1] - (int)timeDifference, 0, Doll.MaxLooStat);
 
-            if (isSleeping)
+            stats[2] = Mathf.Clamp(stats[2] +
+                 (int)timeDifference, 0, m_Doll.AnalGlandVolume);
+
+            stats[3] = Mathf.Clamp(stats[3] - (int)timeDifference , 0, Doll.MaxLooStat);
+
+            stats[4] = Mathf.Clamp(stats[4] - (int)timeDifference, 0, Doll.MaxBrushTeeth);
+            stats[5] = Mathf.Clamp(stats[5] - (int)timeDifference, 0, Doll.MaxBrushTeeth);
+
+            stats[6] = Mathf.Clamp(stats[6] - (int)timeDifference, 0, Doll.MaxStat);
+
+
+            bool isSleeping = sleepData[1] == 1 ? true : false;
+
+            sleepSystem.SetSleep(sleepData);
+
+
+            if (sleepData[1] == 1)
             {
-                sleepSystem.GoToBed(partyIndex);
+                stats[7] = Mathf.Clamp(stats[7] + (int)timeDifference, 0, Doll.MaxStat);
+
+                positionManager.WarpDoll(m_Bed);
             }
+
             else
             {
-                sleepSystem.WakeDoll(partyIndex);
+                stats[7] = Mathf.Clamp(stats[7] - (int)timeDifference, 0, Doll.MaxStat); 
             }
 
-            if (sleepSystem.Sleeping)
-            {
-                sleepSystem.GoToBed(partyIndex);
+            m_Doll.FillStats(stats);
 
-
-                m_Doll.SetSleep(m_ScaleValues.Sleep + timeDifference);
-
-                positionManager.WarpDoll(telep.Levels[m_LocationIndex].Beds[m_DollIndexInParty]);
-                
-            }
-
-            else
-            {
-                m_Doll.SetSleep(m_ScaleValues.Sleep - timeDifference);
-            }
-
-            float poo = Mathf.Clamp(m_ScaleValues.LooPoo - timeDifference * Doll.StepLooStat, 0, Doll.MaxLooStat);
-
-            float analSpray = Mathf.Clamp(m_ScaleValues.AnalSprayAmount +
-                timeDifference * (Doll.StepAnalGlandSecretions * m_Doll.AnalGlandVolume), 0, m_Doll.AnalGlandVolume);
-
-            float pee = Mathf.Clamp(m_ScaleValues.LooPee - timeDifference * Doll.StepLooStat, 0, Doll.MaxLooStat);
-
-            float bath = Mathf.Clamp(m_ScaleValues.Bath - timeDifference * Doll.StepBath, 0, Doll.MaxBrushTeeth);
-            float brushTeeth = Mathf.Clamp(m_ScaleValues.BrushTeeth - timeDifference * Doll.StepBrushTeeth, 0, Doll.MaxBrushTeeth);
-
-            m_Doll.SetToiletStats(poo, 
-                analSpray, 
-                pee, 
-                bath,
-                brushTeeth);
-
-            float food = Mathf.Clamp(m_ScaleValues.FoodHunger - timeDifference, 0, Doll.MaxStat);
-
-            m_Doll.SetFoodHunger(food);
         }
+
 
 
         // Взять значения характеристик заботы, записанные в файле и попавшие в скрипт AllDollCharacters
-        public void TakeStats(int partyIndex, AllDollCharacters allDoll, AllDollSleeps sleeps)
+        public void TakeStats(int partyIndex, int[] stats)
         {
-            m_ScaleValues = allDoll.GetDoll(dollID);
 
-            bool isSleeping = sleeps.GetSleepingByID(m_Doll.DollID);
+            //bool isSleeping = sleeps.GetSleepingByID(m_Doll.DollID);
 
-            if (isSleeping)
-            {
-                sleepSystem.GoToBed(partyIndex);
-            }
-            else
-            {
-                sleepSystem.WakeDoll(partyIndex);
-            }
+            //if (isSleeping)
+            //{
+            //    sleepSystem.GoToBed(partyIndex);
+            //}
+            //else
+            //{
+            //    sleepSystem.WakeDoll(partyIndex);
+            //}
 
-            if (sleepSystem.Sleeping)
-            {
-                sleepSystem.GoToBed(partyIndex);
-                m_Doll.SetSleep(m_ScaleValues.Sleep);
-             /////   positionManager.WarpDoll(m_Level.Beds[dollID]);
-            }
+            //if (sleepSystem.Sleeping)
+            //{
+            //    sleepSystem.GoToBed(partyIndex);
+            //    m_Doll.SetSleep(m_ScaleValues.Sleep);
+            //}
 
-            else
-            {
-                print("Snegura");
-                print("Snegura" + m_ScaleValues.Sleep);
-                m_Doll.SetSleep(m_ScaleValues.Sleep);
-                print("Snegure");
-            }
-            float poo = Mathf.Clamp(m_ScaleValues.LooPoo, 0, Doll.MaxLooStat);
+            //else
+            //{
+            //    print("Snegura");
+            //    print("Snegura" + m_ScaleValues.Sleep);
+            //    m_Doll.SetSleep(m_ScaleValues.Sleep);
+            //    print("Snegure");
+            //
+            
 
-            float analSpray = Mathf.Clamp(m_ScaleValues.AnalSprayAmount, 0, m_Doll.AnalGlandVolume);
+            int poo = Mathf.Clamp(stats[1], 0, Doll.MaxLooStat);
 
-            float pee = Mathf.Clamp(m_ScaleValues.LooPee, 0, Doll.MaxLooStat);
+            int analSpray = Mathf.Clamp(stats[2], 0, m_Doll.AnalGlandVolume);
 
-            float bath = Mathf.Clamp(m_ScaleValues.Bath, 0, Doll.MaxBrushTeeth);
-            float brushTeeth = Mathf.Clamp(m_ScaleValues.BrushTeeth, 0, Doll.MaxBrushTeeth);
+            int pee = Mathf.Clamp(stats[3], 0, Doll.MaxLooStat);
+
+            int bath = Mathf.Clamp(stats[4], 0, Doll.MaxBrushTeeth);
+            int brushTeeth = Mathf.Clamp(stats[5], 0, Doll.MaxBrushTeeth);
 
             m_Doll.SetToiletStats(poo,
                 analSpray,
@@ -349,18 +315,20 @@ namespace GentianoseRealDolls
                 bath,
                 brushTeeth);
 
-            float food = Mathf.Clamp(m_ScaleValues.FoodHunger, 0, Doll.MaxStat);
+            int food = Mathf.Clamp(stats[6], 0, Doll.MaxStat);
 
+            m_Doll.SetSleep(stats[7]);
             m_Doll.SetFoodHunger(food);
         }
 
 
         // Уложить питомца спать
-        public void GoToBed()
+        public void GoToBed(int[] sleep)
         {
-            sleepSystem.GoToBed(m_DollIndexInParty);
+            sleepSystem.SetSleep(sleep);
 
-            m_Doll.GetComponent<GentAIConroller>().SleepPatrolBehaviour();
+
+            //m_Doll.GetComponent<GentAIConroller>().SleepPatrolBehaviour();
         }
 
         // Разбудить питомца
@@ -368,10 +336,9 @@ namespace GentianoseRealDolls
         {
             if (!Sleeping) return;
 
-            sleepSystem.WakeDoll(m_DollIndexInParty);
 
-            if (!m_Doll.ActiveDollInPartyStatus)
-                GetComponent<GentAIConroller>().WakePatrolBehaviour();
+            //if (!m_Doll.ActiveDollInPartyStatus)
+            //    GetComponent<GentAIConroller>().WakePatrolBehaviour();
         }
 
         // Купание
@@ -392,29 +359,22 @@ namespace GentianoseRealDolls
             positionManager.SetDollPosFromWaypoint(loc, waypoint, index);
         }
 
-        // Установить позицию по данным файла
-        public void TakeAndSetDollPos(int loc, int index)
-        {
-            positionManager.TakeAndSetDollPos(loc, index);
-        }
-
         public void ResetDollLocation()
         {
             positionManager.ResetLocation();
         }
 
 
-      
+        
 
         // Уменьшить значения характеристик со временем
-        public void StatsReduce()
+        public void ReduceStatsOverTime()
         {
-
             print("Drain");
 
             sleepSystem.ApplySleep();
 
-            m_Doll.ReduceNonSleepStats();
+            m_Doll.ReduceStats();
         }
 
 
@@ -439,22 +399,22 @@ namespace GentianoseRealDolls
         // Карман
         public void NavelEffect(bool enab)
         {
-            m_NavelEffect = enab;
-            m_Doll.PetAsSpaceShip.NavelEffect(enab);
-            if (enab)
-            {
-                if (m_NavelEffectShield != null) return;
+            //m_NavelEffect = enab;
+            //m_Doll.PetAsSpaceShip.NavelEffect(enab);
+            //if (enab)
+            //{
+            //    if (m_NavelEffectShield != null) return;
 
-                m_NavelEffectShield = Instantiate(m_NavelEffectPrefab, transform);
-                m_NavelEffectShield.transform.SetParent(transform, false);
+            //    m_NavelEffectShield = Instantiate(m_NavelEffectPrefab, transform);
+            //    m_NavelEffectShield.transform.SetParent(transform, false);
 
-                m_Rigidbody.useGravity = false;
-            }
-            else
-            {
-                Destroy(m_NavelEffectShield);
-                m_Rigidbody.useGravity = true;
-            }
+            //    m_Rigidbody.useGravity = false;
+            //}
+            //else
+            //{
+            //    Destroy(m_NavelEffectShield);
+            //    m_Rigidbody.useGravity = true;
+            //}
         }
 
     }
