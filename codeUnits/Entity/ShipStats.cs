@@ -6,25 +6,25 @@ namespace GentianoseRealDolls
     public class ShipStats : ScriptableObject
     {
         /// <summary>
-        /// Толкающая вперёд сила
+        /// РўРѕР»РєР°СЋС‰Р°СЏ РІРїРµСЂС‘Рґ СЃРёР»Р°
         /// </summary>
         [SerializeField] private float m_Thrust;
         public float Thrust => m_Thrust;
 
         /// <summary>
-        /// Вращающая сила.
+        /// Р’СЂР°С‰Р°СЋС‰Р°СЏ СЃРёР»Р°.
         /// </summary>
         [SerializeField] private float m_Mobility;
         public float Mobility => m_Mobility;
 
         /// <summary>
-        /// Максимальная линейная скорость.
+        /// РњР°РєСЃРёРјР°Р»СЊРЅР°СЏ Р»РёРЅРµР№РЅР°СЏ СЃРєРѕСЂРѕСЃС‚СЊ.
         /// </summary>
         [SerializeField] private float m_MaxLinearVelocity;
         public float MaxLinearVelocity => m_MaxLinearVelocity;
 
         /// <summary>
-        /// Максимальная вращательная скорость. В градусах.
+        /// РњР°РєСЃРёРјР°Р»СЊРЅР°СЏ РІСЂР°С‰Р°С‚РµР»СЊРЅР°СЏ СЃРєРѕСЂРѕСЃС‚СЊ. Р’ РіСЂР°РґСѓСЃР°С….
         /// </summary>
         [SerializeField] private float m_MaxAngularVelocity;
         public float MaxAngularVelocity => m_MaxAngularVelocity;

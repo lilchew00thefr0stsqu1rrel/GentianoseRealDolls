@@ -15,9 +15,6 @@ namespace GentianoseRealDolls
         public Sprite RSkillIcon;
         public Sprite RSkillFill;
 
-        public GameObject Model;
-
-
         public MeshFilter PoopMesh;
         public Material PoopMaterial;
         public float PoopHeight;
@@ -28,8 +25,13 @@ namespace GentianoseRealDolls
         public Vector3 PoopScale;
         public float PoopMass;
 
-        // åøêà âûäðû çàìåíÿåò å¸ îáû÷íóþ àòàêó íà öàðàïàíèå êîãòÿìè, à çàðÿæåííóþ íà ëÿãàíèå
+        // ÐµÑˆÐºÐ° Ð²Ñ‹Ð´Ñ€Ñ‹ Ð·Ð°Ð¼ÐµÐ½ÑÐµÑ‚ ÐµÑ‘ Ð¾Ð±Ñ‹Ñ‡Ð½ÑƒÑŽ Ð°Ñ‚Ð°ÐºÑƒ Ð½Ð° Ñ†Ð°Ñ€Ð°Ð¿Ð°Ð½Ð¸Ðµ ÐºÐ¾Ð³Ñ‚ÑÐ¼Ð¸, Ð° Ð·Ð°Ñ€ÑÐ¶ÐµÐ½Ð½ÑƒÑŽ Ð½Ð° Ð»ÑÐ³Ð°Ð½Ð¸Ðµ
         public bool isLesserSkillAttackModifier;
+
+        public Vector3 m_BedPos;
+
+        [SerializeField] private int m_ModelSize;
+        public int ModelSize => m_ModelSize;
     }
 
 }

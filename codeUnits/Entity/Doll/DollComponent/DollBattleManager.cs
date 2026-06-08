@@ -241,19 +241,30 @@ namespace GentianoseRealDolls
             GreaterSkill
         }
 
-        private void NormalAttack(Vector2 aimInput)
+        private async void NormalAttack(Vector2 aimInput)
         {
             if (m_AnimatorGuard == null) m_AnimatorGuard = GetComponent<AnimatorGuard>();
+
+            float ntime = m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0007");
+            float lntime = m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0013");
 
             if (m_LesserSkillBuff)
             {
                 m_AnimatorGuard.SetAnimation(13);
                 m_LesserSkillNormalAttackPart.Use(aimInput, m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0013"));
+
+
+                await Task.Delay((int)(lntime * 1000));
+                m_AnimatorGuard.SetAnimation(0);
             }
             else
             {
                 m_AnimatorGuard.SetAnimation(7);
                 m_NormalAttackPart.Use(aimInput, m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0007"));
+
+                await Task.Delay((int)(ntime * 1000));
+                m_AnimatorGuard.SetAnimation(0);
+
             }
             m_AtNormalAttack = true;
             m_Doll?.Sounds[1].Play();

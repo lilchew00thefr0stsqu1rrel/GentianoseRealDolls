@@ -69,7 +69,7 @@ namespace GentianoseRealDolls
         public async void ToPoop()
         {
             StartPosePoop();
-            await Task.Delay(5000);
+            await Task.Delay(3000);
             if (m_Doll.PooPoints <= minPooPointsToPoop)
             {
                 poopNumber = 2 + (int)(Mathf.Ceil(minPooPointsToPoop - m_Doll.PooPoints) / 2.2f);
@@ -77,7 +77,7 @@ namespace GentianoseRealDolls
                 {
                     Poop();
                     StartPee();
-                    await Task.Delay(1000);
+                    await Task.Delay(2000);
                 }
                 EndPosePoop();
             }
@@ -101,9 +101,9 @@ namespace GentianoseRealDolls
             poop.GetComponent<Poop>().InitPoop(m_Doll.Asset);
             m_PoopStore.AddPoop(poop);
             m_PoopStore.SavePoop();
-            m_Doll.CareToiletStat(ToiletStat.Poo, 2.2f);
-            m_Doll.CareToiletStat(ToiletStat.Pee, 2.2f);
-            m_Doll.CareToiletStat(ToiletStat.AnalSpray, m_Doll.AnalGlandVolume * 0.037f);
+            m_Doll.CareToiletStat(ToiletStat.Poo, 2);
+            m_Doll.CareToiletStat(ToiletStat.Pee, 2);
+            m_Doll.CareToiletStat(ToiletStat.AnalSpray, 1);
         }
 
 
@@ -112,7 +112,7 @@ namespace GentianoseRealDolls
         private void StartPosePoop()
         {
             print("5!!");
-            FindAnyObjectByType<FollowCamera>().Turn(-1);
+            FindAnyObjectByType<CameraAroundDoll>().Turn();
 
             m_Doll.State = 5;
             m_AnimatorGuard.SetAnimation(5);
@@ -123,7 +123,7 @@ namespace GentianoseRealDolls
         {
             print("5--");
             print(timer);
-            FindAnyObjectByType<FollowCamera>().Turn(1);
+            FindAnyObjectByType<CameraAroundDoll>().Turn();
 
             m_Doll.State = 0;
 

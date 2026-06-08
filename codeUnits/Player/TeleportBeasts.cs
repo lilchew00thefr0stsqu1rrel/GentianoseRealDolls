@@ -1,15 +1,14 @@
 using GentianoseRealDolls;
-using NUnit.Framework.Internal;
-using System;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using VContainer;
+using UnityEngine.UI;
 
 // This script is primary gate to Dollia
 
 public class TeleportBeasts : MonoBehaviour, ISceneGate
 {
+
     [SerializeField] private StringCoordinates stringCoordinates;
     [SerializeField] private CurrentSceneData currentScene;
 
@@ -19,26 +18,16 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
     [SerializeField] private AllDollPositions m_AllPositions;
     [SerializeField] private AllDollCharacters m_AllCharacters;
     [SerializeField] private TimePastStats m_TimePastStats;
+    [SerializeField] private Inventory m_Inventory;
+    [SerializeField] private PoopStore m_PoopStore;
 
     [SerializeField] private Party m_Party;
 
+    [SerializeField] private LevelAsset[] m_Levels;
+    public LevelAsset[] Levels => m_Levels;
 
+    [SerializeField] private Text m_DebugText;
 
-
-    [SerializeField] private string[] m_Houses = new string[]
-    {
-        "02+00764,4+00024,7+00759,4",
-        "02+01123,4+00029,6+01453,2"
-    };
-
-    [SerializeField]
-    private string[] m_Beds = new string[]
-    {
-        "01+00001,2+00004,0+00002,8",
-        "01+00001,2+00004,0-00000,4",
-        "01+00004,8+00000,5-00001,5"
-    };
-    public string[] Beds=> m_Beds;
 
     [Inject]
     public void Construct(AllDollCharacters obj)
@@ -63,13 +52,24 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
 
             Vector3 pos = stringCoordinates.GetPositionFromString(posString);
 
+            int lv = SceneHelper.SceneToLevel(city);
             //  откуда                          куда
             if (currentScene.LocationIndex != SceneHelper.SceneToLevel(city))
             {
                 SceneManager.LoadScene(city);
 
-                m_Party.InitDolls(SceneHelper.SceneToLevel(city), m_AllCharacters.ReadStats(),
-                    m_AllCharacters, m_AllPositions, m_AllSleeps.ReadSleeping(), m_AllSleeps, 0);
+               // m_Party.InitDolls(SceneHelper.SceneToLevel(city), m_AllCharacters.ReadStats(),
+                  //  m_AllCharacters, m_AllPositions, m_AllSleeps.ReadSleeping(), m_AllSleeps, 0, pos);
+
+                //m_Party.InitInventory(m_Inventory);
+                //m_Party.InitDollPos(lv, m_AllPositions);
+                //m_Party.InitDollStats(m_AllCharacters);
+                //m_Party.InitDollSleep(m_AllSleeps.ReadSleeping(), m_AllSleeps);
+                //m_Party.InitPoop(m_PoopStore);
+
+                m_Party.InitDolls(lv, 0L);
+
+                m_Party.PlaceSomeOrAllDolls(lv, pos);
             }
 
             //  При перемещении в пределах домика
@@ -105,15 +105,24 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
         m_I = 0.12345679f;
     }
 
+    
+
     public void InitScene(int levelID)
     {
         Level.SetArriveFromMenu();
 
-        print("~~~!!!!~~~~" + m_AllCharacters.ReadStats()[0][0]);
+        //m_Party.InitDolls(levelID, m_AllCharacters.ReadStats(), m_AllCharacters, m_AllPositions,
+          //  m_AllSleeps.ReadSleeping(), m_AllSleeps, m_TimePastStats.ReadTime());
 
-        m_Party.InitDolls(levelID, m_AllCharacters.ReadStats(), m_AllCharacters, m_AllPositions,
-            m_AllSleeps.ReadSleeping(), m_AllSleeps, m_TimePastStats.ReadTime());
-        
+        //m_Party.InitInventory(m_Inventory);
+
+        //m_Party.InitDollPos(levelID, m_AllPositions);
+        //m_Party.InitDollStats(m_AllCharacters);
+        //m_Party.InitDollSleep(m_AllSleeps.ReadSleeping(), m_AllSleeps);
+        //m_Party.InitPoop(m_PoopStore);
+
+        m_Party.InitDolls(levelID, m_TimePastStats.ReadTime());
+
         currentScene.SetLocationIndex(levelID);
 
         print("City: " + levelID + "  Legend: 0: Rusikova, 1: Kukly, 2: Punova");
@@ -122,4 +131,13 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
 
         print("Chno Whew!");
     }
+
+    private void OnApplicationPause(bool pause)
+    {
+        if (!pause)
+        {
+            InitScene(currentScene.LocationIndex);
+        }
+    }
+
 }

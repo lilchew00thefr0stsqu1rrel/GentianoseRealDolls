@@ -10,7 +10,7 @@ public class HygieneDisplay : MonoBehaviour
 {
 
 
-    [SerializeField] private Party m_Party;
+    [SerializeField] private Doll m_ActiveDoll;
     ////[Inject]
     //public void Construct(Party obj)
     //{
@@ -29,7 +29,6 @@ public class HygieneDisplay : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        currentDoll = m_Party.ActiveDoll;
 
         gameObject.SetActive(false);
     }
@@ -37,23 +36,30 @@ public class HygieneDisplay : MonoBehaviour
 
     private void OnEnable()
     {
-        if (m_Party) 
-            currentDoll = m_Party.ActiveDoll;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!m_Party) return;
-        if (!currentDoll) return;
 
-       
 
-        m_PooText.text = $"Кишечник: {Mathf.Round(currentDoll.ToiletStats[0] * 10) / 10}/11.0";
-        m_SprayText.text = $"Параанальные железы: {Mathf.Round(currentDoll.AnalGlandHealth * 10) / 10}/11.0";
-        m_PeeText.text = $"Моча: {Mathf.Round(currentDoll.ToiletStats[2] * 10) / 10}/11.0";
-        m_BathText.text = $"Ванная: {Mathf.Round(currentDoll.ToiletStats[3] * 10) / 10}/34.0";
-        m_BrushTeethText.text = $"Чистка зубов: {Mathf.Round(currentDoll.ToiletStats[4] * 10) / 10}/33.0";
         
+    }
+
+    public void UpdateUI(Doll activeDoll)
+    {
+        m_ActiveDoll = activeDoll;
+
+        if (activeDoll.ToiletStats != null)
+        {
+            m_PooText.text = $"Кишечник: {activeDoll.ToiletStats[0]}/10";
+            m_SprayText.text = $"Параанальные железы: {activeDoll.GetSprayCarePoints()}/10";
+            m_PeeText.text = $"Моча: {activeDoll.ToiletStats[2]}/10";
+            m_BathText.text = $"Ванная: {activeDoll.ToiletStats[3]}/40";
+            m_BrushTeethText.text = $"Чистка зубов: {activeDoll.ToiletStats[4]}/30";
+        }
+
+
+
     }
 }

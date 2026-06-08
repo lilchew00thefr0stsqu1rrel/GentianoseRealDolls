@@ -24,11 +24,11 @@ namespace GentianoseRealDolls
         }
 
 
-        public void UpdateUI()
+        public void UpdateUI(Doll activeDoll)
         {
-            m_FillImage.fillAmount = m_Party.ActiveDoll.AnalSprayAmount / m_Party.ActiveDoll.AnalGlandVolume;
-            m_FluidText.text = $"{Mathf.Round(m_Party.ActiveDoll.AnalSprayAmount * 10) / 10} / " +
-                $"{Mathf.Round(m_Party.ActiveDoll.AnalGlandVolume * 10) / 10} мл";
+            m_FillImage.fillAmount = (float)activeDoll.AnalSprayAmount / activeDoll.AnalGlandVolume;
+            m_FluidText.text = $"{Mathf.Round(activeDoll.AnalSprayAmount) / 10} / " +
+                $"{Mathf.Round(activeDoll.AnalGlandVolume) / 10} мл";
         }
 
 
@@ -43,12 +43,12 @@ namespace GentianoseRealDolls
         // Update is called once per frame
         void Update()
         {
-            if (m_CurrentDoll != null)
-            {
-                m_FillImage.fillAmount = m_CurrentDoll.AnalSprayAmount / m_CurrentDoll.AnalGlandVolume;
-                m_FluidText.text = $"{Mathf.Round(m_CurrentDoll.AnalSprayAmount * 10) / 10} / " +
-                    $"{Mathf.Round(m_CurrentDoll.AnalGlandVolume * 10) / 10} мл";
-            }
+            //if (m_CurrentDoll != null)
+            //{
+            //    m_FillImage.fillAmount = m_CurrentDoll.AnalSprayAmount / m_CurrentDoll.AnalGlandVolume;
+            //    m_FluidText.text = $"{m_CurrentDoll.AnalSprayAmount / 10} / " +
+            //        $"{m_CurrentDoll.AnalGlandVolume / 10} мл";
+            //}
            
         }
     }

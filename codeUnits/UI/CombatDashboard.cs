@@ -252,7 +252,7 @@ public class CombatDashboard : MonoCache
         m_SprayIcon.sprite = m_CurrentDoll.Asset.RSkillIcon;
         m_SprayFill.sprite = m_CurrentDoll.Asset.RSkillFill;
 
-        m_SprayUI.UpdateUI();
+        m_SprayUI.UpdateUI(activeDoll);
 
         if (m_DollBattleManager.FlehmenCooldown)
         {

@@ -15,6 +15,8 @@ namespace GentianoseRealDolls
         }
         
         public const string fileNameTime = "timePrev.dat";
+        public const string fileNameTime5 = "timePrev5.dat";
+        public const string fileNameTime15 = "timePrev15.dat";
         public const string fileNameDoll = "doll.dat";
         public const string fileNamePos = "dPositions.dat";
         public const string fileNameSleep = "dInBeds.dat";

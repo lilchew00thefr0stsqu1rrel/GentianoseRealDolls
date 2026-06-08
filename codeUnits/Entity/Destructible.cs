@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 using NTC.Pool;
+using System.Threading.Tasks;
 
 namespace GentianoseRealDolls
 {
@@ -53,52 +54,28 @@ namespace GentianoseRealDolls
         int m_CurrentStatus;
 
         //
-        List<int> m_CurrentStatusList;
+        [SerializeField] List<int> m_CurrentStatusList;
 
 
         // Stinky
-        private const int SprayLiquidDamage = 74;
-        private const int SpraySmellDamage = 37;
+        private const int SprayLiquidDamage = 134;
+        private const int SpraySmellDamage = 67;
 
         // Heal
         private const int Heal = 168;
 
 
-        public void ApplyDebuff(int statusID, float multiplier, int durationSeconds)
+        public async void ApplyDamageOverTime(int damage, int durationSeconds)
         {
-           m_CurrentStatus = statusID;
-
-           
-
-            IEnumerator SprayPoisonDamage(int damageOverTime)
+            for (int i = 0; i < durationSeconds; i++)
             {
-                damageOverTime = (int) (damageOverTime * multiplier);
-                print(damageOverTime);
-                for (int i = 0; i < durationSeconds; i++)
-                {
-                    ApplyDamage(damageOverTime);
+                ApplyDamage(damage);
 
-                    print("You were sprayed");
+                
 
-                    yield return new WaitForSeconds(1);
+                await Task.Delay(1000);
 
 
-                }
-                m_CurrentStatus = 0;
-            }
-            
-           
-
-
-
-            if (m_CurrentStatus == 1)
-            {
-                StartCoroutine(SprayPoisonDamage(SprayLiquidDamage));
-            }
-            // Spray smell
-            if (m_CurrentStatus == 2)
-            {
-                StartCoroutine(SprayPoisonDamage(SpraySmellDamage));
             }
 
 

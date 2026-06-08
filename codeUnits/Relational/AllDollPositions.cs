@@ -26,122 +26,82 @@ public class DollPosition
     }
 }
 
-public class AllDollPositions : MonoBehaviour, IAllDolls
+public class AllDollPositions : MonoBehaviour
 {
     private const string fileName2 = "dPositions.dat";
 
     [Tooltip("-1 meaning this scene is not a location")]
-    // ������� ����
+    // включая меню
     private int m_Scene;
 
     [SerializeField] private Text m_DebugText;
-    [SerializeField] private DollPosition[] allPositions;
 
+
+    [SerializeField] private int[] m_PositionsInt;
+
+    [SerializeField]
+    private string[] m_FieldNames = new string[]
+    {
+        "dollID",
+        "levelID",
+        "x",
+        "y",
+        "z"
+
+    };
 
 
     [SerializeField] private DollBase m_SimpleDB;
-    private List<DollPosition> allPositionsList = new List<DollPosition>();
+
 
     private void Awake()
     {
-        //Saver<DollPositions[]>.TryLoad(fileName2, ref allPositions);
-        //allPositionsList = allPositions.ToList();
+        BeastPositionManager.OnSavePos += WriteDoll();   
+    }
 
-        print("~~~~~" + m_SimpleDB.GetDollPosition(0).Position);
-
+    private void OnDestroy()
+    {
+        BeastPositionManager.OnSavePos -= WriteDoll();
 
     }
 
-
-
-
-
-
-
-    public void SetScene(int scene)
+    private Action<int[]> WriteDoll()
     {
-        m_Scene = scene;
-    }
-
-    public void InitPositions()
-    {
-
-        //Saver<DollPosition[]>.TryLoad(WhooSettings.fileNamePos, ref allPositions);
-
-        //if (allPositions.Length == 0)
-        //{
-        //    allPositions = new DollPosition[WhooSettings.NumberOfDolls];
-        //    Saver<DollPosition[]>.Save(WhooSettings.fileNamePos, allPositions);
-        //}
-
-
-
-        if (m_SimpleDB.GetDollAmount() > 0)
+        return (m_PositionsInt) =>
         {
-            allPositions = new DollPosition[WhooSettings.NumberOfDolls];
-
-            for (int i = 0; i < WhooSettings.NumberOfDolls; i++)
-            {
-                if (m_SimpleDB.CheckDollPositionPresent(i))
-                {
-                    allPositions[i] = m_SimpleDB.GetDollPosition(i);
-                }
-            }
-        }
-
-        m_DebugText.text = m_SimpleDB.GetDollAmount().ToString();
-
-        allPositionsList = allPositions.ToList();
-
-        print("KUKLYYNN " + m_SimpleDB.GetDollAmount());
+            SetDoll(m_PositionsInt);
+        };
     }
 
-    public void AddDollPos(DollPosition dp)
+    [Tooltip("int[5]")]
+    public int[] GetDoll()
     {
-        allPositionsList.Add(dp);
-        allPositions = allPositionsList.ToArray();
+        int[] positionsInt = m_SimpleDB.GetRecord("positions", "dollID", 0, m_FieldNames);
+        positionsInt = positionsInt[0..5];
+        return positionsInt;
     }
 
-    public DollPosition GetDollPos(int id)
+
+
+    [Tooltip("int[5]")]
+    public void SetDoll(int[] dp)
     {
-        if (allPositionsList == null)
+        if (m_SimpleDB.CheckDollPositionPresent(0))
         {
-            allPositions = new DollPosition[WhooSettings.NumberOfDolls]; 
+            int x = (int)Mathf.Ceil(dp[2]);
+            int y = (int)Mathf.Ceil(dp[3]);
+            int z = (int)Mathf.Ceil(dp[4]);
+
+            string query = $"UPDATE positions SET levelID='{dp[1]}'," +
+                            $"x='{x}', y='{y}', z='{z}' WHERE dollID='0';";
+            m_SimpleDB.AddOrChangeRecord(query);
         }
-
-        allPositionsList = allPositions.ToList();
-
-        return allPositionsList[id];
-    }
-   
-
-    public Vector3 GetDollPositions(int id)
-    {
-        return GetDollPos(id).Position;
-    }
-
-    public void SetDollPos(DollPosition dp)
-    {
-        allPositions[dp.dollID] = dp;
-        SaveAllDolls();
-    }
-
-    public void SaveAllDolls()
-    {
-        //Saver<DollPosition[]>.Save(WhooSettings.fileNamePos, allPositions);
-
-        for (int i = 0; i < 3; i++)
+        else
         {
-            if (m_SimpleDB.CheckDollPositionPresent(i))
-            {
-                m_SimpleDB.ChangeDollPosition(allPositions[i].dollID, allPositions[i].Scene,
-                    allPositions[i].Position.x, allPositions[i].Position.y,
-                    allPositions[i].Position.z);
-            }
-            else
-            {
-                m_SimpleDB.AddDollPosition(i, 1, 0, 0, 0);
-            }
+            m_SimpleDB.AddOrChangeRecord("INSERT OR IGNORE INTO positions (dollID, levelID, x, y, z) VALUES ('" + dp[0] +
+                    "', '" + 0 + "', '" + 0 + "', '" + 0 + "', '" + 0 + "');");
         }
+        
     }
+
 }

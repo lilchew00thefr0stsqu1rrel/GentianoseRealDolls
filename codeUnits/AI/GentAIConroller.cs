@@ -31,20 +31,20 @@ namespace GentianoseRealDolls
 
                 if (distance < 2)
                 {
-                    gaitManager.SetGaitState(1);
+                    gaitManager?.SetGaitState(1);
                 }
                 if (distance >= 2 && distance < 5)
                 {
-                    gaitManager.SetGaitState(2);
+                    gaitManager?.SetGaitState(2);
                 }
                 if (distance >= 5 && distance < 7)
                 {
-                    gaitManager.SetGaitState(3);
+                    gaitManager?.SetGaitState(3);
                 }
                 if (distance > 12)
                 {
                     transform.position = m_PatrolPoint.transform.position;
-                    gaitManager.StopGait();
+                    gaitManager?.StopGait();
                 }
             }
             

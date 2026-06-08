@@ -11,6 +11,7 @@ namespace GentianoseRealDolls
         protected Party m_Party;
 
         protected Doll m_Doll;
+        public Doll Doll => m_Doll;
         //  protected Animator m_Animator;
 
         protected AnimatorGuard m_AnimatorGuard;
@@ -36,6 +37,7 @@ namespace GentianoseRealDolls
     }
 
 }
+
 
 
 
