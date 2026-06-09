@@ -3,6 +3,7 @@ using System.Data;
 using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace GentianoseRealDolls
 {
@@ -144,6 +145,13 @@ namespace GentianoseRealDolls
                     "VALUES ('" + i +
                         "', '" + 1008 + "');");
             }
+
+            var q6 = "CREATE TABLE IF NOT EXISTS poop (dollID INTEGER NOT NULL, " +
+                "mapID INTEGER NOT NULL, " +
+                "x INTEGER NOT NULL," +
+                "y INTEGER NOT NULL," +
+                "z INTEGER NOT NULL)";
+            CreateTable(q6);
         }
 
 
@@ -397,7 +405,33 @@ namespace GentianoseRealDolls
             return arr;
         }
 
+        public List<int> GetAllRecords(string tableName, string[] fieldNames)
+        {
+            List<int> recs = new List<int>();
 
+            using (var connection = new SqliteConnection(dbPathURI))
+            {
+                connection.Open();
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $"SELECT * FROM {tableName};";
+
+                    using (IDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            for (int i = 0; i < fieldNames.Length; i++)
+                            {
+                                recs.Add(int.Parse(reader[fieldNames[i]].ToString()));
+                            }
+                        }
+                    }
+                }
+                connection.Close();
+            }
+            return recs;
+        }
 
         public void AddOrChangeRecord(string query)
         {
