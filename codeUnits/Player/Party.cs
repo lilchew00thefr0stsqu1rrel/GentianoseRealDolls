@@ -293,6 +293,8 @@ namespace GentianoseRealDolls
 
             m_TimeDifference = m_TimePastStats.ReadTime();
 
+            m_PoopStore.InitPoop();
+
             print($"Welcome to location #{m_CurrentScene.LocationIndex}");
 
             print("whooo");
