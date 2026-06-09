@@ -1,99 +1,178 @@
+using NTC.Pool;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TowerDefense;
 using UnityEngine;
-using NTC.Pool;
+using UnityEngine.UI;
+using VContainer;
 
 namespace GentianoseRealDolls
 {
-    public class PoopStore : SingletonBase<PoopStore>
+    /// <summary>
+    /// C 14 05 2026 в Куклии возможно существование не более 336 единиц г**на
+    /// Если какают сверх этого, кака удаляется, и приходят куклоны
+    /// Координаты едины для домиков и городов
+    /// Если другое измерение, то каки трассируются
+    /// </summary>
+    public class PoopStore : MonoBehaviour
     {
 
+        [Inject]
+        public void Construct(Inventory obj)
+        {
+            m_Inventory = obj;
+        }
         //private string fileName = "pooStore";
-        private string path = "Assets/JSON/pooStore";
+        private string path = "Assets/JSON/pooStore.dat";
 
         [SerializeField] private Poop m_PoopPrefab;
+        [SerializeField] private Inventory m_Inventory
+            ;
+        [SerializeField] private Text m_DebugText;
+
+        [SerializeField] private float[] m_DollModelToMass = {0.0001f, 0.0004f, 0.0016f} ;
+        public float[] DollModelToMass => m_DollModelToMass;
+        [SerializeField] private Vector3[] m_DollIDToScale;
+        public Vector3[] DollIDToScale => m_DollIDToScale;
+
+        [SerializeField]
+        private string[] m_FieldNames = new string[]
+  {
+        "dollID",
+        "mapID",
+        "x",
+        "y",
+        "z"
+
+  };
 
         [Serializable]
         private class PoopPosition
         {
             public float x, y, z;
 
-            public float l, b, h;
-
             public int m_Size;
             public int m_DollID;
-            public float m_Mass;
-            public PoopPosition(Vector3 position, int poopSize, int dollD, Vector3 scale, float mass)
+            public PoopPosition(Vector3 position, int poopSize, int dollD)
             {
                 this.x = position.x;
                 this.y = position.y;
                 this.z = position.z;
                 m_Size = poopSize;
                 m_DollID = dollD;
-
-                l = scale.x;
-                b = scale.y;
-                h = scale.z;
-
-                m_Mass = mass;
             }
 
             public Vector3 GetPoopPosition()
             {
                 return new Vector3(x, y, z);
             }
-            public Vector3 GetPoopScale()
-            {
-                return new Vector3(l, b, h);
-            }
 
         }
 
         Level level;
 
-        private PoopPosition[] m_PooPosArray;
-        private List<PoopPosition> m_PooPositions;
-        private List<Poop> m_PooList;
+        [SerializeField] private PoopPosition[] m_PooPosArray;
+        [SerializeField] private List<PoopPosition> m_PooPositions;
+        [SerializeField] private List<Poop> m_PooList;
+        [SerializeField] private List<int> m_PooPosIntList;
 
         [SerializeField] private Mesh[] m_PooShapePrefabs;
         [SerializeField] private Material[] m_PooMaterials;
-        private new void Awake()
+
+        [SerializeField] private DollBase m_DollBase;
+
+        private  void Awake()
         {
-            base.Awake();
-
-            level = GetComponent<Level>();
-            m_PooPosArray = new PoopPosition[31];
-            m_PooPositions = new List<PoopPosition>();
-            m_PooList = new List<Poop>();
+            // level = GetComponent<Level>();
+            //m_PooPosArray = new PoopPosition[31];
+            // m_PooPositions = new List<PoopPosition>();
+            //m_PooList = new List<Poop>();
 
 
-            Saver<PoopPosition[]>.TryLoad2(path, ref m_PooPosArray);
-            m_PooPositions = m_PooPosArray.ToList();
-
-
+            //Saver<PoopPosition[]>.TryLoad(WhooSettings.fileNamePoo, ref m_PooPosArray);
+            //m_PooPositions = m_PooPosArray.ToList();
         }
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
 
-            if (m_PoopPrefab)
-            {
-                foreach (var poopPos in m_PooPositions)
-                {
-                    var poop = Instantiate(m_PoopPrefab, poopPos.GetPoopPosition(), Quaternion.identity);
-                    poop.SetShape(poopPos.m_DollID, m_PooMaterials[poopPos.m_DollID],
-                        m_PooShapePrefabs[poopPos.m_DollID], poopPos.m_Size,
-                        poopPos.GetPoopScale(), poopPos.m_Mass
-                        );
-                    m_PooList.Add(poop);
-                }
+            //if (m_PoopPrefab)
+            //{
+            //    foreach (var poopPos in m_PooPositions)
+            //    {
+            //        var poop = Instantiate(m_PoopPrefab, poopPos.GetPoopPosition(), Quaternion.identity);
+            //        poop.SetShape(poopPos.m_DollID, m_PooMaterials[poopPos.m_DollID],
+            //            m_PooShapePrefabs[poopPos.m_DollID], poopPos.m_Size,
+            //            poopPos.GetPoopScale(), poopPos.m_Mass);
+            //        m_PooList.Add(poop);
+            //    }
 
-            }
+            //}
 
         }
+       
+        public void InitPoop()
+        {
+            //m_PooPositions = new List<PoopPosition>();
+            //m_PooList = new List<Poop>();
+
+            //Saver<PoopPosition[]>.TryLoad(WhooSettings.fileNamePoo, ref m_PooPosArray);
+
+
+            //if (m_PooPosArray == null)
+            //{
+            //    m_PooPosArray= new PoopPosition[0];
+            //}
+
+            //m_PooPositions = m_PooPosArray.ToList();
+
+            //if (m_PooPosArray.Length > 0)
+            //{
+            //    if (m_PoopPrefab)
+            //    {
+            //        foreach (var poopPos in m_PooPositions)
+            //        {
+            //            var poop =  NightPool.Spawn(m_PoopPrefab, poopPos.GetPoopPosition(), Quaternion.identity);
+            //            poop.SetShape(poopPos.m_DollID, m_PooMaterials[poopPos.m_DollID],
+            //                m_PooShapePrefabs[poopPos.m_DollID], poopPos.m_Size,
+            //                m_DollIDToScale[poopPos.m_DollID], m_DollModelToMass[poopPos.m_Size - 1]);
+            //            m_PooList.Add(poop);
+            //        }
+
+            //    }
+
+            //    m_PooPositions = m_PooPosArray.ToList();
+            //}
+            
+            m_PooPosIntList = m_DollBase.GetAllRecords("poop", m_FieldNames);
+            int numPoop = m_PooPosIntList.Count / 5;
+            for (int i = 0; i < numPoop; i++) 
+            {
+                int[] poopData = new int[5];
+                poopData[0] = m_PooPosIntList[i*5];
+                poopData[1] = m_PooPosIntList[i*5+1];
+                poopData[2] = m_PooPosIntList[i*5+2];
+                poopData[3] = m_PooPosIntList[i*5+3];
+                poopData[4] = m_PooPosIntList[i*5+4];
+
+                int pooDollID = poopData[0];
+
+                Vector3 poopPos = new Vector3(poopData[2] / 1000, (poopData[3] + 0.5f)/ 1000, poopData[4] / 1000);
+                if (m_PoopPrefab)
+                {
+                    var poop = NightPool.Spawn(m_PoopPrefab, poopPos, Quaternion.identity);
+                    poop.SetShape(pooDollID, m_PooMaterials[pooDollID], m_PooShapePrefabs[pooDollID],
+                        poop.Size,
+                        m_DollIDToScale[pooDollID], m_DollModelToMass[pooDollID]);
+                }
+            }
+            
+
+        }
+
         private int PoopAmount;
 
 
@@ -117,51 +196,79 @@ namespace GentianoseRealDolls
 
         private void SavePoopArray()
         {
-            m_PooPositions.Clear();
+            m_DollBase.AddOrChangeRecord("DELETE FROM poop");
 
-            if (m_PooList != null)
+            //m_PooPosArray = m_PooPositions.ToArray();
+
+            int numPoop = m_PooPosIntList.Count / 5;
+
+            for (int i = 0; i < numPoop; i++)
             {
-                foreach (var poop in m_PooList)
-                {
-                    if (poop)
-                    {
+                int[] poopData = new int[5];
+                poopData[0] = m_PooPosIntList[i * 5];
+                poopData[1] = m_PooPosIntList[i * 5 + 1];
+                poopData[2] = m_PooPosIntList[i * 5 + 2];
+                poopData[3] = m_PooPosIntList[i * 5 + 3];
+                poopData[4] = m_PooPosIntList[i * 5 + 4]; 
+                
+                
 
-                        m_PooPositions.Add(new PoopPosition(poop.transform.position, poop.Size, poop.DollID, poop.Scale,
-                            poop.Mass));
-                    }
-                }
-                m_PooPosArray = m_PooPositions.ToArray();
+                m_DollBase.AddOrChangeRecord("INSERT OR IGNORE INTO poop " +
+                    "(dollID, mapID, x, y, z) " +
+                    "VALUES ('" + poopData[0] +
+                        "', '" + poopData[1] + "', '" + poopData[2] + "', '" 
+                        + poopData[3] + "', '" + poopData[4] + "');");
             }
 
-
-            Saver<PoopPosition[]>.Save2(path, m_PooPosArray);
+            //Saver<PoopPosition[]>.Save(WhooSettings.fileNamePoo, m_PooPosArray);
 
             print("Bola");
         }
-        public static void SavePoop()
+        public void SavePoop()
         {
-            print(Instance == null);
-            Instance.SavePoopArray();
+            SavePoopArray();
         }
-
+        
         public void GoPoopToSilverWhiteTree()
         {
-            Inventory.Instance.AddKuklons(m_PooList.Count * 500);
+            m_Inventory.AddKuklons(m_PooList.Count * 500);
             InventoryController.Instance.InitAllItems();
 
             foreach (var poop in m_PooList)
             {
                 NightPool.Despawn(poop.gameObject);
             }
+
             m_PooPositions.Clear();
-            m_PooPosArray = m_PooPositions.ToArray();
-            Saver<PoopPosition[]>.Save2(path, m_PooPosArray);
+            m_PooPosArray = m_PooPositions.ToArray() ;
+
+            m_PooPosIntList.Clear();
+
+            SavePoopArray();
 
         }
 
-        public void AddPoop(Poop poop)
+        public async void AddPoop(Poop poop)
         {
             m_PooList.Add(poop);
+            m_PooPositions.Add(new PoopPosition(poop.transform.position, poop.Size, poop.DollID));
+
+            if (m_PooList.Count > 72)
+            {
+                NightPool.Despawn(m_PooList[0]);
+                m_PooList.RemoveAt(0);
+            }
+
+
+            m_PooPosIntList.Add(poop.DollID);
+            m_PooPosIntList.Add(1);
+            m_PooPosIntList.Add((int)(poop.transform.position.x * 1000));
+            m_PooPosIntList.Add((int)(poop.transform.position.y * 1000));
+            m_PooPosIntList.Add((int)(poop.transform.position.z * 1000));
+
+            await Task.Delay(1000);
+
+            SavePoopArray();
         }
 
 
