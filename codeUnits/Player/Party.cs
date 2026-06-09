@@ -48,7 +48,7 @@ namespace GentianoseRealDolls
 
 
         [Header("Dependencies")]
-         
+
         [SerializeField] private AllDollCharacters m_AllDollCharacters;
         [SerializeField] private AllDollPositions m_AllDollPositions;
         [SerializeField] private AllDollSleeps m_AllSleeps;
@@ -125,7 +125,7 @@ namespace GentianoseRealDolls
         private long m_TimeDifference;
 
         public static event Action OnChangeActiveDoll;
-       
+
 
 
 
@@ -166,12 +166,12 @@ namespace GentianoseRealDolls
 
         private void Awake()
         {
-           // m_PartyMembers = new Doll[3];
+            // m_PartyMembers = new Doll[3];
             m_BedData = new List<int>();
             m_Position = new List<int>();
-            m_Stats = new List<int>(); 
+            m_Stats = new List<int>();
             m_Combat = new List<int>();
-            m_GaitMap = new int[3] {2, 2, 2} ;
+            m_GaitMap = new int[3] { 2, 2, 2 };
 
             m_DirtyDolls = new bool[3];
             //StartCoroutine(TimeSave());
@@ -215,7 +215,7 @@ namespace GentianoseRealDolls
 
         [SerializeField] private DollBase m_SimplePosDB;
 
-        
+
 
         // Переместить часть или всех кукол
         public void PlaceSomeOrAllDolls(int loc, Vector3 wp)
@@ -225,12 +225,11 @@ namespace GentianoseRealDolls
                 (int)Mathf.Ceil(wp.y),
                 (int)Mathf.Ceil(wp.z)};
             m_ActiveDoll.DollController.PositionManager.Fill(pos);
-        } 
-        
-        // Взять прошлую позицию кукол и поставить их в данную точку
-        public void TakeDollsToLastPoint(int loc)
-        {
+
+            print($"Abrunho!! {pos[2]} {pos[4]}" );
         }
+
+        // Взять прошлую позицию кукол и поставить их в данную точку
 
 
 
@@ -257,11 +256,10 @@ namespace GentianoseRealDolls
 
             //ReadDolls();
 
-            FillDolls(time);
+            SetActiveDoll(0);
 
             StartCoroutine(SaveDollsTick());
 
-            TakeDollsToLastPoint(mapID);
 
             StatsReduceOverTime();
 
@@ -276,7 +274,7 @@ namespace GentianoseRealDolls
         {
             if (pause)
             {
-                m_DirtyDolls = new  bool[3];
+                m_DirtyDolls = new bool[3];
             }
         }
 
@@ -289,7 +287,7 @@ namespace GentianoseRealDolls
             m_BedData = m_AllSleeps.GetDolls();
 
             m_Combat = m_AllDollBattle.GetDolls();
-            
+
 
             m_Inventory.InitInventory();
 
@@ -309,12 +307,21 @@ namespace GentianoseRealDolls
             }
             return s.ToArray();
         }
-        public void FillDolls(long time)
+        private int[] GetDollSleep(int dollID)
         {
-            SetActiveDoll(0);
-
-            SetDollsPatrol();
+            var s = new List<int>();
+            for (int i = 0; i < 2; i++)
+            {
+                s.Add(m_BedData[dollID * 2 + i]);
+            }
+            return s.ToArray();
         }
+        //public void FillDolls(long time)
+        //{
+        //    SetActiveDoll(0);
+
+        //    SetDollsPatrol();
+        //}
 
         private IEnumerator SaveDollsTick()
         {
@@ -349,7 +356,7 @@ namespace GentianoseRealDolls
             await Task.Delay(60000);
 
             m_ActiveDoll.DollController.ReduceStatsOverTime();
-            
+
 
 
             StatsReduceOverTime();
@@ -363,7 +370,7 @@ namespace GentianoseRealDolls
         public bool[] PartyDollSleeps => m_PartyDollSleeps;
 
         #region Dolls
-        
+
 
         // Переключиться на данного персонажа
         // Сделать персонажей активным/ неактивными
@@ -385,7 +392,6 @@ namespace GentianoseRealDolls
             m_ActiveDollController = m_ActiveDoll.DollController;
 
 
-            m_ActiveDoll.DollController.PositionManager.Fill(m_Position.ToArray());
 
             m_CurrentDollID = m_ActiveDoll.DollID;
 
@@ -399,7 +405,7 @@ namespace GentianoseRealDolls
 
             var sts = GetDollStats(m_ActiveDoll.DollID);
             print("What the hell " + sts[6].ToString());
-            var slp = m_BedData.ToArray();
+            var slp = GetDollSleep(m_ActiveDoll.DollID);
 
             // Нужно ли уменьшать шкалы на время вне игры?
             if (m_DirtyDolls[m_ActiveDoll.DollID] == false)
@@ -434,7 +440,7 @@ namespace GentianoseRealDolls
         /// </summary>
         private void SetTrailDolls()
         {
-        
+
         }
 
 
