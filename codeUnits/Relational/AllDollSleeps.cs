@@ -73,7 +73,7 @@ namespace GentianoseRealDolls
             {
                 int[] slp = m_DollBase.GetRecord("dollSleeps", "dollID", i, m_FieldNames);
 
-                m_Dolls.AddRange(slp);
+                m_Dolls.AddRange(slp[..2]);
             }
         }
         [Tooltip("int[2n]")]
