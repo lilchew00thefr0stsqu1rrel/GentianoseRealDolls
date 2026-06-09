@@ -55,7 +55,7 @@ namespace GentianoseRealDolls
         [SerializeField] private AllDollBattle m_AllDollBattle;
 
         [SerializeField] private List<int> m_Stats;
-        [SerializeField] private List<int> m_Position;
+        [SerializeField] private int[] m_Position;
         [SerializeField] private List<int> m_BedData;
         [SerializeField] private List<int> m_Combat;
         [SerializeField] private bool[] m_DirtyDolls;
@@ -168,7 +168,7 @@ namespace GentianoseRealDolls
         {
             // m_PartyMembers = new Doll[3];
             m_BedData = new List<int>();
-            m_Position = new List<int>();
+            m_Position = new int[5];
             m_Stats = new List<int>();
             m_Combat = new List<int>();
             m_GaitMap = new int[3] { 2, 2, 2 };
@@ -283,7 +283,7 @@ namespace GentianoseRealDolls
         private void ReadDolls()
         {
             m_Stats = m_AllDollCharacters.GetDolls();
-            m_Position.AddRange(m_AllDollPositions.GetDoll());
+            m_Position = m_AllDollPositions.GetDoll();
             m_BedData = m_AllSleeps.GetDolls();
 
             m_Combat = m_AllDollBattle.GetDolls();
@@ -337,7 +337,7 @@ namespace GentianoseRealDolls
             m_AllDollCharacters.WriteDoll(dollStats);
 
             var po = m_ActiveDoll.DollController.PositionManager.Fetch();
-            m_Position = po.ToList();
+            m_Position = po;
             m_AllDollPositions.SetDoll(po);
 
             var slp = m_ActiveDoll.DollController.SleepSystem.Fetch();
