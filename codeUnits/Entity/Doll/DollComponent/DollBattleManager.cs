@@ -367,33 +367,59 @@ namespace GentianoseRealDolls
             }
         }
 
-        /// <summary>
-        /// ���������� ������� �������� ����� (�����), �������� ��������� ���������
-        /// </summary>
-        public void StartGreaterSkill()
+    /// <summary>
+    /// Фунька.
+    /// </summary>
+    public void StartGreaterSkill()
+    {
+        m_AnalSphincterTimer = 0;
+        m_AtSpray = true;
+    
+        ChargeSpray();
+    }
+    
+    private async void ChargeSpray()
+    {
+        if (m_AtSpray)
         {
-            m_AtSpray = true;
-            m_AnalSphincterTimer = 0;
+            await Task.Delay((int)(m_SprayTime * 1000 / 8));
+    
+            m_AnalSphincterTimer += m_SprayTime / 8;
+    
+            EndSpray();
+    
+            ChargeSpray();
         }
-         
-        public void EndGreaterSkill(Vector2 aimInput)
+        
+    }
+    private void EndSpray()
+    {
+        if (m_AnalSphincterTimer >= m_SprayTime)
         {
-            // ����� ������
-            if (m_AnalSphincterTimer > m_SprayTime)
-            {
-                m_Doll.CareToiletStat(ToiletStat.AnalSpray, m_Doll.AnalGlandVolume / 5);
-
-
-                m_Doll.Sounds[6].Play();
-                m_Doll.Sounds[UnityEngine.Random.Range(7, 9)].Play();
-
-                m_Doll.AnusNipplesTurret.SetCamera(Camera.main);
-                m_Doll.AnusNipplesTurret.Fire(aimInput);
-            }
+            m_Doll.CareToiletStat(ToiletStat.AnalSpray, m_Doll.AnalGlandVolume / 5);
+    
+    
+            m_Doll.Sounds[6].Play();
+            m_Doll.Sounds[UnityEngine.Random.Range(7, 9)].Play();
+    
+            m_Doll.AnusNipplesTurret.SetCamera(Camera.main);
+            m_Doll.AnusNipplesTurret.Fire(m_AimInput);
+    
+    
             m_AnalSphincterTimer = 0;
             m_AtSpray = false;
         }
-        #endregion
+    
+    }
+    
+    public void EndGreaterSkill()
+    {
+        EndSpray();
+    
+        m_AnalSphincterTimer = 0;
+        m_AtSpray = false;
+    }
+    #endregion
     }
 }
 
