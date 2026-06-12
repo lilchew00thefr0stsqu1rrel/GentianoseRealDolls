@@ -38,6 +38,9 @@ public class CombatDashboard : MonoCache
 
     [SerializeField] private Party m_Party;
 
+
+    [SerializeField] private float m_SprayChargeFillAmount;
+
     bool avail_;
     private void Awake()
     {
@@ -217,11 +220,14 @@ public class CombatDashboard : MonoCache
     {
         m_DollBattleManager.StartGreaterSkill();
         m_SprayChargeUI.SetActive(true);
+
     }
+    private bool m_AtSpray;
+
     
     public void EndSpray()
     {
-        m_DollBattleManager.EndGreaterSkill(m_AimInput);
+        m_DollBattleManager.EndGreaterSkill();
         m_SprayChargeUI.SetActive(false);
     }
 
@@ -266,6 +272,8 @@ public class CombatDashboard : MonoCache
             m_LesserSkillCooldownText.gameObject.SetActive(false);
             m_FlehmenButton.SetInteractable(true);
         }
+
+
     }
 
    
