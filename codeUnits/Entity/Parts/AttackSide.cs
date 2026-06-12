@@ -93,6 +93,12 @@ namespace GentianoseRealDolls
 
                 if (dest != null)
                 {
+                    if (m_EffectBale)
+                    {
+                        var point = other.ClosestPoint(transform.position);
+                        m_EffectBale.SetActive(true);
+                        m_EffectBale.transform.position = point;
+                    }
                     if (dest.TeamId != m_TeamID)
                     {
                         if (!m_Cooldown)
