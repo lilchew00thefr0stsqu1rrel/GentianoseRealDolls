@@ -40,7 +40,9 @@ namespace GentianoseRealDolls
         [SerializeField] private float m_AttackTime = 0.2f;
         [SerializeField] private float m_SprayTime = 0.851f;
         [SerializeField] private float m_AttackCooldown = 0.5f;
-
+        
+        [SerializeField] private int m_SprayPortionsInScentSacs = 5;
+        
         private float m_AnimationTimerNA = 0;
         private bool m_AtNormalAttack;
 
@@ -386,7 +388,7 @@ namespace GentianoseRealDolls
     {
         if (m_AnalSphincterTimer >= m_SprayTime)
         {
-            m_Doll.CareToiletStat(ToiletStat.AnalSpray, m_Doll.AnalGlandVolume / 5);
+            m_Doll.CareToiletStat(ToiletStat.AnalSpray, m_Doll.AnalGlandVolume / m_SprayPortionsInScentSacs);
     
     
             m_Doll.Sounds[6].Play();
