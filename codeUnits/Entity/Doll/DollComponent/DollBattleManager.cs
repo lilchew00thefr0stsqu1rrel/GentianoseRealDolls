@@ -168,16 +168,6 @@ namespace GentianoseRealDolls
                     ChargedAttack(m_AimInput);
                 }
             }
-
-            if (m_AtSpray)
-            {
-                m_AnalSphincterTimer += Time.deltaTime;
-                // заряд фуньки
-                if (m_AnalSphincterTimer >= m_SprayTime)
-                {
-                    EndGreaterSkill(m_AimInput);
-                }
-            }
         }
 
         public void Idle()
