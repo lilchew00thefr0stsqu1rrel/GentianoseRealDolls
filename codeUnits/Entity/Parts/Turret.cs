@@ -68,9 +68,9 @@ namespace GentianoseRealDolls
 
         [SerializeField] private TurretTrajectory m_Trajectory;
 
-        public override void Use(Vector2 a, float time)
+        public override void Use()
         {
-            Fire(a);
+            Fire(m_AimInput);
         }
 
         // Нов.
