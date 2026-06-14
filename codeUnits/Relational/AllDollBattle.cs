@@ -56,7 +56,6 @@ public class AllDollBattle : MonoBehaviour, IAllDolls
 
     public void WriteDoll(int[] stats)
     {
-
         int id = stats[0];
 
         m_Dolls[id + 1] = stats[1];
@@ -74,10 +73,18 @@ public class AllDollBattle : MonoBehaviour, IAllDolls
             "VALUES ('" + id +
                 "', '" + 0 + "');");
         }
-
-    
     }
+    public void WriteDolls(List<int> allStats)
+    {
+        m_Dolls = allStats;
 
+        for (int i = 0; i < 3; i++)
+        {
+            int[] sts = new int[2] { m_Dolls[i * 2], m_Dolls[i*2+1] };
+
+            //WriteDoll(sts);
+        }
+    }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
