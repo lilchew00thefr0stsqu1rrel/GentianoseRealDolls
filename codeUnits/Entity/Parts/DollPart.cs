@@ -14,7 +14,7 @@ namespace GentianoseRealDolls
         protected Party m_Party;
         protected Animator m_Animator;
 
-
+        [SerializeField] protected GameObject m_EffectBale;
 
         public void Construct(DollController contr, Party party)
         {
@@ -24,9 +24,10 @@ namespace GentianoseRealDolls
 
         
         public virtual void SetAimInput(Vector2 aimInput) { }
+        public virtual void SetActionTime(float time) { }
         
 
-        public virtual void Use(Vector2 aimInput, float time) { }
+        public virtual void Use() { }
     }
 }
 
