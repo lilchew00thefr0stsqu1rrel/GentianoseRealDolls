@@ -492,13 +492,12 @@ namespace GentianoseRealDolls
             m_ActiveDoll.PetAsSpaceShip.RestoreHitPoints(m_HealAmount);
 
             m_Combat[1] = Mathf.Clamp(m_Combat[1] + m_HealAmount, 1, 1000);
-            m_AllDollBattle.WriteDoll(m_Combat.ToArray()[..2]);
 
             m_Combat[3] = Mathf.Clamp(m_Combat[3] + m_HealAmount, 1, 1111);
-            m_AllDollBattle.WriteDoll(m_Combat.ToArray()[2..4]);
 
             m_Combat[5] = Mathf.Clamp(m_Combat[5] + m_HealAmount, 1, 1332);
-            m_AllDollBattle.WriteDoll(m_Combat.ToArray()[4..]);
+
+            m_AllDollBattle.WriteDolls(m_Combat);
         }
 
         // Лечение по времени (регенерация) в виде баффа
