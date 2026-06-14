@@ -58,7 +58,7 @@ public class AllDollBattle : MonoBehaviour, IAllDolls
     {
         int id = stats[0];
 
-        m_Dolls[id + 1] = stats[1];
+        m_Dolls[id * 2 + 1] = stats[1];
 
 
         if (m_DollBase.CheckRecordPresent(id, "dollBattle"))
@@ -82,7 +82,7 @@ public class AllDollBattle : MonoBehaviour, IAllDolls
         {
             int[] sts = new int[2] { m_Dolls[i * 2], m_Dolls[i*2+1] };
 
-            //WriteDoll(sts);
+            WriteDoll(sts);
         }
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
