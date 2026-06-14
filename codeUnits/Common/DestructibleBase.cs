@@ -1,4 +1,4 @@
-    
+
 using System.Collections.Generic;
 using TowerDefense;
 using UnityEngine;
@@ -59,7 +59,7 @@ namespace Common
 
         protected virtual void Start()
         {
-            m_CurrentHitPoints = m_HitPoints;
+            //140626/ m_CurrentHitPoints = m_HitPoints;
 
             // // transform.SetParent(null);  // У меня и без этой строки объект помещается в корень сцены.
         }
