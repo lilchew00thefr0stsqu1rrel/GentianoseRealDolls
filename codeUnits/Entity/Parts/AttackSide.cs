@@ -1,4 +1,5 @@
 using GentianoseRealDolls;
+using NTC.Pool;
 using SpaceShooter;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -16,6 +17,7 @@ namespace GentianoseRealDolls
             m_AttackTrigger = GetComponent<Collider>();
             m_AttackTrigger.enabled = false;
 
+
             if (m_Perm)
             {
                 m_AttackTrigger.enabled = true;
@@ -24,9 +26,9 @@ namespace GentianoseRealDolls
 
         
 
-        public override void Use(Vector2 aimInput, float attackTime)
+        public override void Use()
         {
-            HitboxTimer(attackTime);
+            HitboxTimer(m_Time);
         }
 
         private async void HitboxTimer(float time)
@@ -70,6 +72,11 @@ namespace GentianoseRealDolls
             }
         }
 
+        public override void SetActionTime(float time)
+        {
+            m_Time = time;
+        }
+
         public void SetDamage(int damage)
         {
             m_AttackDamage = damage;
@@ -99,10 +106,12 @@ namespace GentianoseRealDolls
                         m_EffectBale.SetActive(true);
                         m_EffectBale.transform.position = point;
                     }
+
                     if (dest.TeamId != m_TeamID)
                     {
                         if (!m_Cooldown)
                         {
+
                             if (m_SprayType)
                             {
                                 dest.ApplyDamageOverTime(m_AttackDamage, 14);
@@ -122,6 +131,4 @@ namespace GentianoseRealDolls
         }
     }
 }
-
-
 
