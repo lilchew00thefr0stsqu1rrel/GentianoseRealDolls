@@ -64,6 +64,7 @@ namespace GentianoseRealDolls
 
 
         [SerializeField] private Inventory m_Inventory;
+        [SerializeField] private OffField m_OffField;
         [Inject]
         public void Construct(Inventory obj)
         {
@@ -318,6 +319,15 @@ namespace GentianoseRealDolls
             }
             return s.ToArray();
         }
+        private int[] GetDollCombat(int dollID)
+        {
+            var s = new List<int>();
+            for (int i = 0; i < 2; i++)
+            {
+                s.Add(m_Combat[dollID * 2 + i]);
+            }
+            return s.ToArray();
+        }
         //public void FillDolls(long time)
         //{
         //    SetActiveDoll(0);
@@ -400,6 +410,7 @@ namespace GentianoseRealDolls
 
             m_ActiveDoll.DollController.SetLocationIndex(m_MapID);
             m_ActiveDoll.DollController.ConstructDollParty(this);
+            m_ActiveDoll.DollController.SetOffField(m_OffField);
             m_ActiveDoll.DollController.ConstructInventory(m_Inventory);
             m_ActiveDoll.DollController.ConstructPoop(m_PoopStore);
             m_ActiveDoll.DollController.SetDollProperties();
@@ -408,6 +419,8 @@ namespace GentianoseRealDolls
             var sts = GetDollStats(m_ActiveDoll.DollID);
             print("What the hell " + sts[6].ToString());
             var slp = GetDollSleep(m_ActiveDoll.DollID);
+
+            var cbt = GetDollCombat(m_ActiveDoll.DollID);
 
             // Нужно ли уменьшать шкалы на время вне игры?
             if (m_DirtyDolls[m_ActiveDoll.DollID] == false)
@@ -421,6 +434,8 @@ namespace GentianoseRealDolls
                 // При смене карты (домик/город)
                 m_ActiveDoll.DollController.TakeStats(m_ActiveDollIndexInParty, sts);
             }
+
+            m_ActiveDoll.FillCombatStats(cbt);
 
             m_Camera.SetTarget(m_ActiveDoll.transform);
             m_ShipInputController.SetTargetDoll(m_ActiveDoll.DollController);
@@ -474,9 +489,16 @@ namespace GentianoseRealDolls
             //    chrct.RestoreHP(m_HealAmount);
             //}
 
-            m_Combat[1] += m_HealAmount;
-            m_Combat[3] += m_HealAmount;
-            m_Combat[5] += m_HealAmount;
+            m_ActiveDoll.PetAsSpaceShip.RestoreHitPoints(m_HealAmount);
+
+            m_Combat[1] = Mathf.Clamp(m_Combat[1] + m_HealAmount, 1, 1000);
+            m_AllDollBattle.WriteDoll(m_Combat.ToArray()[..2]);
+
+            m_Combat[3] = Mathf.Clamp(m_Combat[3] + m_HealAmount, 1, 1111);
+            m_AllDollBattle.WriteDoll(m_Combat.ToArray()[2..4]);
+
+            m_Combat[5] = Mathf.Clamp(m_Combat[5] + m_HealAmount, 1, 1332);
+            m_AllDollBattle.WriteDoll(m_Combat.ToArray()[4..]);
         }
 
         // Лечение по времени (регенерация) в виде баффа
