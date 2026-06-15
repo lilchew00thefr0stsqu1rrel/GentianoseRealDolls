@@ -31,10 +31,10 @@ namespace GentianoseRealDolls
         #region UnityEvent
 
         private void Start()
-        {           
-            //m_Ship = transform.parent.GetComponent<SpaceShip>();\
-             
-            m_Ship = transform.root.GetComponent<SpaceShip>();
+        {
+            m_Ship = transform.parent.GetComponent<SpaceShip>();
+
+            //m_Ship = transform.root.GetComponent<SpaceShip>();
         }
         Vector2 m_AimInput;
 
@@ -89,7 +89,7 @@ namespace GentianoseRealDolls
                     return;
             }
 
-            if (m_Trajectory == TurretTrajectory.Thorn)
+            if (m_Mode == TurretMode.Thorn)
             {
                 var aim = m_Camera.ScreenToWorldPoint(new Vector3(
                 aimInput.x, aimInput.y, m_ZOffsetAimSpray),
@@ -104,11 +104,10 @@ namespace GentianoseRealDolls
 
 
 
-            if (m_Trajectory == TurretTrajectory.Direct)
+            if (m_Mode == TurretMode.Direct)
             {
-                var aimedVector = m_Ship.transform.forward;
-                aimedVector.y = 0.3f;
-                transform.forward = aimedVector;
+                //var aimedVector = transform.parent.parent.forward;
+                //transform.forward = aimedVector;
             }
 
 
