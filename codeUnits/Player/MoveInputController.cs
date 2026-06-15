@@ -88,7 +88,7 @@ namespace GentianoseRealDolls
                 ControlKeyboardAndMobile();
             }
 
-            m_Party.DollCarryWisp(m_TargetShip.transform.position, m_TargetShip.transform.rotation);
+            m_Party.DollCarryWisp(m_TargetShip.transform.position + Vector3.up, m_TargetShip.transform.rotation);
 
 
         }
