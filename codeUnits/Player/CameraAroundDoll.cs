@@ -40,6 +40,8 @@ namespace GentianoseRealDolls
         private void Start()
         {
             m_Radius = 1;
+
+            m_ThetaInput = 288;
         }
 
         // TODO: Lerp и Slerp
