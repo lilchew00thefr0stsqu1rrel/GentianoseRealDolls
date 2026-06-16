@@ -53,6 +53,7 @@ namespace GentianoseRealDolls
         [SerializeField] private AllDollPositions m_AllDollPositions;
         [SerializeField] private AllDollSleeps m_AllSleeps;
         [SerializeField] private AllDollBattle m_AllDollBattle;
+        [SerializeField] private ActiveDollUponExit m_ActiveDollUponExit;
 
         [SerializeField] private List<int> m_Stats;
         [SerializeField] private int[] m_Position;
@@ -257,7 +258,11 @@ namespace GentianoseRealDolls
 
             //ReadDolls();
 
-            SetActiveDoll(0);
+            
+            int d = 0;
+            d = m_ActiveDollUponExit.GetActiveDoll();
+
+            SetActiveDoll(d);
 
             StartCoroutine(SaveDollsTick());
 
@@ -406,6 +411,8 @@ namespace GentianoseRealDolls
 
 
             m_CurrentDollID = m_ActiveDoll.DollID;
+
+            m_ActiveDollUponExit.SetActiveDoll(index);
 
 
             m_ActiveDoll.DollController.SetLocationIndex(m_MapID);
