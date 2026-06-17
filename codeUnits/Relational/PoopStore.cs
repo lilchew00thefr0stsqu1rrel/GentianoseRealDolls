@@ -248,10 +248,10 @@ namespace GentianoseRealDolls
 
         }
 
-        public async void AddPoop(Poop poop)
+        public void AddPoop(Poop poop)
         {
             m_PooList.Add(poop);
-            m_PooPositions.Add(new PoopPosition(poop.transform.position, poop.Size, poop.DollID));
+            ////m_PooPositions.Add(new PoopPosition(poop.transform.position, poop.Size, poop.DollID));
 
             if (m_PooList.Count > 72)
             {
@@ -266,7 +266,6 @@ namespace GentianoseRealDolls
             m_PooPosIntList.Add((int)(poop.transform.position.y * 1000));
             m_PooPosIntList.Add((int)(poop.transform.position.z * 1000));
 
-            await Task.Delay(1000);
 
             SavePoopArray();
         }
