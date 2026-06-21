@@ -5,9 +5,10 @@ namespace GentianoseRealDolls
 
     public enum TurretMode
     {
-        Primary,
-        Secondary,
-        Auto
+        Direct,
+        Homing,
+        Auto,
+        Thorn
     }
 
     [CreateAssetMenu]

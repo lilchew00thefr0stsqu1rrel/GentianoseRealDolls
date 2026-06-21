@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using NTC.MonoCache;
+using System.ComponentModel;
 
 /// <summary>
 /// Положение зверька определяется 1 целым числом (сцена-локация, город, домик) и 1 вектором-3.  
@@ -32,79 +33,64 @@ public class BeastPositionManager : MonoCache
     private Vector3 m_WaypointWarpPosition;
     [SerializeField] private int m_MapsNumber = 3;
 
+    [SerializeField] private int[] m_LocPos;
+    private void Awake()
+    {
+        m_LocPos = new int[5];
+
+        m_LocPos[1] = m_Location;
+    }
 
     public void ResetLocation()
     {
         m_Location = 0;
     }
 
-    public void ConstructDolls( AllDollPositions positions, AllDollSleeps sleeps)
+    public void Fill(int[] pos)
     {
-        allDollPositions = positions;
-        allDollSleeps = sleeps;
-
-        InitDoll();
-    }
-
-
-    private void InitDoll()
-    {
-        m_Doll = GetComponent<Doll>();
-        dollID = m_Doll.DollID;
-        /// начало бреда
-        /// 
+        m_LocPos = pos;
         
-        m_DollPosition = allDollPositions.GetDollPos(dollID);
+        m_Location = m_LocPos[1];
 
-        if (m_DollPosition == null) 
-        {
-            m_DollPosition = new DollPosition(dollID, 1, Vector3.zero, Quaternion.identity);
-        }
-
-        m_Position = m_DollPosition.Position;
-
-        m_Rotation = Quaternion.identity;
-
-
-        StartCoroutine(AndSavePos());
-
-
+        transform.position = new Vector3(m_LocPos[2], m_LocPos[3], m_LocPos[4]);
     }
 
-    
+    public int[] Fetch()
+    {
+        m_LocPos[2] = (int)Mathf.Ceil(transform.position.x);
+        m_LocPos[3] = (int)Mathf.Ceil(transform.position.y);
+        m_LocPos[4] = (int)Mathf.Ceil(transform.position.z);
+
+        return m_LocPos;    
+    }
+
 
     // Update is called once per frame
     protected override void Run()
     {
         if (m_Position == null) return;
+        if (m_DollPosition == null) return;
 
         m_Position = transform.position;
 
-
-        m_DollPosition.dollID = m_Doll.DollID;
-
-        m_DollPosition.Scene = Location;
-        m_DollPosition.Position = m_Position;
-
-        m_Rotation = transform.rotation;
-        m_DollPosition.Rotation = m_Rotation;
     }
 
     public void WarpDoll(string address)
     {
-        int scene = int.Parse(address[..2]);
+        //int scene = int.Parse(address[..2]);
 
-        float x = float.Parse(address[2..10]);
+        //float x = float.Parse(address[2..10]);
 
-        float y = float.Parse(address[10..18]);
+        //float y = float.Parse(address[10..18]);
 
-        float z = float.Parse(address[18..]);
-        print($"{x}; {y}; {z}");
+        //float z = float.Parse(address[18..]);
+        //print($"{x}; {y}; {z}");
 
-        transform.position = new Vector3(x, y, z);
+        //transform.position = new Vector3(x, y, z);
 
-        SavePos();
+        //SavePos();
     }
+
     IEnumerator AndSavePos()
     {
 
@@ -143,60 +129,26 @@ public class BeastPositionManager : MonoCache
     }
     
 
-    public void TakeAndSetDollPos(int loc, int index)
-    {
-        m_Location = loc;
-
-        m_Position = allDollPositions.GetDollPositions(dollID) + new Vector3(0, 2.0f, 0);
-
-        if (m_Position == null)
-        {
-            transform.position = new Vector3(0, 0, 0);
-        }
-        else
-        {
-            transform.position = m_Position;
-        }
-
-
-        print("What " + transform.position.x + ", " + transform.position.y + ", " + transform.position.z);
-
-    }
-
     private void OnDestroy()
     {
 
-        m_Position = transform.position;
-        m_Rotation = Quaternion.identity;
 
-        m_DollPosition.Position = m_Position;
-        m_DollPosition.Rotation = m_Rotation;
-
-        SavePos();
     }
 
    
     public void SavePos()
     {
-        m_DollPosition.dollID = dollID;
-        m_DollPosition.Position = m_Position;
-        m_DollPosition.Rotation = m_Rotation;
-        m_DollPosition.Scene = m_Location;
+        m_LocPos[0] = dollID;
+        m_LocPos[1] = m_Location;
+        m_LocPos[2] = (int)Mathf.Ceil(transform.position.x);
+        m_LocPos[3] = (int)Mathf.Ceil(transform.position.y);
+        m_LocPos[4] = (int)Mathf.Ceil(transform.position.z);
 
 
-
-        allDollPositions.SetDollPos(m_DollPosition);
+        OnSavePos(m_LocPos);
     }
+
+    public static event Action<int[]> OnSavePos;
 
     private bool m_IsSleeping;
-    public void TimeActionStats(long timeDifference)
-    {
-        m_IsSleeping = allDollSleeps.GetSleepingByID(dollID);
-
-        if (m_IsSleeping)
-        {
-            //WarpDoll(m_Level.Beds[dollID]);
-        }
-        SavePos();
-    }
 }

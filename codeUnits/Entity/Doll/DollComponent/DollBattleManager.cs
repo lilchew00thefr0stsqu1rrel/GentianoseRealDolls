@@ -4,6 +4,8 @@ using System;
 using System.Collections;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.UI;
 
 namespace GentianoseRealDolls
 {
@@ -33,6 +35,9 @@ namespace GentianoseRealDolls
         [SerializeField] private DollPart m_LesserSkillPart;
         [SerializeField] private Turret m_AnusTurret;
 
+        [SerializeField] private DollPart m_SummonPrefab; //14vi2026
+        [SerializeField] private OffField m_OffField;
+
         [Header("***")]
 
         private GRDTimer chargedTimer;
@@ -40,6 +45,11 @@ namespace GentianoseRealDolls
         [SerializeField] private float m_AttackTime = 0.2f;
         [SerializeField] private float m_SprayTime = 0.851f;
         [SerializeField] private float m_AttackCooldown = 0.5f;
+
+        [SerializeField] private int m_SprayChargeSteps;
+        public float SprayChargeSteps => m_SprayChargeSteps;
+
+        [SerializeField] private int m_SprayPortionsInScentSacs = 5;
 
         private float m_AnimationTimerNA = 0;
         private bool m_AtNormalAttack;
@@ -54,9 +64,10 @@ namespace GentianoseRealDolls
         
         private float m_AnalSphincterTimer = 0;
         private bool m_AtSpray = false;
+        private bool m_ReadySpray = false;
 
 
-        public float SprayChargeAmount => m_AnalSphincterTimer / m_SprayTime;
+        public float SprayChargeAmount => m_AnalSphincterTimer / m_SprayTime;  ///  
 
         public event Action OnTakeSprayStance;
         public event Action OnEndSprayStance;
@@ -91,6 +102,11 @@ namespace GentianoseRealDolls
         public float Cooldown => m_Cooldown;
 
         public bool SprayStanceOn => m_IsSprayStance;
+
+        public void SetOffField(OffField off)
+        {
+            m_OffField = off;
+        }
 
         public void SetAimInput(Vector2 aimInput)
         {
@@ -169,15 +185,6 @@ namespace GentianoseRealDolls
                 }
             }
 
-            if (m_AtSpray)
-            {
-                m_AnalSphincterTimer += Time.deltaTime;
-                // заряд фуньки
-                if (m_AnalSphincterTimer >= m_SprayTime)
-                {
-                    EndGreaterSkill(m_AimInput);
-                }
-            }
         }
 
         public void Idle()
@@ -241,19 +248,30 @@ namespace GentianoseRealDolls
             GreaterSkill
         }
 
-        private void NormalAttack(Vector2 aimInput)
+        private async void NormalAttack(Vector2 aimInput)
         {
             if (m_AnimatorGuard == null) m_AnimatorGuard = GetComponent<AnimatorGuard>();
+
+            float ntime = m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0007");
+            float lntime = m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0013");
 
             if (m_LesserSkillBuff)
             {
                 m_AnimatorGuard.SetAnimation(13);
                 m_LesserSkillNormalAttackPart.Use(aimInput, m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0013"));
+
+
+                await Task.Delay((int)(lntime * 1000));
+                m_AnimatorGuard.SetAnimation(0);
             }
             else
             {
                 m_AnimatorGuard.SetAnimation(7);
                 m_NormalAttackPart.Use(aimInput, m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0007"));
+
+                await Task.Delay((int)(ntime * 1000));
+                m_AnimatorGuard.SetAnimation(0);
+
             }
             m_AtNormalAttack = true;
             m_Doll?.Sounds[1].Play();
@@ -293,6 +311,7 @@ namespace GentianoseRealDolls
 
         #endregion
 
+
         public void LesserSkill()
         {
             print("Lesser");
@@ -307,10 +326,22 @@ namespace GentianoseRealDolls
 
                 m_LesserSkillPart?.Use(m_AimInput, m_AnimatorGuard.GetAnimationLength("LesserSkill"));
 
+                if (m_SummonPrefab && m_OffField)
+                {
+                    var summon = Instantiate(m_SummonPrefab, m_OffField.transform);
+                    if (summon is HealSide)
+                    {
+                        (summon as HealSide).SetParty(m_Party);
+                        summon.Use(Vector2.zero, 4);
+                    }
+                }
+
                 StartCoroutine(EffectTimer());
                 m_LesserSkillBuff = true;
                 StartCoroutine(FlehmenCDSkill());
                 m_LesserSkillCooldownTime = m_Cooldown;
+
+
             }
 
             IEnumerator FlehmenCDSkill()
@@ -361,24 +392,50 @@ namespace GentianoseRealDolls
         /// </summary>
         public void StartGreaterSkill()
         {
-            m_AtSpray = true;
             m_AnalSphincterTimer = 0;
+            m_AtSpray = true;
+
+            ChargeSpray();
         }
-         
-        public void EndGreaterSkill(Vector2 aimInput)
+
+        private async void ChargeSpray()
         {
-            // ����� ������
-            if (m_AnalSphincterTimer > m_SprayTime)
+            if (m_AtSpray)
             {
-                m_Doll.CareToiletStat(ToiletStat.AnalSpray, m_Doll.AnalGlandVolume / 5);
+                await Task.Delay((int)(m_SprayTime * 1000 / 8));
+
+                m_AnalSphincterTimer += m_SprayTime / 8;
+
+                EndSpray();
+
+                ChargeSpray();
+            }
+            
+        }
+        private void EndSpray()
+        {
+            if (m_AnalSphincterTimer >= m_SprayTime)
+            {
+                m_Doll.CareToiletStat(ToiletStat.AnalSpray, m_Doll.AnalGlandVolume / m_SprayPortionsInScentSacs);
 
 
                 m_Doll.Sounds[6].Play();
                 m_Doll.Sounds[UnityEngine.Random.Range(7, 9)].Play();
 
                 m_Doll.AnusNipplesTurret.SetCamera(Camera.main);
-                m_Doll.AnusNipplesTurret.Fire(aimInput);
+                m_Doll.AnusNipplesTurret.Fire(m_AimInput);
+
+
+                m_AnalSphincterTimer = 0;
+                m_AtSpray = false;
             }
+
+        }
+
+        public void EndGreaterSkill()
+        {
+            EndSpray();
+
             m_AnalSphincterTimer = 0;
             m_AtSpray = false;
         }

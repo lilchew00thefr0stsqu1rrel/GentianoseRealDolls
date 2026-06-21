@@ -8,14 +8,8 @@ namespace GentianoseRealDolls
     public class VirtualGamePad : MonoBehaviour
     {
         [SerializeField] private Party m_Party;
-
-        // [Inject]
-        //public void Construct(Party obj)
-        //{
-        //    m_Party = obj;
-        //}
-        // public PointerClickHold MobileFirePrimary;
-        // public PointerClickHold MobileFireSecondary;
+        [SerializeField] private MoveInputController m_MoveInputController;
+        [SerializeField] private GaitInputController m_GaitInputController;
 
         public GameObject MobileGait;
         public UIButton MobileJump;
@@ -23,20 +17,21 @@ namespace GentianoseRealDolls
         public UIButton MobileNormalAttack;
 
         public VirtualJoystick VirtualJoystick;
+        public VirtualJoystick VirtualJoystickRotation;
 
         public void GaitUp()
         {
-            m_Party.GaitUp();
+            m_GaitInputController.GaitUp();
         }
 
         public void GaitDown()
         {
-            m_Party.GaitDown();
+            m_GaitInputController.GaitDown();
         }
 
         public void Jump()
         {
-            m_Party.Jump();
+            m_MoveInputController.Leap();
         }
 
         public void LookAtWisp()

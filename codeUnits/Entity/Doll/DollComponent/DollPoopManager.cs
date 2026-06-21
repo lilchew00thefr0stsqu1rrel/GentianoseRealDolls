@@ -51,7 +51,7 @@ namespace GentianoseRealDolls
         bool m_IsPooping = false;
         public bool IsPooping => m_IsPooping;
 
-        private float minPooPointsToPoop = 6.6f;
+        private int maxPooPointsToPoop = 6;
 
         private float timer = 0;
         private bool addTime = false;
@@ -68,23 +68,20 @@ namespace GentianoseRealDolls
         #region Poop API
         public async void ToPoop()
         {
+            poopNumber = (Doll.MaxLooStat - m_Doll.PooPoints) / 2;
+
             StartPosePoop();
-            await Task.Delay(5000);
-            if (m_Doll.PooPoints <= minPooPointsToPoop)
+
+            await Task.Delay(3000);
+            
+            for (int i = 0; i < poopNumber; i++)
             {
-                poopNumber = 2 + (int)(Mathf.Ceil(minPooPointsToPoop - m_Doll.PooPoints) / 2.2f);
-                for (int i = 0; i < poopNumber; i++)
-                {
-                    Poop();
-                    StartPee();
-                    await Task.Delay(1000);
-                }
-                EndPosePoop();
+                Poop();
+                StartPee();
+                await Task.Delay(1000);
             }
-            else
-            {
-                EndPosePoop() ;
-            }
+            EndPosePoop();
+            
         }
 
         public void OutPoop()
@@ -98,12 +95,10 @@ namespace GentianoseRealDolls
         {
             var poop = NightPool.Spawn(m_PoopPrefab, 
             m_AnusTurret.transform.position, transform.rotation);
-            poop.GetComponent<Poop>().InitPoop(m_Doll.Asset);
+            // poop.InitPoop(m_Doll.Asset);
             m_PoopStore.AddPoop(poop);
-            m_PoopStore.SavePoop();
-            m_Doll.CareToiletStat(ToiletStat.Poo, 2.2f);
-            m_Doll.CareToiletStat(ToiletStat.Pee, 2.2f);
-            m_Doll.CareToiletStat(ToiletStat.AnalSpray, m_Doll.AnalGlandVolume * 0.037f);
+            m_Doll.CareToiletStat(ToiletStat.Poo, 2);
+            m_Doll.CareToiletStat(ToiletStat.AnalSpray, 1);
         }
 
 
@@ -112,7 +107,7 @@ namespace GentianoseRealDolls
         private void StartPosePoop()
         {
             print("5!!");
-            FindAnyObjectByType<FollowCamera>().Turn(-1);
+            FindAnyObjectByType<CameraAroundDoll>().Turn();
 
             m_Doll.State = 5;
             m_AnimatorGuard.SetAnimation(5);
@@ -121,9 +116,11 @@ namespace GentianoseRealDolls
 
         private void EndPosePoop()
         {
+            m_PoopStore.SavePoop();
+
             print("5--");
             print(timer);
-            FindAnyObjectByType<FollowCamera>().Turn(1);
+            FindAnyObjectByType<CameraAroundDoll>().Turn();
 
             m_Doll.State = 0;
 
@@ -184,21 +181,22 @@ namespace GentianoseRealDolls
 
         public void StartPee()
         {
-            m_Doll.Sounds[9].Play();
+            m_Doll.Sounds[9]?.Play();
             m_PeeTurret.Fire(Vector2.zero);
+            m_Doll.CareToiletStat(ToiletStat.Pee, 2);
 
-            RaycastHit[] hit = Physics.RaycastAll(m_PeeTurret.transform.position, m_PeeTurret.transform.forward, 0.3f);
+            //RaycastHit[] hit = Physics.RaycastAll(m_PeeTurret.transform.position, m_PeeTurret.transform.forward, 0.3f);
 
-            if (hit != null)
-            {
-                for (int i = 0; i < hit.Length; i++)
-                {
-                    if (hit[i].collider.transform.root.GetComponent<Doll>() == null)
-                    {
-                        Instantiate(m_PeeSpotPrefab, hit[i].point, transform.rotation);
-                    }
-                }
-            }
+            //if (hit != null)
+            //{
+            //    for (int i = 0; i < hit.Length; i++)
+            //    {
+            //        if (hit[i].collider.transform.root.GetComponent<Doll>() == null)
+            //        {
+            //            Instantiate(m_PeeSpotPrefab, hit[i].point, transform.rotation);
+            //        }
+            //    }
+            //}
         }
 
         public void EndPee()

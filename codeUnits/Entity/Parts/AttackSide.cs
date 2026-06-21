@@ -1,4 +1,5 @@
 using GentianoseRealDolls;
+using NTC.Pool;
 using SpaceShooter;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -15,13 +16,19 @@ namespace GentianoseRealDolls
         {
             m_AttackTrigger = GetComponent<Collider>();
             m_AttackTrigger.enabled = false;
+
+
+            if (m_Perm)
+            {
+                m_AttackTrigger.enabled = true;
+            }
         }
 
         
 
-        public override void Use(Vector2 aimInput, float attackTime)
+        public override void Use()
         {
-            HitboxTimer(attackTime);
+            HitboxTimer(m_Time);
         }
 
         private async void HitboxTimer(float time)
@@ -65,6 +72,11 @@ namespace GentianoseRealDolls
             }
         }
 
+        public override void SetActionTime(float time)
+        {
+            m_Time = time;
+        }
+
         public void SetDamage(int damage)
         {
             m_AttackDamage = damage;
@@ -78,39 +90,40 @@ namespace GentianoseRealDolls
         [SerializeField] private Destructible parent;
 
         [SerializeField] private float m_Multiplier = 1;
+        [SerializeField] private bool m_Perm;
  
         private void OnTriggerEnter(Collider other)
         {
-            print("cll");
-            if (parent == null) return;
-
-
-            // если попадает именно коллайдер твёрдости, а не лечащего поля куклы
-            if (other != null && !other.isTrigger)
+            if (other != null)
             {
-                Destructible dest = other.transform.root.GetComponent<Destructible>();
+                Destructible dest = other.GetComponent<Destructible>();
 
                 if (dest != null)
                 {
-                    if (m_BelongsToDoll && !dest.GetComponent<Doll>() || !m_BelongsToDoll)
+                    if (m_EffectBale)
                     {
-                        if (dest != parent)
+                        var point = other.ClosestPoint(transform.position);
+                        m_EffectBale.SetActive(true);
+                        m_EffectBale.transform.position = point;
+                    }
+
+                    if (dest.TeamId != m_TeamID)
+                    {
+                        if (!m_Cooldown)
                         {
-                            if (!m_Cooldown)
+
+                            if (m_SprayType)
                             {
-                                if (m_SprayType)
-                                {
-                                    dest.ApplyDamage(m_AttackDamage);
-                                    dest.ApplyDebuff(m_StatusID, m_Multiplier, 14);
-                                    m_Cooldown = true;
-                                }
-                                else
-                                {
-                                    dest.ApplyDamage(m_AttackDamage);
-                                    m_Cooldown = true;
-                                }
+                                dest.ApplyDamageOverTime(m_AttackDamage, 14);
+                                m_Cooldown = true;
+                            }
+                            else
+                            {
+                                dest.ApplyDamage(m_AttackDamage);
+                                m_Cooldown = true;
                             }
                         }
+                        
                     }
                 }
 

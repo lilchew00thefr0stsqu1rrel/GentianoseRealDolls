@@ -3,6 +3,7 @@ using System.Data;
 using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace GentianoseRealDolls
 {
@@ -12,6 +13,27 @@ namespace GentianoseRealDolls
         string fileName = "MustelidsAndPrimatesBase.db";
         string dbPath;
         string dbPathURI;
+
+        /// <summary>
+        /// В будущем - OCP
+        /// </summary>
+        [SerializeField] private string[] m_QueryToCreateBase =
+        {
+            "CREATE TABLE IF NOT EXISTS positions (dollID INTEGER PRIMARY KEY, levelID INTEGER, x INTEGER, y INTEGER, z INTEGER)",
+
+        }; 
+        
+        [SerializeField]
+        private string[] m_QueryToAddRecLeft =
+        {
+            "INSERT OR IGNORE INTO positions (dollID, levelID, x, y, z) VALUES ('" 
+        }; 
+        
+        [SerializeField]
+        private string[] m_QueryToAddRecRight =
+        {
+             "', '" + 1 + "', '" + 0 + "', '" + 0 + "', '" + 0 + "');"
+        };
 
         private string GetDBPathURI(string fileName)
         {
@@ -44,6 +66,7 @@ namespace GentianoseRealDolls
 
         [DllImport("sqlite3.dll")]
         private static extern void sqlite3_initialize();
+
 
 
         public void CreateDB()
@@ -85,7 +108,7 @@ namespace GentianoseRealDolls
             var q3 = "CREATE TABLE IF NOT EXISTS dollStats (dollID INTEGER PRIMARY KEY, " +
                 "poo INTEGER, analSpray INTEGER, pee INTEGER, bath INTEGER, brushTeeth INTEGER, " +
                 "food INTEGER, sleep INTEGER)";
-           CreateTable(q3);
+            CreateTable(q3);
 
             // Seed data.
             for (int i = 0; i < WhooSettings.NumberOfDolls; i++)
@@ -97,6 +120,38 @@ namespace GentianoseRealDolls
                         0 + "', '" + 0 + "');");
             }
 
+            var q4 = "CREATE TABLE IF NOT EXISTS dollSleeps (dollID INTEGER PRIMARY KEY, " +
+                "inBed INTEGER)";
+            CreateTable(q4);
+
+            // Seed data.
+            for (int i = 0; i < 3; i++)
+            {
+                AddOrChangeRecord("INSERT OR IGNORE INTO dollSleeps " +
+                    "(dollID, inBed) " +
+                    "VALUES ('" + i +
+                        "', '" + 0 + "');");
+            }
+
+            var q5 = "CREATE TABLE IF NOT EXISTS dollBattle (dollID INTEGER PRIMARY KEY, " +
+                "hp INTEGER)";
+            CreateTable(q5);
+
+            // Seed data.
+            for (int i = 0; i < 3; i++)
+            {
+                AddOrChangeRecord("INSERT OR IGNORE INTO dollBattle " +
+                    "(dollID, hp) " +
+                    "VALUES ('" + i +
+                        "', '" + 1008 + "');");
+            }
+
+            var q6 = "CREATE TABLE IF NOT EXISTS poop (dollID INTEGER NOT NULL, " +
+                "mapID INTEGER NOT NULL, " +
+                "x INTEGER NOT NULL," +
+                "y INTEGER NOT NULL," +
+                "z INTEGER NOT NULL)";
+            CreateTable(q6);
         }
 
 
@@ -350,7 +405,33 @@ namespace GentianoseRealDolls
             return arr;
         }
 
+        public List<int> GetAllRecords(string tableName, string[] fieldNames)
+        {
+            List<int> recs = new List<int>();
 
+            using (var connection = new SqliteConnection(dbPathURI))
+            {
+                connection.Open();
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $"SELECT * FROM {tableName};";
+
+                    using (IDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            for (int i = 0; i < fieldNames.Length; i++)
+                            {
+                                recs.Add(int.Parse(reader[fieldNames[i]].ToString()));
+                            }
+                        }
+                    }
+                }
+                connection.Close();
+            }
+            return recs;
+        }
 
         public void AddOrChangeRecord(string query)
         {

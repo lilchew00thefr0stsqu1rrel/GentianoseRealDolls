@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using SpaceShooter;
 using UnityEngine;
@@ -6,64 +7,56 @@ namespace GentianoseRealDolls
 {
     public class DollSleep : DollComponent
     {
+        [SerializeField] private int[] m_Sleeping;
+        public int[] Sleeping => m_Sleeping;
 
-        [SerializeField] private AllDollSleeps allSleeps;
-        public void ConstructSleep(AllDollSleeps sleeps)
-        {
-            allSleeps = sleeps;
-        }
+        [SerializeField] private bool m_IsSleeping;
+        public bool IsSleeping => m_IsSleeping;
+
+        public static event Action<int[]> OnSleepOrWake;
 
         public override void SetProperties(Doll doll, AnimatorGuard animatorGuard, int posInParty)
         {
             base.SetProperties(doll, animatorGuard, posInParty);
-
-
-           // m_IsSleeping = allSleeps.GetDollInBed(m_Doll.DollID);
         }
-        
-
-        [SerializeField] private bool m_IsSleeping;
-        public bool Sleeping => m_IsSleeping;
-        public void GoToBed(int partyIndex)
+        private void Awake()
         {
-            print("Sleep");
-            m_AnimatorGuard.SetAnimation(10);
-            m_IsSleeping = true;
-
-            MoveInputController.mouseTorque = false;
-
-
-            print(m_DollIndexInParty + "  / " + m_Doll.name);
-            allSleeps.WriteDollSleep(m_Doll.DollID, true);
-
-            m_Party.SetSleepDoll(partyIndex, true);
+            m_Sleeping = new int[2];
         }
-        public void WakeDoll(int partyIndex)
+
+
+
+        public void SetSleep(int[] sleepState)
         {
-            print("dndlr");
-            m_AnimatorGuard.SetAnimation(0);
-            m_IsSleeping = false;
+            m_Sleeping = sleepState;
+            m_IsSleeping = m_Sleeping[1] == 1;
 
+            if (sleepState[1] == 1)
+            {
+                m_AnimatorGuard.SetAnimation(10);
+                MoveInputController.mouseTorque = false;
+            }
+            else if (sleepState[1] == 0)
+            {
+                m_AnimatorGuard.SetAnimation(0);
+                MoveInputController.mouseTorque = true;
+            }
 
-            MoveInputController.mouseTorque = true;
-
-
-
-            allSleeps.WriteDollSleep(m_Doll.DollID, false);
-
-            m_Party.SetSleepDoll(partyIndex, false);
-
+            OnSleepOrWake(m_Sleeping);
         }
 
         public bool FullSleep => m_Doll.Sleep >= Doll.MaxStat;
 
         public void ApplySleep()
         {
-            m_Doll.ChangeSleep(m_IsSleeping);
+            m_Doll.ChangeSleep(m_Sleeping[1] == 1);
         }
 
+        public int[] Fetch() 
+        { 
+            return m_Sleeping;
 
-       
+        }
     }
 
 }

@@ -62,6 +62,8 @@ namespace GentianoseRealDolls
             spaceShip.SetMaxLinearVelocity(gaitSpeeds[gaitState - 1]);
 
             // OnGaitTextUpdate += GaitDisplay.Instance.UpdateText();
+
+            
           
         }
 
@@ -132,7 +134,9 @@ namespace GentianoseRealDolls
       
 
         private bool m_AtTransition;
-   
+
+       
+
         public Action<int> SetPartyDollNumber()
         {
             return (slot) =>
@@ -155,7 +159,7 @@ namespace GentianoseRealDolls
 
         public void Walk()
         {
-            if (m_Doll.DollController.Sleeping) return;
+            if (m_Doll.DollController.SleepSystem.IsSleeping) return;
             m_AnimatorGuard.SetAnimation(gaitCodes[0]);
             isMoving = true;
 
@@ -206,6 +210,7 @@ namespace GentianoseRealDolls
             }
 
         }
+
         public void StartGait()
         {
             print(gaitCodes[1]);
@@ -239,25 +244,29 @@ namespace GentianoseRealDolls
 
         public void StopGait()
         {
-            // смотрим, есть ли в нем имя какой-то анимации, то возвращаем true
-            if (m_AnimatorGuard.IsMotion() && m_AnimatorGuard.NormalizedTime() >= 8.0f)
-            
-                m_Doll.Sounds[7].Play();
-
-            if (m_Doll.DollController.Sleeping) return;
-
-            if (m_AnimatorGuard.IsIdle()) return;
-
-            print("тпру");
-            if (gaitCodes[3] != 0 &&m_Doll.DollController.BattleManager.LesserSkillBuff)
+            if (m_AnimatorGuard)
             {
-                m_AnimatorGuard.SetAnimation(9);
+
+                // смотрим, есть ли в нем имя какой-то анимации, то возвращаем true
+                if (m_AnimatorGuard.IsMotion() && m_AnimatorGuard.NormalizedTime() >= 8.0f)
+
+                    m_Doll.Sounds[7].Play();
+
+                if (m_Doll.DollController.Sleeping) return;
+
+                if (!m_AnimatorGuard.IsMotion()) return;
+
+                print("тпру");
+                if (gaitCodes[3] != 0 && m_Doll.DollController.BattleManager.LesserSkillBuff)
+                {
+                    m_AnimatorGuard.SetAnimation(9);
+                }
+                else
+                {
+                    m_AnimatorGuard.SetAnimation(0);
+                }
+                isMoving = false;
             }
-            else
-            {
-                m_AnimatorGuard.SetAnimation(0);
-            }
-            isMoving = false;
         }
 
         #endregion

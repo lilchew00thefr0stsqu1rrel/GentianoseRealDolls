@@ -1,8 +1,10 @@
-using System.Collections.Generic;
 using System;
-using TowerDefense;
-using UnityEngine;
+using System.Collections.Generic;
 using System.Linq;
+using TowerDefense;
+using Unity.VisualScripting;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace GentianoseRealDolls
@@ -35,7 +37,9 @@ namespace GentianoseRealDolls
             dollID = id;
         }
     }
-
+    /// <summary>
+    /// CRUD
+    /// </summary>
     public class AllDollCharacters : MonoBehaviour, IAllDolls
     {
 
@@ -56,131 +60,98 @@ namespace GentianoseRealDolls
 
         [Tooltip("-1 meaning this scene is not a location")]
 
-        [SerializeField] private DollScaleValues[] allScaleValues;
-        [SerializeField] private List<DollScaleValues> allScaleValuesList = new List<DollScaleValues>();
 
-
-
+        
         [SerializeField] private UnityEngine.UI.Text m_DebugText;
         [SerializeField] private DollBase m_DollBase;
+
+        [SerializeField] private List<int> m_Dolls;
+
+        /// <summary>
+        /// Doll has 7 stats. Together with doll ID gets 8 numbers 
+        /// </summary>
+        private const int NumberOfStatsWithDollID = 8;
+        private Action<int[]> SaveDoll()
+        {
+            return (stats) =>
+            {
+                WriteDoll(stats);
+            };
+        }
+
         private void Awake()
         {
-        }
+            Doll.OnSave += SaveDoll();
 
+        }
         private void Start()
         {
-            var q3 = "CREATE TABLE IF NOT EXISTS dollStats (dollID INTEGER PRIMARY KEY, " +
-                "poo INTEGER, analSpray INTEGER, pee INTEGER, bath INTEGER, brushTeeth INTEGER, " +
-                "food INTEGER, sleep INTEGER)";
-            m_DollBase.CreateTable(q3);
+        }
 
-            // Seed data.
+        private void OnDestroy()
+        {
+            Doll.OnSave -= SaveDoll();
+        }
+        
+
+        public void ReadDolls()
+        {
+            m_Dolls.Clear();
+            int[] stats = new int[8];
+
             for (int i = 0; i < WhooSettings.NumberOfDolls; i++)
             {
-                m_DollBase.AddOrChangeRecord("INSERT OR IGNORE INTO dollStats " +
-                    "(dollID, poo, analSpray, pee, bath, brushTeeth, food, sleep) " +
-                    "VALUES ('" + i +
-                        "', '" + 0 + "', '" + 0 + "', '" + 60 + "', '" + 0 + "', '" + 0 + "', '" +
-                        0 + "', '" + 0 + "');");
-            }
-        }
+                stats = m_DollBase.GetRecord("dollStats", "dollID", i, m_FieldNames);
 
-        public DollScaleValues[] ReadStats()
-        {
-
-            if (m_DollBase.GetRecordAmount("dollStats") > 0)
-            {
-                allScaleValues = new DollScaleValues[WhooSettings.NumberOfDolls];
-
-                for (int i = 0; i < WhooSettings.NumberOfDolls; i++)
-                {
-                    if (m_DollBase.CheckRecordPresent(i, "dollStats"))
-                    {
-                        allScaleValues[i] = new DollScaleValues(i);
-                        int[] statsInt = m_DollBase.GetRecord("dollStats", "dollID", i, m_FieldNames);
-
-                        print($"{i} {statsInt.Length} Rundix");
-
-                        allScaleValues[i].LooPoo = statsInt[1];
-                        allScaleValues[i].AnalSprayAmount = statsInt[2];
-                        allScaleValues[i].LooPee = statsInt[3];
-                        allScaleValues[i].Bath = statsInt[4];
-                        allScaleValues[i].BrushTeeth = statsInt[5];
-                        allScaleValues[i].FoodHunger = statsInt[6];
-                        allScaleValues[i].Sleep = statsInt[7];
-                        
-                    }
-                }
+                m_Dolls.AddRange(stats);
             }
 
 
-            allScaleValuesList = allScaleValues.ToList();
-       
-         
 
-            return allScaleValues;
+        }
+        [Tooltip("int[8n]")]
+        public List<int> GetDolls()
+        {
+            ReadDolls();
+
+            return m_Dolls;
 
         }
 
 
-        public void SetScene(int scene)
+        [Tooltip("int[8]")]
+        public void WriteDoll(int[] stats)
         {
-            m_Scene = scene;
-        }
 
-        public DollScaleValues GetDoll(int id)
-        {
-            return allScaleValuesList[id];
-        }
+            int id = stats[0];
 
-        public void AddDoll(DollScaleValues sv)
-        {
-            allScaleValuesList.Add(sv);
-            allScaleValues = allScaleValuesList.ToArray();
-        }
-     
-        public void SetDoll(DollScaleValues sv)
-        {
-            allScaleValues[sv.dollID] = sv;
-            SaveAllDolls();
-        }
+            m_Dolls[id + 1] = stats[1];
+            m_Dolls[id + 2] = stats[2];
+            m_Dolls[id + 3] = stats[3];
+            m_Dolls[id + 4] = stats[4];
+            m_Dolls[id + 5] = stats[5];
+            m_Dolls[id + 6] = stats[6];
+            m_Dolls[id + 7] = stats[7];
 
-        public void SaveAllDolls()
-        {
-            for (int i = 0; i < 3; i++)
-            {
-                if (m_DollBase.CheckDollPositionPresent(i))
+            
+                if (m_DollBase.CheckRecordPresent(id, "dollStats"))
                 {
-                    ChangeDoll(i);
+
+                    string query = $"UPDATE dollStats SET poo='{stats[1]}'," +
+                                    $"analSpray='{stats[2]}', pee='{stats[3]}', bath='{stats[4]}', brushTeeth='{stats[5]}'," +
+                                    $" food='{stats[6]}', sleep='{stats[7]}' WHERE dollID='{stats[0]}';";
+                    m_DollBase.AddOrChangeRecord(query);
                 }
                 else
                 {
                     m_DollBase.AddOrChangeRecord("INSERT OR IGNORE INTO dollStats " +
                     "(dollID, poo, analSpray, pee, bath, brushTeeth, food, sleep) " +
-                    "VALUES ('" + i +
+                    "VALUES ('" + id +
                         "', '" + 0 + "', '" + 0 + "', '" + 60 + "', '" + 0 + "', '" + 0 + "', '" +
                         0 + "', '" + 0 + "');");
                 }
-            }
+            
         }
-
-
-        private void ChangeDoll(int dollID)
-        {
-            int poo = (int)Mathf.Ceil(allScaleValues[dollID].LooPoo);
-            int asa = (int)Mathf.Ceil(allScaleValues[dollID].AnalSprayAmount);
-            int pee = (int)Mathf.Ceil(allScaleValues[dollID].LooPee);
-            int bath = (int)Mathf.Ceil(allScaleValues[dollID].Bath);
-            int teeth = (int)Mathf.Ceil(allScaleValues[dollID].BrushTeeth);
-            int food = (int)Mathf.Ceil(allScaleValues[dollID].FoodHunger);
-            int sleep = (int)Mathf.Ceil(allScaleValues[dollID].Sleep);
-
-            string query = $"UPDATE dollStats SET poo='{poo}'," +
-                            $"analSpray='{asa}', pee='{pee}', bath='{bath}', brushTeeth='{teeth}'," +
-                            $" food='{food}', sleep='{sleep}' WHERE dollID='{dollID}';";
-            m_DollBase.AddOrChangeRecord(query);
-        }
-
     }
 
 }

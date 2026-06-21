@@ -46,17 +46,12 @@ namespace GentianoseRealDolls
         private const string fileName = "doll.dat";
 
 
-        public const float MaxBath = 34.0f;
-        public const float MaxBrushTeeth = 33.0f;
-        public const float MaxStat = 100.0f;
+        public const int MaxBath = 40;
+        public const int MaxBrushTeeth = 30;
+        public const int MaxStat = 100;
 
-        public const float MaxLooStat = 11.0f;
+        public const int MaxLooStat = 10;
 
-
-        public const float StepLooStat = 0.11f;
-        public const float StepBath = 0.34f;
-        public const float StepBrushTeeth = 0.33f;
-        public const float StepAnalGlandSecretions = 0.04f;
 
         // Вся струя, если 11 - это та, что нужна для прочистки
         public const float TotalAnalGlandVolumeQuotient = 2.618f;
@@ -80,32 +75,32 @@ namespace GentianoseRealDolls
 
         [Header("At home")]
 
-        [Range(0.0f, 34.0f)]
-        [SerializeField] private float m_Bath;
+        [Range(0, 40)]
+        [SerializeField] private int m_Bath;
 
-        [Range(0.0f, 33.0f)]
-        [SerializeField] private float m_BrushTeeth;
+        [Range(0, 30)]
+        [SerializeField] private int m_BrushTeeth;
 
-        [Range(0.0f, 11.0f)]
-        [SerializeField] private float m_LooSpray;
-        public float AnalGlandHealth => m_LooSpray;
+        [Range(0, 10)]
+        [SerializeField] private int m_LooSpray;
+        public int AnalGlandHealth => m_LooSpray;
 
-        [Range(0.0f, 11.0f)]
-        [SerializeField] private float m_LooPee;
+        [Range(0, 10)]
+        [SerializeField] private int m_LooPee;
 
-        [Range(0.0f, 11.0f)]
-        [SerializeField] private float m_LooPoo;
-        public float PooPoints => m_LooPoo;
+        [Range(0, 10)]
+        [SerializeField] private int m_LooPoo;
+        public int PooPoints => m_LooPoo;
 
-        [Range(0.0f, 100.0f)]
-        [SerializeField] private float m_FoodHunger;
-        public float FoodHunger => m_FoodHunger;
+        [Range(0, 100)]
+        [SerializeField] private int m_FoodHunger;
+        public int FoodHunger => m_FoodHunger;
 
-        [Range(0.0f, 100.0f)]
-        [SerializeField] private float m_Sleep;
-        public float Sleep => m_Sleep;
+        [Range(0, 100)]
+        [SerializeField] private int m_Sleep;
+        public int Sleep => m_Sleep;
 
-        [Range(0.0f, 100.0f)]
+        [Range(0, 100)]
         [SerializeField] private float m_Joy;
         public float Joy => m_Joy;
 
@@ -141,11 +136,14 @@ namespace GentianoseRealDolls
 
         [Header("In Dolls City")]
 
-        [SerializeField] private float m_AnalGlandVolume;
-        public float AnalGlandVolume => m_AnalGlandVolume;
-        [Range(0, 18)]
-        [SerializeField] private float m_AnalSprayAmount;
-        public float AnalSprayAmount => m_AnalSprayAmount;
+        // В десятых долях миллилитра
+        [SerializeField] private int m_AnalGlandVolume;
+        public int AnalGlandVolume => m_AnalGlandVolume;
+        //[Range(0, 18)]
+
+        // В десятых долях миллилитра
+        [SerializeField] private int m_AnalSprayAmount;
+        public int AnalSprayAmount => m_AnalSprayAmount;
 
         [SerializeField] private Attribute m_Attribute;
 
@@ -203,8 +201,8 @@ namespace GentianoseRealDolls
 
 
         [Tooltip("0 - shit, 1 - spray, 2 - pee, 3 - bath, 4 - brushTeeth")]
-        private float[] m_ToiletStats;
-        public float[] ToiletStats => m_ToiletStats;
+        private int[] m_ToiletStats;
+        public int[] ToiletStats => m_ToiletStats;
 
         [SerializeField] private int m_DollSize;
         public int DollSize => m_DollSize;  
@@ -216,12 +214,9 @@ namespace GentianoseRealDolls
             m_IsActiveDollInParty = active;
         }
 
-        public void ConstructDoll(DollScaleValues[] dollData, AllDollCharacters adc,
-            AllDollPositions adp, Inventory inventory)
+        public void ConstructDoll(Inventory inventory)
         {
             m_Inventory = inventory;
-            allDolls = adc;
-            allPositions = adp;;
         }
 
 
@@ -235,14 +230,18 @@ namespace GentianoseRealDolls
 
             m_Controller = GetComponent<DollController>();
 
+            m_Stats = new int[8];
+            m_CombatStats = new int[2];
+
+            m_CombatStats[0] = m_DollID;
+            m_CombatStats[1] = petAsSpaceShip.HitPoints;
+
         }
 
         private void OnDestroy()
         {
             print($"Goodbye, Interface 336n! Your {m_CharacterName}");
 
-
-            SaveStats();
         }
 
 
@@ -258,13 +257,58 @@ namespace GentianoseRealDolls
 
         #region Stats Storage
 
-        IEnumerator PositionWrite()
+
+        [SerializeField] private int[] m_Stats;
+        [SerializeField] private int[] m_CombatStats;
+        public static Action<int[]> OnSave;
+        public static Action<int[]> OnSaveCombat;
+
+        // Сохранить
+        [Tooltip("int[8]")]
+        public int[] FetchStats()
         {
-            yield return new WaitForSeconds(4.25f);
-            allPositions.SetDollPos(m_Positions);
-            StartCoroutine(PositionWrite());
+            m_Stats[0] = m_DollID;
+            m_Stats[1] = m_LooPoo;
+            m_Stats[2] = m_AnalSprayAmount;
+            m_Stats[3] = m_LooPee;
+            m_Stats[4] = m_Bath;
+            m_Stats[5] = m_BrushTeeth;
+
+            m_Stats[6] = m_FoodHunger;
+            m_Stats[7] = m_Sleep;
+
+            return m_Stats;
         }
 
+        public int GetSprayCarePoints()
+        {
+            // Формула Фуньки
+            m_LooSpray = (int)(MaxLooStat * (1 -
+                (m_AnalSprayAmount - m_AnalGlandVolume * 0.8f)
+                / (m_AnalGlandVolume * 0.2f)));
+
+            m_LooSpray = Mathf.Clamp(m_LooSpray, 0, MaxLooStat);
+
+            return m_LooSpray;
+        }
+
+        [Tooltip("int[8]")]
+        public void FillStats(int[] stats)
+        {
+            m_LooPoo = stats[1];
+            m_AnalSprayAmount = stats[2];
+            m_LooPee = stats[3];
+            m_Bath = stats[4];
+            m_BrushTeeth = stats[5];
+            m_FoodHunger = stats[6];
+            m_Sleep = stats[7];
+
+            m_LooSpray = GetSprayCarePoints();
+
+            
+
+            m_ToiletStats = stats[1..6];
+        }
 
 
         /// <summary>
@@ -291,6 +335,7 @@ namespace GentianoseRealDolls
 
         #region Public API
 
+        // Уменьшение значений шкал со временем
         public void ChangeSleep(bool isSleeping)
         {
             if (isSleeping)
@@ -304,54 +349,49 @@ namespace GentianoseRealDolls
                     m_Sleep -= 1;
             }
 
-            SaveStats();
+            //SaveStats();
         }
 
-        public void SetSleep(float sleep)
-        {
-            m_Sleep = Mathf.Clamp(sleep, 0, MaxStat);
-            SaveStats();
-        }
-        public void SetFoodHunger(float foodHunger)
-        {
-            m_FoodHunger = Mathf.Clamp(foodHunger, 0, MaxStat);
-            SaveStats();
-        }
-       
 
-        public void ReduceNonSleepStats()
+
+        /// <summary>
+        /// /// Фунька добавляется 0.1 мл (1 очко) каждые 15 мин
+        /// Туалет (кал и моча): 1 каждые 15 мин
+        /// Ванная: 1 каждые 6 минут 
+        /// Чистка зубов: 1 каждые 5 мин
+        /// Еда и сон: 1 каждую минуту
+        /// </summary>
+
+        public void ReduceStats()
         {
 
             if (m_AnalSprayAmount < m_AnalGlandVolume)
-                m_AnalSprayAmount += StepAnalGlandSecretions * m_AnalGlandVolume;
+                m_AnalSprayAmount++;
             if (m_AnalSprayAmount > m_AnalGlandVolume)
                 m_AnalSprayAmount = m_AnalGlandVolume;
 
             m_ScaleValues.AnalSprayAmount = m_AnalSprayAmount;
 
             // Формула Фуньки
-            m_LooSpray = MaxLooStat * (1 - 
-                (m_AnalSprayAmount - m_AnalGlandVolume * 0.6f)
-                / (m_AnalGlandVolume * 0.4f));
+            m_LooSpray = (int)(MaxLooStat * (1 - 
+                (m_AnalSprayAmount - m_AnalGlandVolume * 0.8f)
+                / (m_AnalGlandVolume * 0.2f)));
 
             m_LooSpray = Mathf.Clamp(m_LooSpray, 0, MaxLooStat);
 
             if (m_LooPoo > 0)
-                m_LooPoo -= StepLooStat;
+                m_LooPoo--;
 
             if (m_LooPee > 0)
-                m_LooPee -= StepLooStat;
+                m_LooPee--;
 
-            if (m_Bath > 0)
-                m_Bath -= StepBath;
+            if (m_Bath> 0)
+                m_Bath--;
 
             if (m_BrushTeeth > 0)
-                m_BrushTeeth -= StepBrushTeeth;
+                m_BrushTeeth--;
 
-            if (m_FoodHunger > 0)
-                m_FoodHunger -= 1;
-
-            m_ToiletStats = new float[5]
+            m_ToiletStats = new int[5]
             {
                 m_LooPoo,
                 m_LooSpray,
@@ -360,35 +400,131 @@ namespace GentianoseRealDolls
                 m_BrushTeeth
             };
 
-            SaveStats();
+            if (m_FoodHunger > 0)
+                m_FoodHunger--;
+
+
+            FetchStats();
 
             print(PreviousTime);
         }
 
 
 
-        //
-      
-        public void SaveStats()
+
+        //Установка значений
+
+        public void SetSleep(int sleep)
         {
-            m_ScaleValues.LooPoo = m_LooPoo;
-            m_ScaleValues.AnalSprayAmount = m_AnalSprayAmount;
-            m_ScaleValues.LooPee = m_LooPee;
-            m_ScaleValues.Bath = m_Bath;
-            m_ScaleValues.BrushTeeth = m_BrushTeeth;
-
-            m_ScaleValues.FoodHunger = m_FoodHunger;
-            m_ScaleValues.Sleep = m_Sleep;
-
-            m_ScaleValues.dollID = DollID;
-
-            
-
-            allDolls.SetDoll(m_ScaleValues);
-
-            print("Stats were saved");
+            m_Sleep = Mathf.Clamp(sleep, 0, MaxStat);
+            FetchStats();
         }
-        
+        public void SetFoodHunger(int foodHunger)
+        {
+            m_FoodHunger = Mathf.Clamp(foodHunger, 0, MaxStat);
+            FetchStats();
+        }
+
+
+
+        public void Eat(InventoryItem food)
+        {
+            m_Inventory.AddItemInstances(food, -1);
+            m_FoodHunger = Mathf.Min(m_FoodHunger + food.foodBonus, MaxStat);
+
+
+            FetchStats();
+        }
+
+        public void OhPoop()
+        {
+            m_LooPoo = 0;
+        }
+
+        private void InitToiletStatArray()
+        {
+            m_ToiletStats = new int[5];
+            m_ToiletStats[0] = m_LooPoo;
+            m_ToiletStats[1] = m_LooSpray;
+            m_ToiletStats[2] = m_LooPee;
+            m_ToiletStats[3] = m_Bath;
+            m_ToiletStats[4] = m_BrushTeeth;
+        }
+
+        public float TakeToiletStat(int index)
+        {
+            InitToiletStatArray();
+            return m_ToiletStats[index];
+        }
+
+        public void CareToiletStat(ToiletStat stat, int value)
+        {
+
+            if (stat == ToiletStat.Poo)
+            {
+                m_LooPoo += value;
+                m_LooPoo = Mathf.Clamp(m_LooPoo, 0, MaxLooStat);
+            }
+            if (stat == ToiletStat.AnalSpray)
+            {
+                m_AnalSprayAmount -= value;
+                m_AnalSprayAmount = Mathf.Clamp(m_AnalSprayAmount, 0, AnalGlandVolume);
+
+                // Формула Фуньки
+                m_LooSpray = (int)(MaxLooStat * (1 -
+                    (m_AnalSprayAmount - m_AnalGlandVolume * 0.8f)
+                    / (m_AnalGlandVolume * 0.2f)));
+
+                m_LooSpray = Mathf.Clamp(m_LooSpray, 0, MaxLooStat);
+
+
+                m_LooSpray = Mathf.Clamp(m_LooSpray, 0, MaxLooStat);
+            }
+            if (stat == ToiletStat.Pee)
+            {
+                m_LooPee += value;
+                m_LooPee = Mathf.Clamp(m_LooPee, 0, MaxLooStat);
+            }
+            if (stat == ToiletStat.Bath)
+            {
+                m_Bath += value;
+                m_Bath = Mathf.Clamp(m_Bath, 0, MaxBath);
+            }
+            if (stat == ToiletStat.BrushTeeth)
+            {
+                m_BrushTeeth += value;
+                m_BrushTeeth = Mathf.Clamp(m_BrushTeeth, 0, MaxBrushTeeth);
+            }
+
+            InitToiletStatArray();
+            FetchStats();
+        }
+
+        public void SetToiletStats(int poo, int analSpray, int pee, int bath, int brushTeeth)
+        {
+            m_LooPoo = Mathf.Clamp(poo, 0, MaxLooStat);
+
+            m_AnalSprayAmount = Mathf.Clamp(analSpray, 0, AnalGlandVolume);
+
+            // Формула Фуньки
+            m_LooSpray = (int)(MaxLooStat * (1 -
+                (m_AnalSprayAmount - m_AnalGlandVolume * 0.8f)
+                / (m_AnalGlandVolume * 0.2f)));
+
+            m_LooSpray = Mathf.Clamp(m_LooSpray, 0, MaxLooStat);
+
+
+            m_LooPee = Mathf.Clamp(pee, 0, MaxLooStat);
+
+            m_Bath = Mathf.Clamp(bath, 0, MaxBath);
+
+            m_BrushTeeth = Mathf.Clamp(brushTeeth, 0, MaxBrushTeeth);
+
+
+            InitToiletStatArray();
+            FetchStats();
+        }
+
 
        
 
@@ -415,15 +551,9 @@ namespace GentianoseRealDolls
         {
             return () =>
             {
-                m_LooPoo = 11f;
+                m_LooPoo = 11;
             };
 
-        }
-
-        public void SetMaxPooCare()
-        {
-            m_LooPoo = MaxLooStat;
-            SaveStats();
         }
 
         #endregion
@@ -441,113 +571,28 @@ namespace GentianoseRealDolls
             petAsSpaceShip.RestoreHitPoints(Mathf.Min(petAsSpaceShip.MaxHitPoints - petAsSpaceShip.HitPoints, hp));
         }
 
-       
+        public void SetToiletStat(int statID, int statValue)
+        {
+            InitToiletStatArray();
+
+            m_ToiletStats[statID] = statValue;
+        }
+
+        public void FillCombatStats(int[] stats)
+        {
+            petAsSpaceShip.FillHitPoints(stats[1]);
+        }
+
+        public int[] FetchCombatStats()
+        {
+            m_CombatStats[0] = m_DollID;
+            m_CombatStats[1] = petAsSpaceShip.HitPoints;
+
+            return m_CombatStats;
+        }
+
         #endregion
 
-
-
-        public void Eat(InventoryItem food)
-        {
-            m_Inventory.AddItemInstances(food, -1);
-            m_FoodHunger = Mathf.Min(m_FoodHunger + food.foodBonus, MaxStat);
-
-
-            SaveStats();
-        }
-
-        public void OhPoop()
-        {
-            m_LooPoo = 0;
-        }
-
-        private void InitToiletStatArray()
-        {
-            m_ToiletStats = new float[5];
-            m_ToiletStats[0] = m_LooPoo;
-            m_ToiletStats[1] = m_LooSpray;
-            m_ToiletStats[2] = m_LooPee;
-            m_ToiletStats[3] = m_Bath;
-            m_ToiletStats[4] = m_BrushTeeth;
-        }
-
-        public float TakeToiletStat(int index)
-        {
-            InitToiletStatArray();
-            return m_ToiletStats[index];    
-        }
-
-        public void CareToiletStat(ToiletStat stat, float value)
-        {
-            value = (value * 1000f) / 1000;
-
-            if (stat == ToiletStat.Poo)
-            {
-                m_LooPoo += value;
-                m_LooPoo = Mathf.Clamp(m_LooPoo, 0, MaxLooStat);
-            }
-            if (stat == ToiletStat.AnalSpray)
-            {
-                m_AnalSprayAmount -= value;
-                m_AnalSprayAmount = Mathf.Clamp(m_AnalSprayAmount, 0, AnalGlandVolume);
-
-                // Формула Фуньки
-                m_LooSpray = MaxLooStat * (1 -
-                    (m_AnalSprayAmount - m_AnalGlandVolume * 0.6f)
-                    / (m_AnalGlandVolume * 0.4f));
-
-                m_LooSpray = Mathf.Clamp(m_LooSpray, 0, MaxLooStat);
-
-
-                m_LooSpray = Mathf.Clamp(m_LooSpray, 0, MaxLooStat);
-            }
-            if (stat == ToiletStat.Pee)
-            {
-                m_LooPee += value;
-                m_LooPee = Mathf.Clamp(m_LooPee, 0, MaxLooStat);
-            }
-            if (stat == ToiletStat.Bath)
-            {
-                m_Bath += value;
-                m_Bath = Mathf.Clamp(m_Bath, 0, MaxBath);
-            }
-            if (stat == ToiletStat.BrushTeeth)
-            {
-                m_BrushTeeth += value;
-                m_BrushTeeth = Mathf.Clamp(m_BrushTeeth, 0, MaxBrushTeeth);
-            }
-
-            InitToiletStatArray();
-            SaveStats();
-        }
-
-        public void SetToiletStats(float poo, float analSpray, float pee, float bath, float brushTeeth)
-        {            
-                m_LooPoo = Mathf.Clamp(poo, 0, MaxLooStat);
-            
-                m_AnalSprayAmount = Mathf.Clamp(analSpray, 0, AnalGlandVolume);
-
-            // Формула Фуньки
-            m_LooSpray = MaxLooStat * (1 -
-                (m_AnalSprayAmount - m_AnalGlandVolume * 0.6f)
-                / (m_AnalGlandVolume * 0.4f));
-
-            m_LooSpray = Mathf.Clamp(m_LooSpray, 0, MaxLooStat);
-
-
-            m_LooPee = Mathf.Clamp(pee, 0, MaxLooStat);
-            
-                m_Bath = Mathf.Clamp(bath, 0, MaxBath);
-            
-                m_BrushTeeth = Mathf.Clamp(brushTeeth, 0, MaxBrushTeeth);
-            
-
-                InitToiletStatArray();
-                SaveStats();
-        }
-
-        
-
-      
     }
 
 }

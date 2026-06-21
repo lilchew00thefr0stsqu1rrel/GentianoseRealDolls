@@ -2,6 +2,7 @@ using GentianoseRealDolls;
 using SpaceShooter;
 using UnityEngine;
 using System.Threading.Tasks;
+using System.Collections;
 
 public class HealSide : DollPart
 {
@@ -13,19 +14,20 @@ public class HealSide : DollPart
     private float m_Time;
 
     private bool m_Cooldown;
-    public override void Use(Vector2 aimInput, float time)
+
+
+    public override void SetActionTime(float time)
+    {
+        m_Time = time;
+    }
+    public override void Use()
     {
         Heal();
     }
     
-    private async void Heal()
+    private void Heal()
     {
-        await Task.Delay(1000);
-        m_Party.RestoreHPAll(m_Heal * m_Multiplier);
-        await Task.Delay(1000);
-        m_Party.RestoreHPAll(m_Heal * m_Multiplier);
-        await Task.Delay(1000);
-        m_Party.RestoreHPAll(m_Heal * m_Multiplier);
+         m_Party?.RestoreHPAll(m_Heal * m_Multiplier);
     }
 
     public void SetParty(Party p)

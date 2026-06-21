@@ -25,7 +25,7 @@ namespace GentianoseRealDolls
         //    m_Party = obj;
         //    m_CurrentDoll = m_Party.ActiveDoll;
         //}
-        // ������� ��� ������� ��������� ������
+        // Делегат для события изменения аллюра
         public delegate void GaitChanged(int indexInParty, int gaitState);
         public event GaitChanged OnGaitChanged;
 
@@ -80,6 +80,7 @@ namespace GentianoseRealDolls
             //UpdateMovement();
         }
 
+        [SerializeField] private int m_ActiveDollSize;
         public void SetCurrentDoll(DollController doll)
         {
            // m_CurrentDoll = doll.Doll;
@@ -89,9 +90,15 @@ namespace GentianoseRealDolls
             m_GaitManager = doll.GaitManager;
 
             m_ActiveDollInPartyIndex = doll.DollIndexInParty;
+
+            m_ActiveDollSize = doll.Doll.Asset.ModelSize;
+
+            m_Party.Camera.ReBirdEye(m_ActiveDollSize);
         }
 
         [SerializeField] private int m_ActiveDollInPartyIndex;
+
+        
 
         private void SetDollGait(DollGaitManager gm, int dollIndexInParty, int gaitState)
         {
@@ -105,7 +112,15 @@ namespace GentianoseRealDolls
                 ////OnGaitChanged?.Invoke(dollIndexInParty, gaitState);
 
 
-                if (gaitState == 1) m_Party.Camera.BirdEye(); else m_Party.Camera.ReBirdEye();
+                if (gaitState == 1)
+                {
+                    m_Party.Camera.BirdEye();
+                }
+                else
+                {
+                    m_Party.Camera.ReBirdEye(m_ActiveDollSize);
+                }
+
             }
         }
         
@@ -144,8 +159,8 @@ namespace GentianoseRealDolls
         public void OnGaitUp(InputAction.CallbackContext context)
         {
 
-            // ���������, ��� �������� ������ ���������,
-            // � �� �������� ��� � ��������
+            // Проверяем, что действие именно выполнено,
+            // а не отменено или в процессе
             if (!context.performed) return;
 
             GaitUp();
@@ -153,8 +168,8 @@ namespace GentianoseRealDolls
         public void OnGaitDown(InputAction.CallbackContext context)
         {
 
-            // ���������, ��� �������� ������ ���������,
-            // � �� �������� ��� � ��������
+            // Проверяем, что действие именно выполнено,
+            // а не отменено или в процессе
             if (!context.performed) return;
 
             GaitDown();

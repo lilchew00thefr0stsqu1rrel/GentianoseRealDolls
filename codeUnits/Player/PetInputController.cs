@@ -10,6 +10,11 @@ public class PetInputController : MonoCache
     [SerializeField] private Party party;
     [SerializeField] private Dashboard dashboard;
     [SerializeField] private CombatDashboard combatDashboard;
+    [SerializeField] private CameraAroundDoll cameraAroundDoll;
+
+    [SerializeField] private VirtualGamePad m_VirtualGamePad;
+    private Vector2 m_FirstFing;
+    private Vector2 m_SecondFing;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -21,58 +26,77 @@ public class PetInputController : MonoCache
     {
         base.Run();
 
-        // ���� ����. �����
+        // ради обыч. атаки
 
 
         combatDashboard.SetAim(aim);
 
+        if (m_FirstFing.x < -0.1f && m_SecondFing.x > 0.1f) 
+        {
+            cameraAroundDoll.Zoom(-1);
+        }
+        if (m_FirstFing.x > 0.1f && m_SecondFing.x < -0.1f)
+        {
+            cameraAroundDoll.Zoom(1);
+        }
+
+
+        if (m_VirtualGamePad.VirtualJoystickRotation.Value.x > 0)
+        {
+            cameraAroundDoll.Rotate(-1);
+        }
+        if (m_VirtualGamePad.VirtualJoystickRotation.Value.x < 0)
+        {
+            cameraAroundDoll.Rotate(1);
+        }
+
     }
 
-    // ���� ����� ���������� ��� ������� ������ Jump
+    // Этот метод вызывается при нажатии кнопки Jump
     public void OnPoop(InputAction.CallbackContext context)
     {
-        // ���������, ��� �������� ������ ���������,
-        // � �� �������� ��� � ��������
+        // Проверяем, что действие именно выполнено,
+        // а не отменено или в процессе
         if (!context.performed) return;
 
         if (!SarvaToilet.CanPoop) return;
 
-        // � �������� ���������� �������
-        // ������ ������������ ������ �� 90 ��������
+        // В качестве наглядного эффекта
+        // просто поворачиваем объект на 90 градусов
 
         party.ActiveDoll.DollController.PoopManager.ToPoop();
     }
 
-    // ���� ����� ���������� ��� ������� ������ Map
+    // Этот метод вызывается при нажатии кнопки Map
     public void OnOpenMap(InputAction.CallbackContext context)
     {
-        // ���������, ��� �������� ������ ���������,
-        // � �� �������� ��� � ��������
+        // Проверяем, что действие именно выполнено,
+        // а не отменено или в процессе
         if (!context.performed) return;
 
         
         dashboard.ShowMap();
         
     }
-    // ���� ����� ���������� ��� ������� ������ Esc
+    // Этот метод вызывается при нажатии кнопки Esc
     public void OnEscape(InputAction.CallbackContext context)
     {
-        // ���������, ��� �������� ������ ���������,
-        // � �� �������� ��� � ��������
+        // Проверяем, что действие именно выполнено,
+        // а не отменено или в процессе
         if (!context.performed) return;
 
-        // ��������� ��� ��������� ���������, ��� � Terraria
+        // Открывает или закрывает инвентарь, как в Terraria
         dashboard.OnEscape();
 
     }   
     
 
 
-    // ���� ����� ���������� ��� ������� ������� F
+    // Этот метод вызывается при нажатии клаваиа F
     public void OnInteract(InputAction.CallbackContext context)
     {
-        // ���������, ��� �������� ������ ���������,
-        // � �� �������� ��� � ��������
+        // Проверяем, что действие именно выполнено,
+        // а не отменено или в процессе
         if (!context.performed) return;
 
 
@@ -84,18 +108,18 @@ public class PetInputController : MonoCache
     [SerializeField] Vector2 aim;
     public void OnEndSpray(InputAction.CallbackContext context)
     {
-        // ���������, ��� �������� ������ ���������,
-        // � �� �������� ��� � ��������
+        // Проверяем, что действие именно выполнено,
+        // а не отменено или в процессе
         if (!context.performed) return;
 
-        // 1 - ���� 
+        // 1 - анус 
         party.ActiveDoll.DollController.BattleManager.EndGreaterSkill(aim);
         dashboard.SetSprayChargeUIVisible(false);
     }
     public void OnStartSpray(InputAction.CallbackContext context)
     {
-        // ���������, ��� �������� ������ ���������,
-        // � �� �������� ��� � ��������
+        // Проверяем, что действие именно выполнено,
+        // а не отменено или в процессе
         if (!context.performed) return;
 
         party.ActiveDoll.DollController.BattleManager.StartGreaterSkill();
@@ -111,8 +135,8 @@ public class PetInputController : MonoCache
     }
     public void OnLesserSkill(InputAction.CallbackContext context)
     {
-        // ���������, ��� �������� ������ ���������,
-        // � �� �������� ��� � ��������
+        // Проверяем, что действие именно выполнено,
+        // а не отменено или в процессе
         if (!context.performed) return;
 
         party.ActiveDoll.DollController.BattleManager.LesserSkill();
@@ -121,8 +145,8 @@ public class PetInputController : MonoCache
 
     public async void OnSprayStanceOnOff(InputAction.CallbackContext context)
     {
-        // ���������, ��� �������� ������ ���������,
-        // � �� �������� ��� � ��������
+        // Проверяем, что действие именно выполнено,
+        // а не отменено или в процессе
         if (!context.performed) return;
 
         bool coold = false;
@@ -138,8 +162,8 @@ public class PetInputController : MonoCache
 
     public void OnDigitKey1(InputAction.CallbackContext context)
     {
-        // ���������, ��� �������� ������ ���������,
-        // � �� �������� ��� � ��������
+        // Проверяем, что действие именно выполнено,
+        // а не отменено или в процессе
         if (!context.performed) return;
         party.SetActiveDoll(0);
         
@@ -147,8 +171,8 @@ public class PetInputController : MonoCache
     }
     public void OnDigitKey2(InputAction.CallbackContext context)
     {
-        // ���������, ��� �������� ������ ���������,
-        // � �� �������� ��� � ��������
+        // Проверяем, что действие именно выполнено,
+        // а не отменено или в процессе
         if (!context.performed) return;
         party.SetActiveDoll(1);
 
@@ -157,12 +181,36 @@ public class PetInputController : MonoCache
     }
     public void OnDigitKey3(InputAction.CallbackContext context)
     {
-        // ���������, ��� �������� ������ ���������,
-        // � �� �������� ��� � ��������
+        // Проверяем, что действие именно выполнено,
+        // а не отменено или в процессе
         if (!context.performed) return;
         party.SetActiveDoll(2);
 
 
         dashboard.InitDoll();
+    }
+    private float m_Wheel;
+    private float m_MouseX;
+    
+    public void OnZoom(InputAction.CallbackContext context)
+    {
+        m_Wheel = context.ReadValue<float>();
+        cameraAroundDoll.Zoom(m_Wheel > 0 ? 1 : -1);
+    }
+
+    public void OnRotateCamera(InputAction.CallbackContext context)
+    {
+        m_MouseX = context.ReadValue<float>();
+        cameraAroundDoll.Rotate(m_MouseX > 0 ? 1 : -1);
+    }
+
+    public void OnFirstFing(InputAction.CallbackContext context)
+    {
+        m_FirstFing = context.ReadValue<Vector2>();
+    }
+
+    public void OnSecondFing(InputAction.CallbackContext context)
+    {
+        m_SecondFing = context.ReadValue<Vector2>();
     }
 }
