@@ -85,7 +85,7 @@ namespace GentianoseRealDolls
         [Tooltip("int[2]")]
         public void WriteDoll(int[] data)
         {
-
+            m_Dolls[data[0] * 2 + 1] = data[1];
             if (m_DollBase.CheckRecordPresent(data[0], "dollSleeps"))
             {
 
