@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Unity.VisualScripting;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TextCore.Text;
@@ -257,8 +258,6 @@ namespace GentianoseRealDolls
             sessionHouseMap++;
 
             //ReadDolls();
-
-            
             int d = 0;
             d = m_ActiveDollUponExit.GetActiveDoll();
 
@@ -298,6 +297,8 @@ namespace GentianoseRealDolls
             m_Inventory.InitInventory();
 
             m_TimeDifference = m_TimePastStats.ReadTime();
+
+            ChangeStatsByPastTime();
 
             m_PoopStore.InitPoop();
 
@@ -366,14 +367,73 @@ namespace GentianoseRealDolls
 
 
         #endregion
+        private int[] m_MaxSpray = new int[3]
+        {
+            180,
+            60, 80
+        };
 
+        private void ChangeStatsByPastTime()
+        {
+            int timeI = (int)m_TimeDifference;
+            for (int i = 0; i < 3; i++)
+            {
+
+                m_Stats[i * 8 + 1] = Mathf.Clamp(m_Stats[i * 8 + 1] - timeI, 0, 10);
+
+                m_Stats[i * 8 + 2] = Mathf.Clamp(m_Stats[i * 8 + 2] - timeI, 0, m_MaxSpray[i]);
+
+                m_Stats[i * 8 + 3] = Mathf.Clamp(m_Stats[i * 8 + 3] - timeI, 0, 10);
+
+                m_Stats[i * 8 + 4] = Mathf.Clamp(m_Stats[i * 8 + 4] - timeI, 0, 40);
+
+                m_Stats[i * 8 + 5] = Mathf.Clamp(m_Stats[i * 8 + 5] - timeI, 0, 30);
+
+                m_Stats[i * 8 + 6] = Mathf.Clamp(m_Stats[i * 8 + 6] - timeI, 0, 100);
+
+                if (m_BedData[i * 2 + 1] == 1)
+                    m_Stats[i * 8 + 7] = Mathf.Clamp(m_Stats[i * 8 + 7] + timeI, 0, 100);
+                if (m_BedData[i * 2 + 1] == 0)
+                    m_Stats[i * 8 + 7] = Mathf.Clamp(m_Stats[i * 8 + 7] - timeI, 0, 100);
+            }
+        }
         // Изменение шкал кукол по времени
         async void StatsReduceOverTime()
         {
-            await Task.Delay(60000);
+            int n = 60 - DateTime.Now.Second; 
+            await Task.Delay(1000 * n);
 
-            m_ActiveDoll.DollController.ReduceStatsOverTime();
+            //m_ActiveDoll.DollController.ReduceStatsOverTime();
 
+            for (int i = 0; i < 3; i++)
+            {
+
+
+                m_Stats[i * 8 + 1] = Mathf.Clamp(m_Stats[i * 8 + 1] - 1, 0, 10);
+
+                m_Stats[i * 8 + 2] = Mathf.Clamp(m_Stats[i * 8 + 2] - 1, 0, m_MaxSpray[i]);
+
+                m_Stats[i * 8 + 3] = Mathf.Clamp(m_Stats[i * 8 + 3] - 1, 0, 10);
+
+                m_Stats[i * 8 + 4] = Mathf.Clamp(m_Stats[i * 8 + 4] - 1, 0, 40);
+
+                m_Stats[i * 8 + 5] = Mathf.Clamp(m_Stats[i * 8 + 5] - 1, 0, 30);
+
+                m_Stats[i * 8 + 6] = Mathf.Clamp(m_Stats[i * 8 + 6] - 1, 0, 100);
+
+                if (m_BedData[i * 2 + 1] == 1)
+                    m_Stats[i * 8 + 7] = Mathf.Clamp(m_Stats[i * 8 + 7] + 1, 0, 100);
+                if (m_BedData[i * 2 + 1] == 0)
+                    m_Stats[i * 8 + 7] = Mathf.Clamp(m_Stats[i * 8 + 7] - 1, 0, 100);
+
+
+                m_AllDollCharacters.WriteDoll(GetDollStats(i));
+
+                if (m_ActiveDoll.DollID == i)
+                    m_ActiveDoll.FillStats(GetDollStats(i));
+
+
+            }
 
 
             StatsReduceOverTime();
@@ -414,7 +474,6 @@ namespace GentianoseRealDolls
 
             m_ActiveDollUponExit.SetActiveDoll(index);
 
-
             m_ActiveDoll.DollController.SetLocationIndex(m_MapID);
             m_ActiveDoll.DollController.ConstructDollParty(this);
             m_ActiveDoll.DollController.SetOffField(m_OffField);
@@ -429,11 +488,16 @@ namespace GentianoseRealDolls
 
             var cbt = GetDollCombat(m_ActiveDoll.DollID);
 
+
+
+            m_ActiveDoll.FillStats(GetDollStats(m_ActiveDoll.DollID));
+
             // Нужно ли уменьшать шкалы на время вне игры?
             if (m_DirtyDolls[m_ActiveDoll.DollID] == false)
             {
                 // В начале
-                m_ActiveDoll.DollController.TimeActionStats(time, sts, slp);
+                //m_ActiveDoll.DollController.TimeActionStats(time, sts, slp);
+                
                 m_DirtyDolls[m_ActiveDoll.DollID] = true;
             }
             else
