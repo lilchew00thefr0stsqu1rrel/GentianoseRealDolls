@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace GentianoseRealDolls
 {
-    public class InventoryDisplay : MonoBehaviour
+    public class InventoryDisplay : DashboardBase
     {
         [SerializeField] private GameObject itemGrid;
         [SerializeField] private GameObject foodItemGrid;
