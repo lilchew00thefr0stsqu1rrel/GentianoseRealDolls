@@ -71,6 +71,9 @@ namespace GentianoseRealDolls
                 15
             };
 
+            
+        private int m_FieldNumber = 8;
+
         
         [SerializeField] private UnityEngine.UI.Text m_DebugText;
         [SerializeField] private DollBase m_DollBase;
@@ -145,13 +148,14 @@ namespace GentianoseRealDolls
 
             int id = stats[0];
 
-            m_Dolls[id + 1] = stats[1];
-            m_Dolls[id + 2] = stats[2];
-            m_Dolls[id + 3] = stats[3];
-            m_Dolls[id + 4] = stats[4];
-            m_Dolls[id + 5] = stats[5];
-            m_Dolls[id + 6] = stats[6];
-            m_Dolls[id + 7] = stats[7];
+            
+            m_Dolls[id * m_FieldNumber + 1] = stats[1];
+            m_Dolls[id * m_FieldNumber + 2] = stats[2];
+            m_Dolls[id * m_FieldNumber + 3] = stats[3];
+            m_Dolls[id * m_FieldNumber + 4] = stats[4];
+            m_Dolls[id * m_FieldNumber + 5] = stats[5];
+            m_Dolls[id * m_FieldNumber + 6] = stats[6];
+            m_Dolls[id * m_FieldNumber + 7] = stats[7];
 
             
                 if (m_DollBase.CheckRecordPresent(id, "dollStats"))
