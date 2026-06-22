@@ -17,7 +17,7 @@ public enum UIType
     Shop
 }
 
-public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
+public class Dashboard : MonoBehaviour
 {
     ////[Inject]
     //public void Construct(CurrentSceneData obj)
@@ -26,6 +26,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
     //}
 
     [SerializeField] private Party m_Party;
+    [SerializeField] private AllDollSleeps m_AllDollSleeps;
     [SerializeField] CurrentSceneData currentScene;
     [SerializeField] private HabitatInterface habitatUI;
     [SerializeField] private CombatDashboard combatUI;
@@ -35,6 +36,8 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
     [SerializeField] private GameObject m_ShopDisplay;
     [SerializeField] private GameObject m_Map;
     [SerializeField] private GameObject m_VirtualJoystickForRotation;
+    [SerializeField] private GameObject[] m_AllUI;
+    [SerializeField] private SleepUI m_SleepUI;
 
     public event Action<UIType> ChangeWindow;
 
@@ -64,44 +67,60 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
 
     [SerializeField] int tipID = -1;
 
-    public void Show(GameObject ui)
-    {
-        ui.SetActive(true);
-    }
-    public void Hide(GameObject ui)
-    {
-        ui.SetActive(false);
-    }
+    [SerializeField] private int tick;
 
-    private IEnumerator UpdateUI()
+    public void UpdateUI()
     {
-        yield return new WaitForSeconds(0.5f);
+        tick++;
 
         m_CurrentDoll = m_Party.ActiveDoll;
         if (m_CurrentDoll != null)
         {
 
+            m_SleepUI.SetDoll(m_CurrentDoll);
+
+
             m_CurrentDollController = m_Party.ActiveDollController;
 
-            habitatUI.UpdateDash(m_CurrentDoll);
-            combatUI.UpdateDash(m_CurrentDoll);
+            habitatUI.SetDoll(m_CurrentDoll);
+            combatUI.SetDoll(m_CurrentDoll);
+
+            habitatUI.UpdateUI();
+            combatUI.UpdateUI();
 
             m_GaitDisplay.UpdateGaitDisplay(m_Party.GaitMap);
-            SetSleepDoll();
+
+            if (tick % 5 == 0)
+            {
+                var slp = m_AllDollSleeps.GetDolls();
+
+                for (int i = 0; i < 3; i++)
+                {
+                    m_DollSleepIndic[i].SetActive(slp[i * 2 + 1] == 1);
+                }
+            }
         }
 
-        StartCoroutine(UpdateUI());
+        m_SleepUI.UpdateUI();
+    }
+
+    private IEnumerator UpdateUITick()
+    {
+        yield return new WaitForSeconds(0.1f);
+
+        UpdateUI();
+
+        StartCoroutine(UpdateUITick());
 
     }
+
 
     public void InitDoll()
     {
         m_CurrentDoll = m_Party.ActiveDoll;
         m_CurrentDollController = m_Party.ActiveDoll.DollController;
-        habitatUI.SetCurrentDoll(m_CurrentDoll);
+        habitatUI.SetDoll(m_CurrentDoll);
         combatUI.SetDoll(m_CurrentDoll);
-
-        SetSleepDoll();
     }
 
     Action<int, string, GiveResource> ShowInteract(int tipID, string itemName, GiveResource resource)
@@ -149,7 +168,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
 
         m_Party.OnActiveDollChanged += ShowActiveDoll;
 
-        StartCoroutine(UpdateUI());
+        StartCoroutine(UpdateUITick());
 
     }
     private void OnDestroy()
@@ -168,13 +187,6 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         }
         m_ActiveDollIndic[index].SetActive(true);
     }
-    public void SetSleepDoll()
-    {
-        bool sp = m_Party.ActiveDoll.DollController.SleepSystem.IsSleeping;
-        int indexsp = 0;
-        indexsp = m_Party.ActiveDollIndexInParty;
-        m_DollSleepIndic[indexsp].SetActive(sp);
-    }
 
     private bool m_LoadReady;
 
@@ -186,7 +198,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
 
     public void OnEscape()
     {
-        if (uiType == UIType.World)
+        if (m_CurrentUI == -1)
             OpenInventory();
         else
             CloseInventory();
@@ -195,25 +207,20 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
     public void OpenInventory()
     {
 
+        SetUI(1);
         m_VirtualJoystickForRotation.SetActive(false);
 
         habitatUI.HideAdditiveDashboard();
-        Show(inventoryDisplay.gameObject);
-        uiType = UIType.Inventory;
         m_Party.PauseAllDolls();
     }
     public void CloseInventory()
     {
-        Hide(inventoryDisplay.gameObject);
-
-        Hide(m_Map);
-        Hide(stoveUI);
-        Hide(m_ShopDisplay);
 
         m_VirtualJoystickForRotation.SetActive(true);
         
-        uiType = UIType.World;
         m_Party.UnPauseAllDolls();
+
+        SetUI(0);
     } 
 
     public void ShowMap()
@@ -302,6 +309,23 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
         m_ShopDisplay.SetActive(true);
     }
 
+    public void SetUI(int uiID)
+    {
+        m_CurrentUI = uiID;
+
+
+        for (int i = 0; i < m_AllUI.Length; i++)
+        {
+             m_AllUI[i].gameObject.SetActive(false);
+        }
+
+        if (uiID > 0 && m_AllUI[uiID - 1] != null)
+        {
+            m_AllUI[uiID - 1].gameObject.SetActive(true);
+        }
+
+    }
+
     public void UpdateCooldown(float time)
     {
         combatUI.UpdateShowCooldownTime(time);
@@ -325,7 +349,7 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
     }
     public void SetDollHabitat(Doll doll)
     {
-        habitatUI.SetCurrentDoll(doll);
+        habitatUI.SetDoll(doll);
     }
     public void SetDollOpenWorld(Doll doll)
     {
@@ -351,6 +375,8 @@ public class Dashboard : MonoBehaviour, IDashboard, IDollSettable
 
 
     private UIType uiType;
+
+    [SerializeField] private int m_CurrentUI;
     public UIType dashboardUIType => uiType;
     public void SetUIType(UIType type)
     {
