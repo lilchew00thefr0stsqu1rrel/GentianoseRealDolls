@@ -215,9 +215,9 @@ namespace GentianoseRealDolls
                 doll[5] = m_Dolls[i * 8 + 5];
                 doll[6] = m_Dolls[i * 8 + 6];
                 if (sleepMap[i * 2 + 1] == 1)
-                    m_Dolls[i * 8 + 7] = Mathf.Clamp(m_Dolls[i * 8 + 7] + 1, 0, 100);
+                    doll[i * 8 + 7] = Mathf.Clamp(m_Dolls[i * 8 + 7] + 1, 0, 100);
                 if (sleepMap[i * 2 + 1] == 0)
-                    m_Dolls[i * 8 + 7] = Mathf.Clamp(m_Dolls[i * 8 + 7] - 1, 0, 100);
+                    doll[i * 8 + 7] = Mathf.Clamp(m_Dolls[i * 8 + 7] - 1, 0, 100);
 
 
                 WriteDoll(doll);
