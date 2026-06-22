@@ -60,6 +60,16 @@ namespace GentianoseRealDolls
 
         [Tooltip("-1 meaning this scene is not a location")]
 
+        [SerializeField]
+        private int[] AnalGlandCapacities =
+            new int[]
+            {
+                180,
+                60,
+                80,
+                70,
+                15
+            };
 
         
         [SerializeField] private UnityEngine.UI.Text m_DebugText;
@@ -105,10 +115,8 @@ namespace GentianoseRealDolls
 
                 m_Dolls.AddRange(stats);
             }
-
-
-
         }
+
         [Tooltip("int[8n]")]
         public List<int> GetDolls()
         {
@@ -118,10 +126,22 @@ namespace GentianoseRealDolls
 
         }
 
+        [Tooltip("int[8]")]
+        public int[] GetDoll(int dollID)
+        {
+            ReadDolls();
 
+            int[] doll = new int[8];
+            for (int i = 0; i < 8; i++)
+            {
+                doll[i] = m_Dolls[dollID * 8 + i];
+            }
+            return doll;
+        }
         [Tooltip("int[8]")]
         public void WriteDoll(int[] stats)
         {
+            ReadDolls();
 
             int id = stats[0];
 
@@ -152,9 +172,62 @@ namespace GentianoseRealDolls
                 }
             
         }
+
+        public void ReduceNonSleepStats()
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                int[] doll = new int[8];
+                doll[0] = m_Dolls[i * 8];
+                doll[1] = Mathf.Clamp(m_Dolls[i * 8 + 1] - 1, 0, 10);
+
+                doll[2] = Mathf.Clamp(m_Dolls[i * 8 + 2] - 1, 0, AnalGlandCapacities[i]);
+
+                doll[3] = Mathf.Clamp(m_Dolls[i * 8 + 3] - 1, 0, 10);
+
+                doll[4] = Mathf.Clamp(m_Dolls[i * 8 + 4] - 1, 0, 40);
+
+                doll[5] = Mathf.Clamp(m_Dolls[i * 8 + 5] - 1, 0, 30);
+
+                doll[6] = Mathf.Clamp(m_Dolls[i * 8 + 6] - 1, 0, 100);
+
+                doll[7] = m_Dolls[i * 8 + 7];
+
+                WriteDoll(doll);
+
+
+
+            }
+        }
+       
+        public void ChangeSleepStat(List<int> sleepMap)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                int[] doll = new int[8];
+
+
+                doll[0] = m_Dolls[i * 8];
+                doll[1] = m_Dolls[i * 8 + 1];
+                doll[2] = m_Dolls[i * 8 + 2];
+                doll[3] = m_Dolls[i * 8 + 3];
+                doll[4] = m_Dolls[i * 8 + 4];
+                doll[5] = m_Dolls[i * 8 + 5];
+                doll[6] = m_Dolls[i * 8 + 6];
+                if (sleepMap[i * 2 + 1] == 1)
+                    m_Dolls[i * 8 + 7] = Mathf.Clamp(m_Dolls[i * 8 + 7] + 1, 0, 100);
+                if (sleepMap[i * 2 + 1] == 0)
+                    m_Dolls[i * 8 + 7] = Mathf.Clamp(m_Dolls[i * 8 + 7] - 1, 0, 100);
+
+
+                WriteDoll(doll);
+
+
+
+            }
+        }
+
     }
 
 }
-
-
 
