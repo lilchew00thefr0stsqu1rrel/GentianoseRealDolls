@@ -154,6 +154,12 @@ namespace GentianoseRealDolls
 
             
         }
+
+        public void SetOffField(OffField off)
+        {
+            battler.SetOffField(off);
+        }
+
         public void FillCombatStats(int[] stats)
         {
             m_Doll.FillCombatStats(stats);
@@ -247,12 +253,13 @@ namespace GentianoseRealDolls
             stats[6] = Mathf.Clamp(stats[6] - (int)timeDifference, 0, Doll.MaxStat);
 
 
-            bool isSleeping = sleepData[1] == 1 ? true : false;
+            bool isSleeping = false;
+            if (sleepData[1] == 1) isSleeping = true;
 
             sleepSystem.SetSleep(sleepData);
 
 
-            if (sleepData[1] == 1)
+            if (isSleeping)
             {
                 stats[7] = Mathf.Clamp(stats[7] + (int)timeDifference, 0, Doll.MaxStat);
 
@@ -328,6 +335,7 @@ namespace GentianoseRealDolls
             sleepSystem.SetSleep(sleep);
 
 
+            transform.position = m_Doll.Asset.m_BedPos;
             //m_Doll.GetComponent<GentAIConroller>().SleepPatrolBehaviour();
         }
 
@@ -336,6 +344,7 @@ namespace GentianoseRealDolls
         {
             if (!Sleeping) return;
 
+            sleepSystem.SetSleep(new int[] { m_Doll.DollID, 0 });
 
             //if (!m_Doll.ActiveDollInPartyStatus)
             //    GetComponent<GentAIConroller>().WakePatrolBehaviour();
