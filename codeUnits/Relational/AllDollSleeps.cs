@@ -102,7 +102,10 @@ namespace GentianoseRealDolls
 
         public int[] GetDoll(int id)
         {
-            return m_Dolls.ToArray()[id..(id + 2)];
+            var doll = new int[2];
+            doll[0] = m_Dolls[id * 2];
+            doll[1] = m_Dolls[(id * 2) + 1];
+            return doll;
         }
 
     }
