@@ -3,7 +3,7 @@ using VContainer;
 
 namespace GentianoseRealDolls
 {
-    public class StoveUI : MonoBehaviour
+    public class StoveUI : DashboardBase
     {
         [Inject]
         public void Construct(Inventory obj)
