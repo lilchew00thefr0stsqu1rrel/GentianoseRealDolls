@@ -7,7 +7,7 @@ using Unity.VisualScripting;
 using System;
 using System.Threading.Tasks;
 
-public class CombatDashboard : MonoCache
+public class CombatDashboard : DashboardBase
 {
     const float keyCooldownDuration = 0.3f;
     
@@ -147,11 +147,6 @@ public class CombatDashboard : MonoCache
     private bool keyCooldown = false;
     [SerializeField] private UIButton m_FlehmenButton;
 
-    public void SetDoll(Doll doll)
-    {
-        m_CurrentDoll = doll;
-
-    }
 
     private bool m_FlehmenOnCooldown;
 
@@ -249,16 +244,15 @@ public class CombatDashboard : MonoCache
         m_LesserSkillCooldownText.text = time.ToString();
     }
 
-    public void UpdateDash(Doll activeDoll)
+    public void UpdateUI()
     {
-        m_CurrentDoll = activeDoll;
         m_DollBattleManager = m_CurrentDoll.DollController.BattleManager;
 
 
         m_SprayIcon.sprite = m_CurrentDoll.Asset.RSkillIcon;
         m_SprayFill.sprite = m_CurrentDoll.Asset.RSkillFill;
 
-        m_SprayUI.UpdateUI(activeDoll);
+        m_SprayUI.UpdateUI(m_CurrentDoll);
 
         if (m_DollBattleManager.FlehmenCooldown)
         {
@@ -276,5 +270,8 @@ public class CombatDashboard : MonoCache
 
     }
 
-   
+    public void SetDoll(Doll doll)
+    {
+        m_CurrentDoll = doll;
+    }
 }
