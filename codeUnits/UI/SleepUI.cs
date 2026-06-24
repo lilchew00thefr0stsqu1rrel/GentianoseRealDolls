@@ -17,13 +17,21 @@ namespace GentianoseRealDolls
         [SerializeField] private Text m_Warn;
         [SerializeField] private Party m_Party;
 
+        private string m_OutdoorWarn = "Вы не в Чалке";
+        private string m_ActiveDollWarn = "Невозможно выполнить с текущей куклой";
+        
         public void SetDollSleep(int dollID, bool sleeping)
         {
-            if (m_Party.ActiveDoll.DollID == dollID)
+            if (m_Party.CurrentScene.GameMode == Mode.OpenWorld)
             {
-                Warn();
+                Warn(m_OutdoorWarn);
             }
-
+            else if (m_Party.ActiveDoll.DollID == dollID)
+            {
+                Warn(m_ActiveDollWarn);
+            }
+            
+        
             else
             {
                 InitDollSleep(dollID, sleeping);
@@ -39,9 +47,10 @@ namespace GentianoseRealDolls
 
             m_AllDollSleeps.WriteDoll(new int[] { dollID, sleeping ? 1 : 0 });
         }
-        private async void Warn()
+        private async void Warn(string text)
         {
             m_Warn.enabled = true;
+            m_Warn.text = text;
             await Task.Delay(1000);
             m_Warn.enabled = false;
         }
