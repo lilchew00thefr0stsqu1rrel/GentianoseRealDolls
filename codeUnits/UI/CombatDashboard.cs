@@ -244,7 +244,7 @@ public class CombatDashboard : DashboardBase
         m_LesserSkillCooldownText.text = time.ToString();
     }
 
-    public void UpdateUI()
+    public override void UpdateUI()
     {
         m_DollBattleManager = m_CurrentDoll.DollController.BattleManager;
 
@@ -252,7 +252,7 @@ public class CombatDashboard : DashboardBase
         m_SprayIcon.sprite = m_CurrentDoll.Asset.RSkillIcon;
         m_SprayFill.sprite = m_CurrentDoll.Asset.RSkillFill;
 
-        m_SprayUI.UpdateUI(m_CurrentDoll);
+        m_SprayUI.UpdateUI();
 
         if (m_DollBattleManager.FlehmenCooldown)
         {
