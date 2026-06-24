@@ -138,7 +138,7 @@ namespace GentianoseRealDolls
 
         public void Wake()
         {
-            m_CurrentDollController.GoToBed(new int[] { m_CurrentDoll.DollID, 0 });
+            m_CurrentDollController.GoToBed(false);
         }
         public void UpdatePoop()
         {
@@ -175,5 +175,4 @@ namespace GentianoseRealDolls
     }
 
 }
-
 
