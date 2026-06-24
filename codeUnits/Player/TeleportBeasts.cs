@@ -66,7 +66,7 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
 
             m_AllPositions.SetDoll(gps);
 
-            await Task.Delay(400);
+            await Task.Delay(800);
 
             m_Party.PlaceSomeOrAllDolls(gps);
 
@@ -101,7 +101,7 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
 
     public async void InitScene(int levelID)
     {
-        await Task.Delay(400);
+        await Task.Delay(800);
 
         m_Party.InitBase(levelID, m_TimePastStats.ReadTime());
 
