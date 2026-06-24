@@ -260,7 +260,7 @@ namespace GentianoseRealDolls
 
                 stats[1] = Mathf.Clamp(stats[1] - timeI, 0, 10);
 
-                stats[2] = Mathf.Clamp(stats[2] - timeI, 0, m_DollDataLists.AnalGlandVolumeArray[i]);
+                stats[2] = Mathf.Clamp(stats[2] + timeI, 0, m_DollDataLists.AnalGlandVolumeArray[i]);
 
                 stats[3] = Mathf.Clamp(stats[3] - timeI, 0, 10);
 
