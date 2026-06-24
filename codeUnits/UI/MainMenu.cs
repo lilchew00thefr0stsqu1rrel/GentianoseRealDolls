@@ -48,7 +48,6 @@ namespace GentianoseRealDolls
             
    
         }
-        DollPosition[] adolp;
         public void ReadCurrScene()
         {
             Saver<int>.TryLoad(WhooSettings.fileNameLoc, ref m_LocationIndex);
