@@ -73,19 +73,20 @@ namespace GentianoseRealDolls
             {
                 int[] slp = m_DollBase.GetRecord("dollSleeps", "dollID", i, m_FieldNames);
 
-                m_Dolls.AddRange(slp[..2]);
+                m_Dolls.Add(slp[1]);
             }
         }
-        [Tooltip("int[2n]")]
+        [Tooltip("int[n]")]
         public List<int> GetDolls()
         {
+            ReadDolls();
             return m_Dolls;
         }
 
         [Tooltip("int[2]")]
         public void WriteDoll(int[] data)
         {
-            m_Dolls[data[0] * 2 + 1] = data[1];
+            m_Dolls[data[0]] = data[1];
             if (m_DollBase.CheckRecordPresent(data[0], "dollSleeps"))
             {
 
@@ -100,12 +101,9 @@ namespace GentianoseRealDolls
             }
         }
 
-        public int[] GetDoll(int id)
+        public bool GetDoll(int id) 
         {
-            var doll = new int[2];
-            doll[0] = m_Dolls[id * 2];
-            doll[1] = m_Dolls[(id * 2) + 1];
-            return doll;
+            return m_Dolls[id] == 1;
         }
 
     }
