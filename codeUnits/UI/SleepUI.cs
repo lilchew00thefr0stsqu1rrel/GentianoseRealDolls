@@ -10,7 +10,7 @@ namespace GentianoseRealDolls
         [SerializeField] private int[] m_AllSleepPoints;
         [SerializeField] private bool[] m_AllSleepStates;
         [SerializeField] private AllDollSleeps m_AllDollSleeps;
-        [SerializeField] private AllDollCharacters m_AllDollCharacters;
+        [SerializeField] private AllDollPetStats m_AllDollCharacters;
         [SerializeField] private Text[] m_AllSleepPointTexts;
         [SerializeField] private Image[] m_AllSleepImages;
         [SerializeField] private Image[] m_AllAwakeImages;
@@ -32,7 +32,6 @@ namespace GentianoseRealDolls
 
         private void InitDollSleep(int dollID, bool sleeping)
         {
-
             m_AllSleepStates[dollID] = sleeping;
 
             m_AllAwakeImages[dollID].gameObject.SetActive(!sleeping);
@@ -88,7 +87,7 @@ namespace GentianoseRealDolls
             var sleep = m_AllDollSleeps.GetDolls();
             for (int i = 0; i < WhooSettings.NumberOfDolls; i++)
             {
-                InitDollSleep(i, sleep[2 * i + 1] == 1);
+                InitDollSleep(i, sleep[i] == 1);
             }
 
             UpdateUI();
