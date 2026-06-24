@@ -75,6 +75,7 @@ namespace GentianoseRealDolls
 
         [Header("Time")]
         [SerializeField] private int m_SessionHouseMap;
+        [SerializeField] private int m_SessionPause;
         [SerializeField] private bool m_AfterStart;
 
         [SerializeField] private float m_TickLength = 0.2f;
@@ -227,13 +228,16 @@ namespace GentianoseRealDolls
 
             InitDoll(m_ActiveDollIndexInParty);
 
-            if (m_SessionHouseMap <= 1)
-            {
-                StartCoroutine(UniTick());
-                StartCoroutine(UniTickMinute());
-
-                ChangeStatsByPastTime();
-            }
+               if (m_SessionHouseMap <= 1)
+               {
+                   if (m_SessionPause == 0)
+                   {
+                       StartCoroutine(UniTick());
+                       StartCoroutine(UniTickMinute());
+                   }
+            
+                   ChangeStatsByPastTime();
+               }
 
 
 
@@ -511,6 +515,7 @@ private void SetDollsPatrol()
             }
             else
             {
+                m_SessionPause++;
                 InitBase(m_CurrentScene.LocationIndex, m_TimePastStats.ReadTime());
             }
         }
