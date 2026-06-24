@@ -115,12 +115,4 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
         print("Chno Whew!");
     }
 
-    private void OnApplicationPause(bool pause)
-    {
-        if (!pause)
-        {
-            InitScene(currentScene.LocationIndex);
-        }
-    }
-
 }
