@@ -1,9 +1,9 @@
 using GentianoseRealDolls;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using VContainer;
 using UnityEngine.UI;
-using System.Threading.Tasks;
+using VContainer;
 
 // This script is primary gate to Dollia
 
@@ -16,8 +16,8 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
     [SerializeField] private float m_I;
 
     [SerializeField] private AllDollSleeps m_AllSleeps;
-    [SerializeField] private AllDollPositions m_AllPositions;
-    [SerializeField] private AllDollCharacters m_AllCharacters;
+    [SerializeField] private ActiveDollPosition m_AllPositions;
+    [SerializeField] private AllDollPetStats m_AllCharacters;
     [SerializeField] private TimePastStats m_TimePastStats;
     [SerializeField] private Inventory m_Inventory;
     [SerializeField] private PoopStore m_PoopStore;
@@ -31,7 +31,7 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
 
 
     [Inject]
-    public void Construct(AllDollCharacters obj)
+    public void Construct(AllDollPetStats obj)
     {
         m_AllCharacters = obj;
     }
@@ -59,17 +59,16 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
             {
                 SceneManager.LoadScene(city);
 
-                m_Party.InitDolls(lv, 0L);
-
-                await Task.Delay(1000);
-                m_Party.PlaceSomeOrAllDolls(lv, pos);
+                m_Party.InitBase(lv, 0L);
             }
 
-            //  При перемещении в пределах домика
-            if (currentScene.LocationIndex == SceneHelper.SceneToLevel(city))
-            {
-                m_Party.PlaceSomeOrAllDolls(SceneHelper.SceneToLevel(city), pos);
-            }
+            var gps = new int[] { lv, (int)pos.x, (int)pos.y, (int)pos.z };
+
+            m_AllPositions.SetDoll(gps);
+
+            await Task.Delay(400);
+
+            m_Party.PlaceSomeOrAllDolls(gps);
 
             print("City: " + city + "  Legend: 1: Rusikova, 2: Kukly, 3: Punova");
 
@@ -100,11 +99,12 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
 
 
 
-    public void InitScene(int levelID)
+    public async void InitScene(int levelID)
     {
-        Level.SetArriveFromMenu();
+        await Task.Delay(400);
 
-        m_Party.InitDolls(levelID, m_TimePastStats.ReadTime());
+        m_Party.InitBase(levelID, m_TimePastStats.ReadTime());
+
 
         currentScene.SetLocationIndex(levelID);
 
