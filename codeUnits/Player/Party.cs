@@ -37,6 +37,7 @@ namespace GentianoseRealDolls
         [Header("Services")]
         [SerializeField] private int m_MapID;
         [SerializeField] private CurrentSceneData m_CurrentScene;
+        public CurrentSceneData CurrentScene => m_CurrentScene;
         [SerializeField] private TimePastStats m_TimePastStats;
         [SerializeField] private TeleportBeasts m_TeleportBeasts;
 
@@ -506,6 +507,11 @@ private void SetDollsPatrol()
             if (pause)
             {
                 m_CountDollTurn = 0;
+                m_SessionHouseMap = 0;
+            }
+            else
+            {
+                InitBase(m_CurrentScene.LocationIndex, m_TimePastStats.ReadTime());
             }
         }
     }
