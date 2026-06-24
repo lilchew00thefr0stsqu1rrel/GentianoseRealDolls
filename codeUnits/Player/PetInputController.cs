@@ -113,7 +113,7 @@ public class PetInputController : MonoCache
         if (!context.performed) return;
 
         // 1 - анус 
-        party.ActiveDoll.DollController.BattleManager.EndGreaterSkill(aim);
+        party.ActiveDoll.DollController.BattleManager.EndGreaterSkill();
         dashboard.SetSprayChargeUIVisible(false);
     }
     public void OnStartSpray(InputAction.CallbackContext context)
@@ -165,7 +165,7 @@ public class PetInputController : MonoCache
         // Проверяем, что действие именно выполнено,
         // а не отменено или в процессе
         if (!context.performed) return;
-        party.SetActiveDoll(0);
+        party.InitDoll(0);
         
         dashboard.InitDoll();
     }
@@ -174,7 +174,7 @@ public class PetInputController : MonoCache
         // Проверяем, что действие именно выполнено,
         // а не отменено или в процессе
         if (!context.performed) return;
-        party.SetActiveDoll(1);
+        party.InitDoll(1);
 
 
         dashboard.InitDoll();
@@ -184,7 +184,7 @@ public class PetInputController : MonoCache
         // Проверяем, что действие именно выполнено,
         // а не отменено или в процессе
         if (!context.performed) return;
-        party.SetActiveDoll(2);
+        party.InitDoll(2);
 
 
         dashboard.InitDoll();

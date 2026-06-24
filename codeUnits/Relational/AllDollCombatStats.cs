@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AllDollBattle : MonoBehaviour, IAllDolls
+public class AllDollCombatStats : MonoBehaviour, IAllDolls
 {
     [SerializeField] private DollBase m_DollBase;
 
@@ -13,6 +13,10 @@ public class AllDollBattle : MonoBehaviour, IAllDolls
         "dollID",
         "hp"
         };
+
+
+    private const int m_FieldNumber = 2;
+
     [SerializeField] private List<int> m_Dolls;
 
     private Action<int[]> SaveDoll()
@@ -49,7 +53,7 @@ public class AllDollBattle : MonoBehaviour, IAllDolls
         {
             stats = m_DollBase.GetRecord("dollBattle", "dollID", i, m_FieldNames);
 
-            m_Dolls.AddRange(stats[..2]);
+            m_Dolls.AddRange(stats[..m_FieldNumber]);
         }
 
     }
@@ -58,7 +62,7 @@ public class AllDollBattle : MonoBehaviour, IAllDolls
     {
         int id = stats[0];
 
-        m_Dolls[id * 2 + 1] = stats[1];
+        m_Dolls[id * m_FieldNumber + 1] = stats[1];
 
 
         if (m_DollBase.CheckRecordPresent(id, "dollBattle"))
@@ -73,6 +77,8 @@ public class AllDollBattle : MonoBehaviour, IAllDolls
             "VALUES ('" + id +
                 "', '" + 0 + "');");
         }
+        
+       
     }
     public void WriteDolls(List<int> allStats)
     {
@@ -80,20 +86,32 @@ public class AllDollBattle : MonoBehaviour, IAllDolls
 
         for (int i = 0; i < 3; i++)
         {
-            int[] sts = new int[2] { m_Dolls[i * 2], m_Dolls[i*2+1] };
+            int[] sts = new int[2] { m_Dolls[i * m_FieldNumber], m_Dolls[i * m_FieldNumber + 1] };
 
             WriteDoll(sts);
         }
     }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public int[] GetDoll(int dollID)
     {
-        
+        ReadDolls();
+
+        int[] doll = new int[m_FieldNumber];
+        for (int i = 0; i < m_FieldNumber; i++)
+        {
+            doll[i] = m_Dolls[dollID * m_FieldNumber + i];
+        }
+        return doll;
     }
 
-    // Update is called once per frame
-    void Update()
+    // Лечение 
+    public void RestoreHPAll(int m_HealAmount)
     {
-        
+        m_Dolls[1] = Mathf.Clamp(m_Dolls[1] + m_HealAmount, 1, 1000);
+
+        m_Dolls[3] = Mathf.Clamp(m_Dolls[3] + m_HealAmount, 1, 1111);
+
+        m_Dolls[5] = Mathf.Clamp(m_Dolls[5] + m_HealAmount, 1, 1332);
+
+       WriteDolls(m_Dolls);
     }
 }

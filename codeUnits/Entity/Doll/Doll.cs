@@ -28,11 +28,9 @@ namespace GentianoseRealDolls
     [RequireComponent(typeof(Destructible))]
     public class Doll : MonoBehaviour
     {
-        private AllDollCharacters allDolls;
-        private AllDollPositions allPositions;
+        private AllDollPetStats m_AllDollPetStats;
+        private ActiveDollPosition m_Position;
 
-        [SerializeField] private DollScaleValues m_ScaleValues;
-        [SerializeField] private DollPosition m_Positions;
 
         [SerializeField] private Inventory m_Inventory;
 
@@ -69,6 +67,11 @@ namespace GentianoseRealDolls
 
         [SerializeField] private DollAsset m_Asset;
         public DollAsset Asset { get { return m_Asset; } }
+
+
+        [SerializeField] private DollDataLists m_DollAtlas;
+
+
         [SerializeField] private string m_DollSpecies;
         public string DollSpecies => m_DollSpecies;
         #region Data_Pet
@@ -265,7 +268,7 @@ namespace GentianoseRealDolls
 
         // Сохранить
         [Tooltip("int[8]")]
-        public int[] FetchStats()
+        public void PackStats()
         {
             m_Stats[0] = m_DollID;
             m_Stats[1] = m_LooPoo;
@@ -277,7 +280,7 @@ namespace GentianoseRealDolls
             m_Stats[6] = m_FoodHunger;
             m_Stats[7] = m_Sleep;
 
-            return m_Stats;
+            m_AllDollPetStats.WriteDoll(m_Stats);
         }
 
         public int GetSprayCarePoints()
@@ -295,6 +298,8 @@ namespace GentianoseRealDolls
         [Tooltip("int[8]")]
         public void FillStats(int[] stats)
         {
+            m_AnalGlandVolume = m_DollAtlas.AnalGlandVolumeArray[m_DollID];
+
             m_LooPoo = stats[1];
             m_AnalSprayAmount = stats[2];
             m_LooPee = stats[3];
@@ -305,11 +310,12 @@ namespace GentianoseRealDolls
 
             m_LooSpray = GetSprayCarePoints();
 
-            
-
             m_ToiletStats = stats[1..6];
         }
-
+        public void SetBase(AllDollPetStats adc)
+        {
+            m_AllDollPetStats = adc;
+        }
 
         /// <summary>
         /// Строка имеет вид SSXXXXXXXXYYYYYYYYZZZZZZZZ,
@@ -354,60 +360,6 @@ namespace GentianoseRealDolls
 
 
 
-        /// <summary>
-        /// /// Фунька добавляется 0.1 мл (1 очко) каждые 15 мин
-        /// Туалет (кал и моча): 1 каждые 15 мин
-        /// Ванная: 1 каждые 6 минут 
-        /// Чистка зубов: 1 каждые 5 мин
-        /// Еда и сон: 1 каждую минуту
-        /// </summary>
-
-        public void ReduceStats()
-        {
-
-            if (m_AnalSprayAmount < m_AnalGlandVolume)
-                m_AnalSprayAmount++;
-            if (m_AnalSprayAmount > m_AnalGlandVolume)
-                m_AnalSprayAmount = m_AnalGlandVolume;
-
-            m_ScaleValues.AnalSprayAmount = m_AnalSprayAmount;
-
-            // Формула Фуньки
-            m_LooSpray = (int)(MaxLooStat * (1 - 
-                (m_AnalSprayAmount - m_AnalGlandVolume * 0.8f)
-                / (m_AnalGlandVolume * 0.2f)));
-
-            m_LooSpray = Mathf.Clamp(m_LooSpray, 0, MaxLooStat);
-
-            if (m_LooPoo > 0)
-                m_LooPoo--;
-
-            if (m_LooPee > 0)
-                m_LooPee--;
-
-            if (m_Bath> 0)
-                m_Bath--;
-
-            if (m_BrushTeeth > 0)
-                m_BrushTeeth--;
-
-            m_ToiletStats = new int[5]
-            {
-                m_LooPoo,
-                m_LooSpray,
-                m_LooPee,
-                m_Bath,
-                m_BrushTeeth
-            };
-
-            if (m_FoodHunger > 0)
-                m_FoodHunger--;
-
-
-            FetchStats();
-
-            print(PreviousTime);
-        }
 
 
 
@@ -417,12 +369,12 @@ namespace GentianoseRealDolls
         public void SetSleep(int sleep)
         {
             m_Sleep = Mathf.Clamp(sleep, 0, MaxStat);
-            FetchStats();
+            PackStats();
         }
         public void SetFoodHunger(int foodHunger)
         {
             m_FoodHunger = Mathf.Clamp(foodHunger, 0, MaxStat);
-            FetchStats();
+            PackStats();
         }
 
 
@@ -432,8 +384,10 @@ namespace GentianoseRealDolls
             m_Inventory.AddItemInstances(food, -1);
             m_FoodHunger = Mathf.Min(m_FoodHunger + food.foodBonus, MaxStat);
 
+            m_Stats[6] = m_FoodHunger;
+            m_AllDollPetStats.WriteDoll(m_Stats);
 
-            FetchStats();
+            PackStats();
         }
 
         public void OhPoop()
@@ -497,7 +451,7 @@ namespace GentianoseRealDolls
             }
 
             InitToiletStatArray();
-            FetchStats();
+            PackStats();
         }
 
         public void SetToiletStats(int poo, int analSpray, int pee, int bath, int brushTeeth)
@@ -522,7 +476,7 @@ namespace GentianoseRealDolls
 
 
             InitToiletStatArray();
-            FetchStats();
+            PackStats();
         }
 
 

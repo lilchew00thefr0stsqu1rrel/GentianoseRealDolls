@@ -6,7 +6,7 @@ using VContainer;
 
 namespace GentianoseRealDolls
 {
-    public class HabitatInterface : MonoBehaviour
+    public class HabitatInterface : DashboardBase
     {
         [SerializeField] private Party m_Party;
         ////[Inject]
@@ -49,15 +49,23 @@ namespace GentianoseRealDolls
         {
         }
 
-        public void UpdateDash(Doll activeDoll)
+
+        public override void SetDoll(Doll doll)
         {
-            m_FoodHungerText.text = activeDoll.FoodHunger.ToString();
-            m_BathroomText.text = activeDoll.Bathroom.ToString();
-            m_SleepText.text = activeDoll.Sleep.ToString();
+            m_CurrentDoll = doll;
+            m_CurrentDollController = doll.DollController;
+            m_PoopManager = m_CurrentDoll.DollController.PoopManager;
+        }
 
-            m_ToiletDashboard.UpdateUI(activeDoll);
+        public override void UpdateUI()
+        {
+            m_FoodHungerText.text = m_CurrentDoll.FoodHunger.ToString();
+            m_BathroomText.text = m_CurrentDoll.Bathroom.ToString();
+            m_SleepText.text = m_CurrentDoll.Sleep.ToString();
 
-            SetCurrentDoll(activeDoll);
+            m_ToiletDashboard.UpdateUI(m_CurrentDoll);
+
+            SetDoll(m_CurrentDoll);
         }
 
         public void StartPoop()
@@ -116,12 +124,6 @@ namespace GentianoseRealDolls
             };
         }
 
-        public void SetCurrentDoll(Doll d)
-        {
-            m_CurrentDoll = d;
-            m_CurrentDollController = d.DollController;
-            m_PoopManager = m_CurrentDoll.DollController.PoopManager;
-        }
 
 
         public void UpdateShow()
@@ -136,7 +138,7 @@ namespace GentianoseRealDolls
 
         public void Wake()
         {
-            m_CurrentDoll.DollController.WakeDoll();
+            m_CurrentDollController.GoToBed(false);
         }
         public void UpdatePoop()
         {
@@ -170,8 +172,6 @@ namespace GentianoseRealDolls
             m_PoopStore.GoPoopToSilverWhiteTree();
             InventoryController.Instance.InitAllItems();
         }
-
-
     }
 
 }

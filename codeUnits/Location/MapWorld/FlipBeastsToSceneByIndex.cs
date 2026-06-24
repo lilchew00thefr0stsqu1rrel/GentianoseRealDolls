@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GentianoseRealDolls
 {
-    public class FlipBeastsToSceneByIndex : MonoBehaviour
+    public class FlipBeastsToSceneByIndex : DashboardBase
     {
         //TODO: Dependency
         [SerializeField] private Dashboard dashboard;
@@ -28,8 +28,8 @@ namespace GentianoseRealDolls
 
         public void Telep(string posString)
         {
-            dashboard.CloseInventory();
             teleportBeasts.Teleport(posString, party.AreThereSleepingBeasts);
+            dashboard.CloseInventory();
         }
     }
 
