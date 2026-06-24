@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using VContainer;
 namespace GentianoseRealDolls
 {
-    public class ShopController : MonoBehaviour
+    public class ShopController : DashboardBase
     {
         private int m_Kuklons;
         [SerializeField] private Text m_KuklonsIHave;
