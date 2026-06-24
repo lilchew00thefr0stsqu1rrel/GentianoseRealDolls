@@ -17,40 +17,21 @@ namespace GentianoseRealDolls
 
         [SerializeField] private Party m_Party;
 
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
-        {
 
+        public void UpdateUI()
+        {
+            m_CurrentDoll = m_Party.ActiveDoll;
+            m_CurrentDollID = m_Party.ActiveDollID;
+
+            int analGlandVolume = m_Party.DollData.AnalGlandVolumeArray[m_CurrentDollID];
+
+
+            m_FillImage.fillAmount = (float)m_CurrentDoll.AnalSprayAmount / analGlandVolume;
+            m_FluidText.text = $"{Mathf.Round(m_CurrentDoll.AnalSprayAmount) / 10} / " +
+                $"{analGlandVolume / 10} мл";
         }
 
 
-        public void UpdateUI(Doll activeDoll)
-        {
-            m_FillImage.fillAmount = (float)activeDoll.AnalSprayAmount / activeDoll.AnalGlandVolume;
-            m_FluidText.text = $"{Mathf.Round(activeDoll.AnalSprayAmount) / 10} / " +
-                $"{Mathf.Round(activeDoll.AnalGlandVolume) / 10} мл";
-        }
-
-
-        public void InitDollSpray(Doll d)
-        {
-            m_CurrentDoll = d;
-
-            m_FillImage.sprite = d.Asset.RSkillFill;
-            m_SprayIcon.sprite = d.Asset.RSkillIcon;
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-            //if (m_CurrentDoll != null)
-            //{
-            //    m_FillImage.fillAmount = m_CurrentDoll.AnalSprayAmount / m_CurrentDoll.AnalGlandVolume;
-            //    m_FluidText.text = $"{m_CurrentDoll.AnalSprayAmount / 10} / " +
-            //        $"{m_CurrentDoll.AnalGlandVolume / 10} мл";
-            //}
-           
-        }
     }
 }
 
