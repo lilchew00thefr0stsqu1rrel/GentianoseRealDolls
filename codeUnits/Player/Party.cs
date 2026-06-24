@@ -72,11 +72,14 @@ namespace GentianoseRealDolls
         [SerializeField] private OffField m_OffField;
 
 
+        [Header("Session")]
+
+        [SerializeField] private bool m_NotFirstSession;
+        [SerializeField] private bool m_NotSessionStart;
+        [SerializeField] private bool m_NotFirstDoll;
 
         [Header("Time")]
-        [SerializeField] private int m_SessionHouseMap;
-        [SerializeField] private int m_SessionPause;
-        [SerializeField] private bool m_AfterStart;
+
 
         [SerializeField] private float m_TickLength = 0.2f;
 
@@ -211,7 +214,6 @@ namespace GentianoseRealDolls
 
         public void InitBase(int mapID, long time)
         {
-            m_SessionHouseMap++;
 
             m_Inventory.InitInventory();
 
@@ -224,20 +226,25 @@ namespace GentianoseRealDolls
 
             m_ActiveDollIndexInParty = m_ActiveDollUponExit.GetActiveDoll();
 
-            m_CountDollTurn = 0;
+            m_NotFirstDoll = false;
 
             InitDoll(m_ActiveDollIndexInParty);
 
-               if (m_SessionHouseMap <= 1)
-               {
-                   if (m_SessionPause == 0)
-                   {
-                       StartCoroutine(UniTick());
-                       StartCoroutine(UniTickMinute());
-                   }
+            if (!m_NotFirstSession)
+            {
+                StartCoroutine(UniTick());
+                StartCoroutine(UniTickMinute());
+
+                if (!m_NotSessionStart)
+                {
+                    ChangeStatsByPastTime();
+                    m_NotSessionStart = true;
+                }
+
+                m_NotFirstSession = true;
+
+            }
             
-                   ChangeStatsByPastTime();
-               }
 
 
 
@@ -292,7 +299,6 @@ namespace GentianoseRealDolls
         // Создать и заполнить куклу
         // Интерфейс пользователя зависит от зверей, а не наоборот
 
-        [SerializeField] private int m_CountDollTurn;
 
         // Переключиться на данного персонажа
         // Сделать персонажей активным/ неактивными
@@ -355,7 +361,7 @@ namespace GentianoseRealDolls
 
             m_TrailDolls = new Doll[2];
 
-            m_CountDollTurn++;
+            m_NotFirstDoll = true;
         }
 
 
@@ -491,7 +497,6 @@ private void SetDollsPatrol()
         }
         private void Start()
         {
-
         }
         private void Update()
         {
@@ -510,15 +515,16 @@ private void SetDollsPatrol()
         {
             if (pause)
             {
-                m_CountDollTurn = 0;
-                m_SessionHouseMap = 0;
             }
             else
             {
-                m_SessionPause++;
+                m_NotFirstDoll = false;
+                m_NotSessionStart = false;
                 InitBase(m_CurrentScene.LocationIndex, m_TimePastStats.ReadTime());
             }
         }
+
+       
     }
 
 }
