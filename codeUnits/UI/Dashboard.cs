@@ -96,7 +96,7 @@ public class Dashboard : MonoBehaviour
 
                 for (int i = 0; i < 3; i++)
                 {
-                    m_DollSleepIndic[i].SetActive(slp[i * 2 + 1] == 1);
+                    m_DollSleepIndic[i].SetActive(slp[i] == 1);
                 }
             }
         }
@@ -250,12 +250,12 @@ public class Dashboard : MonoBehaviour
         }
         if (tipID == 4)
         {
-            m_CurrentDollController.GoToBed(new int[] { m_CurrentDoll.DollID, 1 });
+            m_CurrentDollController.GoToBed(true);
             HideInteractTip();
         }
         if (tipID == 5)
         {
-            m_CurrentDollController.GoToBed(new int[] { m_CurrentDoll.DollID, 0 });
+            m_CurrentDollController.GoToBed(false);
             HideInteractTip();
         }
         if (tipID == 6)
