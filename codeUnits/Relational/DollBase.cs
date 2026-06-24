@@ -77,18 +77,17 @@ namespace GentianoseRealDolls
             {
                 SqliteConnection.CreateFile(dbPath);
             }
-            var q1 = "CREATE TABLE IF NOT EXISTS positions (dollID INTEGER PRIMARY KEY, levelID INTEGER, x INTEGER, y INTEGER, z INTEGER)";
+            var q1 = "CREATE TABLE IF NOT EXISTS positions (keyWord VARCHAR PRIMARY KEY NOT NULL, levelID INTEGER, x INTEGER, y INTEGER, z INTEGER)";
             CreateTable(q1);
             //CreateTablePosition();
 
             // Seed data.
-            for (int i = 0; i < WhooSettings.NumberOfDolls; i++)
-            {
-                //AddDollPosition(i, 1, 0, 0, 0);
 
-                AddOrChangeRecord("INSERT OR IGNORE INTO positions (dollID, levelID, x, y, z) VALUES ('" + i +
-                        "', '" + 1 + "', '" + 0 + "', '" + 0 + "', '" + 0 + "');");
-            }
+            //AddDollPosition(i, 1, 0, 0, 0);
+
+            AddOrChangeRecord("INSERT OR IGNORE INTO positions (keyWord, levelID, x, y, z) VALUES " +
+                 "('" + "Spraint336" + "', '" + 0 + "', '" + 0 + "', '" + 1 + "', '" + 0 + "');");
+            
 
             var q2 = "CREATE TABLE IF NOT EXISTS inventory (itemID INTEGER PRIMARY KEY, amount INTEGER)";
 
@@ -200,43 +199,6 @@ namespace GentianoseRealDolls
         }
 
 
-        public DollPosition GetDollPosition(int petDollID)
-        {
-            int map = 0;
-            Vector3 pos = Vector3.zero;
-
-
-            using (var connection = new SqliteConnection(dbPathURI))
-            {
-                connection.Open();
-
-                using (var command = connection.CreateCommand())
-                {
-                    command.CommandText = $"SELECT * FROM positions WHERE dollID = {petDollID};";
-
-                    using (IDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            if (reader["dollID"].ToString() == petDollID.ToString())
-                            {
-
-                                map = int.Parse(reader["levelID"].ToString());
-
-                                pos.x = float.Parse(reader["x"].ToString());
-                                pos.y = float.Parse(reader["y"].ToString());
-                                pos.z = float.Parse(reader["z"].ToString());
-                            }
-                        }
-                    }
-                }
-
-                connection.Close();
-            }
-
-
-            return new DollPosition(petDollID, map, pos, Quaternion.identity);
-        }
 
         public int[] GetItemAmounts()
         {
@@ -398,6 +360,36 @@ namespace GentianoseRealDolls
                                 }
                             }
                         }
+                    }
+                }
+                connection.Close();
+            }
+            return arr;
+        }
+
+        public int[] GetOnlyRecord(string tableName, string[] fieldNames)
+        {
+            int[] arr = new int[8] { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+            using (var connection = new SqliteConnection(dbPathURI))
+            {
+                connection.Open();
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $"SELECT * FROM {tableName};";
+
+                    using (IDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            for (int i = 0; i < fieldNames.Length; i++)
+                            {
+                                arr[i] = int.Parse(reader[i + 1].ToString());
+                                print("Read Miller" + arr[i]);
+                            }
+                        }
+                        
                     }
                 }
                 connection.Close();
