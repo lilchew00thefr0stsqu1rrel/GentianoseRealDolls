@@ -74,7 +74,7 @@ namespace GentianoseRealDolls
 
 
         [Header("Time")]
-        [SerializeField] private int sessionHouseMap;
+        [SerializeField] private int m_SessionHouseMap;
         [SerializeField] private bool m_AfterStart;
 
         [SerializeField] private float m_TickLength = 0.2f;
@@ -210,7 +210,7 @@ namespace GentianoseRealDolls
 
         public void InitBase(int mapID, long time)
         {
-            sessionHouseMap++;
+            m_SessionHouseMap++;
 
             m_Inventory.InitInventory();
 
@@ -227,7 +227,7 @@ namespace GentianoseRealDolls
 
             InitDoll(m_ActiveDollIndexInParty);
 
-            if (sessionHouseMap <= 1)
+            if (m_SessionHouseMap <= 1)
             {
                 StartCoroutine(UniTick());
                 StartCoroutine(UniTickMinute());
