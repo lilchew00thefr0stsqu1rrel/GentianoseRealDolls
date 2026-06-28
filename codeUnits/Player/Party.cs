@@ -182,6 +182,9 @@ namespace GentianoseRealDolls
         // Граница минут
         IEnumerator UniTickMinute()
         {
+            yield return new WaitUntil(() => DateTime.Now.Second == 59);
+            yield return new WaitForSeconds(1);
+            
             if (m_ActiveDoll != null)
             {
                 List<int> slp = m_AllDollSleeps.GetDolls();
@@ -195,12 +198,7 @@ namespace GentianoseRealDolls
                 m_ActiveDoll.DollController.GoToBed(m_AllDollSleeps.GetDoll(m_ActiveDollID));
             }
 
-
-            yield return new WaitUntil(() => DateTime.Now.Second == 59);
-            yield return new WaitForSeconds(1);
-
-            StartCoroutine(UniTickMinute());
-            
+            StartCoroutine(UniTickMinute());            
         }
 
 
@@ -227,7 +225,13 @@ namespace GentianoseRealDolls
             m_ActiveDollIndexInParty = m_ActiveDollUponExit.GetActiveDoll();
 
             m_NotFirstDoll = false;
-
+            
+            if (!m_NotSessionStart)
+            {
+                ChangeStatsByPastTime();
+                m_NotSessionStart = true;
+            }
+                
             InitDoll(m_ActiveDollIndexInParty);
 
             if (!m_NotFirstSession)
@@ -235,11 +239,7 @@ namespace GentianoseRealDolls
                 StartCoroutine(UniTick());
                 StartCoroutine(UniTickMinute());
 
-                if (!m_NotSessionStart)
-                {
-                    ChangeStatsByPastTime();
-                    m_NotSessionStart = true;
-                }
+               
 
                 m_NotFirstSession = true;
 
