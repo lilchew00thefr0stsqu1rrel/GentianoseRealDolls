@@ -37,11 +37,17 @@ namespace GentianoseRealDolls
         [SerializeField] private int m_FullAngleInMarmosetUnits = 48;
 
 
+       
         private void Start()
         {
             m_Radius = 1;
 
-            m_ThetaInput = 288;
+            Normalize();
+        }
+        
+        public void Normalize()
+        {
+            m_ThetaInput = 0;
         }
 
         // TODO: Lerp и Slerp
@@ -66,9 +72,9 @@ namespace GentianoseRealDolls
 
                 float theta = m_ThetaQuadrobist * m_QuadrobistAngleStep * Mathf.Deg2Rad;
 
-                transform.position =m_Target.position +
-                    new Vector3(Mathf.Cos(theta) * m_Radius * m_RadiusStep, m_Height,
-                    Mathf.Sin(theta) * m_Radius * m_RadiusStep);
+                 transform.position = m_Target.TransformPoint(
+                     new Vector3(Mathf.Sin(theta) * m_Radius * m_RadiusStep, m_Height,
+                     -Mathf.Cos(theta) * m_Radius * m_RadiusStep));
 
                 Quaternion toDollLook = Quaternion.LookRotation(toDoll, Vector3.up);
 
