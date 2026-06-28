@@ -76,6 +76,8 @@ namespace GentianoseRealDolls
                      new Vector3(Mathf.Sin(theta) * m_Radius * m_RadiusStep, m_Height,
                      -Mathf.Cos(theta) * m_Radius * m_RadiusStep));
 
+                transform.position = new Vector3(transform.position.x, m_Target.position.y + m_Height, transform.position.z);
+
                 Quaternion toDollLook = Quaternion.LookRotation(toDoll, Vector3.up);
 
                 transform.rotation = toDollLook;
