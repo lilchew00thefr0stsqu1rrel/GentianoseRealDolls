@@ -37,7 +37,7 @@ namespace GentianoseRealDolls
 
         protected override void OnEnabled()
         {
-            if (m_Party != null)
+            if (m_Party != null && m_Party.ActiveDoll != null)
             {
                 Transform dollTransform = m_Party.ActiveDoll.transform;
 
