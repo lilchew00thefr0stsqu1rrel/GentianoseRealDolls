@@ -25,6 +25,10 @@ namespace GentianoseRealDolls
                 }
             }
 
+            m_Inventory.AddItemInstances(item, -1);
+
+
+
             var doll = m_AllDollPetStats.GetDoll(m_Doll.DollID);
 
             if (fave) 
@@ -35,6 +39,7 @@ namespace GentianoseRealDolls
             {
                 doll[6] += 25;
             }
+            doll[6] = Mathf.Min(doll[6], Doll.MaxStat);
             m_AllDollPetStats.WriteDoll(doll);
             m_Doll.FillStats(doll);
         }
