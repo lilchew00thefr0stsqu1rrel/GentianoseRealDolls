@@ -201,6 +201,8 @@ namespace GentianoseRealDolls
             bathSystem.ConstructDollCom(m_Party);
 
             sleepSystem.ConstructDollCom(m_Party);
+            
+            foodManager.ConstructDollCom(m_Party);
         }
 
 
@@ -212,6 +214,7 @@ namespace GentianoseRealDolls
             pooper.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
             bathSystem.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
             sleepSystem.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
+            foodManager.SetProperties(m_Doll, m_AnimatorGuard, m_DollIndexInParty);
         }
         // Настроить компоненты куклы (после создания куклы, работает как зависимости)
 
