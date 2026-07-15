@@ -418,7 +418,7 @@ public class Dashboard : MonoBehaviour
 
     public void Eat(InventoryItem food)
     {
-        m_CurrentDoll.Eat(food);
+        m_CurrentDoll.DollController.FoodManager.Eat(food);
         InventoryController.Instance.InitAllItems();
     }
 
