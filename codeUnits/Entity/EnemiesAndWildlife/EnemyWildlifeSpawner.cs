@@ -36,24 +36,14 @@ namespace GentianoseRealDolls
             var e = NightPool.Spawn(m_EnemyPrefab);
             //e.Construct(dashboard);
             //e.Use(m_EnemyAssets[Random.Range(0, m_EnemyAssets.Length)]);
-            e.GetComponent<GentAIConroller>().SetPath(m_Path);
-            return e.gameObject;
+            if (e != null)
+            {
+                e.GetComponent<GentAIConroller>().SetPath(m_Path);
+                return e.gameObject;
+            }
+            return null;
         }
 
     }
 
 }
-
-
-
-
-
-
-
-
-        
-
-
-  
-
-  
