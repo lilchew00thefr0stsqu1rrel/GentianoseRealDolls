@@ -340,11 +340,9 @@ namespace GentianoseRealDolls
             m_ActiveDoll.DollController.ConstructPoop(m_PoopStore);
             m_ActiveDoll.DollController.SetDollProperties();
 
-            
-
+            m_ActiveDoll.DollController.FoodManager.SetAllPet(m_AllDollCharacters);
+            m_ActiveDoll.DollController.FoodManager.ConstructDollCom(m_Inventory);
            
-                
-            
 
             m_ActiveDoll.FillStats(m_AllDollCharacters.GetDoll(m_ActiveDollID));
             m_ActiveDoll.DollController.GoToBed(m_AllDollSleeps.GetDoll(m_ActiveDoll.DollID));
