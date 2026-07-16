@@ -160,12 +160,13 @@ public class PetInputController : MonoCache
 
     }
 
+    
     public void OnDigitKey1(InputAction.CallbackContext context)
     {
         // Проверяем, что действие именно выполнено,
         // а не отменено или в процессе
         if (!context.performed) return;
-        party.InitDoll(0);
+        party.ChangeDoll(0);
         
         dashboard.InitDoll();
     }
@@ -174,7 +175,7 @@ public class PetInputController : MonoCache
         // Проверяем, что действие именно выполнено,
         // а не отменено или в процессе
         if (!context.performed) return;
-        party.InitDoll(1);
+        party.ChangeDoll(1);
 
 
         dashboard.InitDoll();
@@ -184,11 +185,12 @@ public class PetInputController : MonoCache
         // Проверяем, что действие именно выполнено,
         // а не отменено или в процессе
         if (!context.performed) return;
-        party.InitDoll(2);
+        party.ChangeDoll(2);
 
 
         dashboard.InitDoll();
     }
+    
     private float m_Wheel;
     private float m_MouseX;
     
