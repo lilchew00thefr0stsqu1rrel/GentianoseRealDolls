@@ -123,7 +123,10 @@ namespace GentianoseRealDolls
         }
         private void OnApplicationPause(bool pause)
         {
-            GiveResource.OnTake -= TakeResource(baseItem, baseAmount);
+             if (pause)
+                 GiveResource.OnTake -= TakeResource(baseItem, baseAmount);
+             else
+                 GiveResource.OnTake += TakeResource(baseItem, baseAmount);
         }
 
         private void OnDestroy()
