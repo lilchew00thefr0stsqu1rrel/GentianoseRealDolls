@@ -10,7 +10,8 @@ namespace GentianoseRealDolls
         public enum AIBehaviour
         {
             Null,
-            Patrol
+            Patrol,
+            Peaceful
         }
 
         [SerializeField] private AIBehaviour m_AIBehaviour;
@@ -117,8 +118,9 @@ namespace GentianoseRealDolls
                 {
                     if (m_PatrolPoint  != null)
                     {
-                        bool isInsidePatrolZone = (m_PatrolPoint.transform.position - transform.position).magnitude
-                        < m_PatrolPoint.Radius;
+                        bool isInsidePatrolZone = (m_PatrolPoint.transform.position - transform.position).magnitude 
+                            < m_PatrolPoint.Radius;
+
 
                         if (isInsidePatrolZone == true) // Near patrol point
                         {
@@ -134,11 +136,31 @@ namespace GentianoseRealDolls
                         }
                     }
 
-                   
 
                 }
             }
 
+            if (m_AIBehaviour == AIBehaviour.Peaceful)
+            {
+                if (m_PatrolPoint != null)
+                {
+                    bool isInsidePatrolZone = (m_PatrolPoint.transform.position - transform.position).magnitude
+                        < m_PatrolPoint.Radius;
+
+
+                    if (isInsidePatrolZone == true) // Near patrol point
+                    {
+                        GetNewPoint();
+
+                         print("Danica Click");
+                    }
+
+                    else  // To patrol point
+                    {
+                        m_MovePosition = m_PatrolPoint.transform.position;
+                    }
+                }
+            }
         }
 
         protected virtual void GetNewPoint()
@@ -189,7 +211,6 @@ namespace GentianoseRealDolls
 
         private void ActionFindNewAttackTarget()
         {
-
             if (m_FindNewTargetTimer.IsFinished == true)
             {
                 m_SelectedTarget = FindNearestDestructibleTarget();
@@ -199,24 +220,27 @@ namespace GentianoseRealDolls
 
                 m_FindNewTargetTimer.Start(m_ShootDelay);
             }
-
         }
         private void ActionFire()
         {
+            
             if (m_SelectedTarget != null)
             {
                 if (m_FireTimer.IsFinished == true)
                 {
-                    m_SpaceShip.Fire(TurretMode.Primary);
+                    m_SpaceShip.Fire(TurretMode.Direct);
 
                     m_FireTimer.Start(m_ShootDelay);
                 }
             }
+            
         }
         [SerializeField] private bool m_Friendly;
 
         private Destructible FindNearestDestructibleTarget()
         {
+            if (m_SpaceShip.TeamId == 2) return null;
+            
             float maxDist = float.MaxValue;
 
             Destructible potentialTarget = null;
@@ -237,12 +261,13 @@ namespace GentianoseRealDolls
                 if (dist < maxDist)
                 {
                     maxDist = dist;
-                    potentialTarget = (Destructible) v;
-                   // m_TargetRigid = v.GetComponent<Rigidbody2D>();
+                    potentialTarget = (Destructible)v;
+                    // m_TargetRigid = v.GetComponent<Rigidbody2D>();
                 }
             }
 
             return potentialTarget;
+            
         }
 
         private Vector3 MakeLead(Rigidbody targetRigid)
@@ -277,7 +302,13 @@ namespace GentianoseRealDolls
         public void SetPatrolBehaviour(AIPointPatrol patrolPoint)
         {
             m_PatrolPoint = patrolPoint;
-            m_AIBehaviour = AIBehaviour.Patrol; 
+            m_AIBehaviour = AIBehaviour.Patrol;
+        }
+
+        public void SetProcessionBehaviour(AIPointPatrol patrolPoint)
+        {
+            m_PatrolPoint = patrolPoint;
+            m_AIBehaviour = AIBehaviour.Patrol;
         }
 
         public void ResetPatrolBehaviour()
