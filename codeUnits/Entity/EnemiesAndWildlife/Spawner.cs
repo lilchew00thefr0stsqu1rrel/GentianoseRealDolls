@@ -1,6 +1,7 @@
 using UnityEngine;
 using Common;
 using TowerDefense;
+using System.Threading.Tasks;
 
 namespace GentianoseRealDolls
 {
@@ -35,38 +36,48 @@ namespace GentianoseRealDolls
 
 
         private float m_Timer;
-
+         
 
         //[SerializeField] private EntitiesListManager m_Entities;
 
         private void Start()
         {
+            SpawnEnities();
             //if (m_SpawnMode == SpawnMode.Start)
             {
-                SpawnEnities();
+                //SpawnEnities();
             }
 
             m_Timer = m_RespawnTime;
         }
-
-        private void Update()
+        private void OnApplicationPause(bool pause)
         {
-            if (m_Timer > 0)
-                m_Timer -= Time.deltaTime;
-
-            if (m_SpawnMode == SpawnMode.Loop && m_Timer <= 0)
+            if (!pause)
             {
                 SpawnEnities();
-
-                m_Timer = m_RespawnTime;
             }
         }
+
+        //private void Update()
+        //{
+        //    if (m_Timer > 0)
+        //        m_Timer -= Time.deltaTime;
+
+        //    if (m_SpawnMode == SpawnMode.Loop && m_Timer <= 0)
+        //    {
+        //        SpawnEnities();
+
+        //        m_Timer = m_RespawnTime;
+        //    }
+        //}
 
         private void SpawnEnities()
         {
             for (int i = 0; i < m_NumSpawns; i++)
             {
                 var e = GenerateSpawnedEntity();
+
+                if (e != null && m_Area != null) 
                 e.transform.position = m_Area.GetRandomInsideZone();
 
             
