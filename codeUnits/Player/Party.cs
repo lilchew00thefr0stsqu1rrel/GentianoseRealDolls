@@ -547,6 +547,8 @@ private void SetDollsPatrol()
                 m_NotFirstDoll = false;
                 m_NotSessionStart = false;
                 InitBase(m_CurrentScene.LocationIndex, m_TimePastStats.ReadTime());
+
+                m_IsSwimming = false;
             }
         }
 
