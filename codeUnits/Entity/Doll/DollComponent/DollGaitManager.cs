@@ -188,6 +188,12 @@ namespace GentianoseRealDolls
             if (m_Party.Stamina == 0) return;    
             if (m_Doll.DollController.Sleeping) return;
             m_AnimatorGuard.SetAnimation(3);
+
+            if (!isMoving)
+            {
+                transform.parent.position += Vector3.up;
+            }
+            
             isMoving = true;
 
             m_GaitAnimation = gaitCodes[2];
