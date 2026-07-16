@@ -290,18 +290,46 @@ namespace GentianoseRealDolls
             }
         }
 
-        private async void Warn()
+        // Предупреждение о том, что невозможно сделать
+       
+        private async void Warn(string text)
         {
             m_Warn.enabled = true;
+            m_Warn.text = text;
             await Task.Delay(700);
             m_Warn.enabled = false;
         }
-        // Создать и заполнить куклу
-        // Интерфейс пользователя зависит от зверей, а не наоборот
+
+        [SerializeField] private bool m_IsSwimming;
+
+        // Начало плавания
+        // Инициируется водой
+
+        public void SetSwimming(bool swimming)
+        {
+            m_IsSwimming = swimming;
+        }
 
 
         // Переключиться на данного персонажа
         // Сделать персонажей активным/ неактивными
+        
+        public void ChangeDoll(int index)
+        {
+            if (m_IsSwimming)
+            {
+                Warn("Невозможно сменить куклу во время плавания");
+                return;
+            }
+            else
+            {
+                InitDoll(index);
+            }
+        }
+
+        // Создать и заполнить куклу
+        // Интерфейс пользователя зависит от зверей, а не наоборот
+        
         public void InitDoll(int index)
         {
             m_ActiveDollIndexInParty = index;
