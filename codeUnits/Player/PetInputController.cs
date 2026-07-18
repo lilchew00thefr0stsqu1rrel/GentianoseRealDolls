@@ -16,6 +16,18 @@ public class PetInputController : MonoCache
     private Vector2 m_FirstFing;
     private Vector2 m_SecondFing;
 
+
+    [SerializeField] private float[] m_LesserSkillMaxTime = new float[]
+    {
+        3, 12, 8, 10, 3
+    };
+
+    [SerializeField]
+    private float[] m_LesserSkillTimers = new float[3];
+
+
+    [SerializeField]
+    private bool[] m_LesserSkillBuffs = new bool[3];
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -50,6 +62,19 @@ public class PetInputController : MonoCache
             cameraAroundDoll.Rotate(1);
         }
 
+
+        for (int i = 0; i < m_LesserSkillTimers.Length; i++)
+        {
+
+            if (m_LesserSkillTimers[i] > 0)
+                m_LesserSkillTimers[i] -= Time.deltaTime;
+
+        }
+
+        if (m_LesserSkillTimers[party.ActiveDoll.DollID] <= 0)
+        {
+            cameraAroundDoll.OffLookUp();
+        }
     }
 
     // Этот метод вызывается при нажатии кнопки Jump
@@ -133,6 +158,7 @@ public class PetInputController : MonoCache
         party.ActiveDoll.DollController.SetAimInput(aim);
 
     }
+
     public void OnLesserSkill(InputAction.CallbackContext context)
     {
         // Проверяем, что действие именно выполнено,
@@ -140,6 +166,13 @@ public class PetInputController : MonoCache
         if (!context.performed) return;
 
         party.ActiveDoll.DollController.BattleManager.LesserSkill();
+
+
+        cameraAroundDoll.LookUp();
+
+        m_LesserSkillTimers[party.ActiveDoll.DollID] = m_LesserSkillMaxTime[party.ActiveDoll.DollID];
+
+        m_LesserSkillBuffs[party.ActiveDoll.DollID] = true;
     }
 
 
@@ -165,7 +198,7 @@ public class PetInputController : MonoCache
         // Проверяем, что действие именно выполнено,
         // а не отменено или в процессе
         if (!context.performed) return;
-        party.InitDoll(0);
+        party.ChangeDoll(0);
         
         dashboard.InitDoll();
     }
@@ -174,7 +207,7 @@ public class PetInputController : MonoCache
         // Проверяем, что действие именно выполнено,
         // а не отменено или в процессе
         if (!context.performed) return;
-        party.InitDoll(1);
+        party.ChangeDoll(1);
 
 
         dashboard.InitDoll();
@@ -184,7 +217,7 @@ public class PetInputController : MonoCache
         // Проверяем, что действие именно выполнено,
         // а не отменено или в процессе
         if (!context.performed) return;
-        party.InitDoll(2);
+        party.ChangeDoll(2);
 
 
         dashboard.InitDoll();
