@@ -187,13 +187,14 @@ namespace GentianoseRealDolls
         {
             if (m_Party.Stamina == 0) return;    
             if (m_Doll.DollController.Sleeping) return;
+
             m_AnimatorGuard.SetAnimation(3);
 
             if (!isMoving)
             {
                 transform.parent.position += Vector3.up;
             }
-            
+
             isMoving = true;
 
             m_GaitAnimation = gaitCodes[2];
@@ -205,7 +206,7 @@ namespace GentianoseRealDolls
 
         public void MaybeSpecialGait()
         {
-            if (m_Doll.DollController.BattleManager.LesserSkillBuff && gaitCodes[3] != 0)
+            if (m_Doll.DollController.BattleManager.LesserSkillGaitBuff && gaitCodes[3] != 0)
             {
                 print("Otter trot, bushbaby saltation");
                 m_AnimatorGuard.SetAnimation(30);
@@ -228,7 +229,7 @@ namespace GentianoseRealDolls
                 Gallop();
 
 
-            if (m_Doll.DollController.BattleManager.LesserSkillBuff && gaitCodes[3] != 0)
+            if (m_Doll.DollController.BattleManager.LesserSkillGaitBuff && gaitCodes[3] != 0)
             {
                 MaybeSpecialGait();
             }
@@ -263,7 +264,7 @@ namespace GentianoseRealDolls
                 if (!m_AnimatorGuard.IsMotion()) return;
 
                 print("тпру");
-                if (gaitCodes[3] != 0 && m_Doll.DollController.BattleManager.LesserSkillBuff)
+                if (gaitCodes[3] != 0 && m_Doll.DollController.BattleManager.LesserSkillGaitBuff)
                 {
                     m_AnimatorGuard.SetAnimation(9);
                 }
@@ -295,3 +296,4 @@ namespace GentianoseRealDolls
         #endregion
     }
 }
+
