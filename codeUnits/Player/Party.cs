@@ -37,6 +37,7 @@ namespace GentianoseRealDolls
         [Header("Services")]
         [SerializeField] private int m_MapID;
         [SerializeField] private CurrentSceneData m_CurrentScene;
+        public CurrentSceneData CurrentScene => m_CurrentScene;
         [SerializeField] private TimePastStats m_TimePastStats;
         [SerializeField] private TeleportBeasts m_TeleportBeasts;
 
@@ -71,15 +72,20 @@ namespace GentianoseRealDolls
         [SerializeField] private OffField m_OffField;
 
 
+        [Header("Session")]
+
+        [SerializeField] private bool m_NotFirstSession;
+        [SerializeField] private bool m_NotSessionStart;
+        [SerializeField] private bool m_NotFirstDoll;
 
         [Header("Time")]
-        [SerializeField] private int sessionHouseMap;
-        [SerializeField] private bool m_AfterStart;
+
 
         [SerializeField] private float m_TickLength = 0.2f;
 
 
         [SerializeField] private UnityEngine.UI.Text m_Warn;
+        [SerializeField] private SkillStates m_SkillStates;
 
         private int m_ActiveDollID = 0;
 
@@ -177,6 +183,9 @@ namespace GentianoseRealDolls
         // Граница минут
         IEnumerator UniTickMinute()
         {
+            yield return new WaitUntil(() => DateTime.Now.Second == 59);
+            yield return new WaitForSeconds(1);
+
             if (m_ActiveDoll != null)
             {
                 List<int> slp = m_AllDollSleeps.GetDolls();
@@ -191,8 +200,6 @@ namespace GentianoseRealDolls
             }
 
 
-            yield return new WaitUntil(() => DateTime.Now.Second == 59);
-            yield return new WaitForSeconds(1);
 
             StartCoroutine(UniTickMinute());
             
@@ -209,7 +216,6 @@ namespace GentianoseRealDolls
 
         public void InitBase(int mapID, long time)
         {
-            sessionHouseMap++;
 
             m_Inventory.InitInventory();
 
@@ -222,17 +228,26 @@ namespace GentianoseRealDolls
 
             m_ActiveDollIndexInParty = m_ActiveDollUponExit.GetActiveDoll();
 
-            m_CountDollTurn = 0;
+            m_NotFirstDoll = false;
+
+            if (!m_NotSessionStart)
+            {
+                ChangeStatsByPastTime();
+                m_NotSessionStart = true;
+            }
 
             InitDoll(m_ActiveDollIndexInParty);
 
-            if (sessionHouseMap <= 1)
+            if (!m_NotFirstSession)
             {
                 StartCoroutine(UniTick());
                 StartCoroutine(UniTickMinute());
 
-                ChangeStatsByPastTime();
+
+                m_NotFirstSession = true;
+
             }
+
 
 
 
@@ -259,7 +274,7 @@ namespace GentianoseRealDolls
 
                 stats[1] = Mathf.Clamp(stats[1] - timeI, 0, 10);
 
-                stats[2] = Mathf.Clamp(stats[2] - timeI, 0, m_DollDataLists.AnalGlandVolumeArray[i]);
+                stats[2] = Mathf.Clamp(stats[2] + timeI, 0, m_DollDataLists.AnalGlandVolumeArray[i]);
 
                 stats[3] = Mathf.Clamp(stats[3] - timeI, 0, 10);
 
@@ -278,16 +293,36 @@ namespace GentianoseRealDolls
             }
         }
 
-        private async void Warn()
+        private async void Warn(string text)
         {
             m_Warn.enabled = true;
+            m_Warn.text = text;
             await Task.Delay(700);
             m_Warn.enabled = false;
         }
+
+        [SerializeField] private bool m_IsSwimming;
+
+        public void SetSwimming(bool swimming)
+        {
+            m_IsSwimming = swimming;
+        }
+
         // Создать и заполнить куклу
         // Интерфейс пользователя зависит от зверей, а не наоборот
 
-        [SerializeField] private int m_CountDollTurn;
+        public void ChangeDoll(int index)
+        {
+            if (m_IsSwimming)
+            {
+                Warn("Невозможно сменить куклу во время плавания");
+                return;
+            }
+            else
+            {
+                InitDoll(index);
+            }
+        }
 
         // Переключиться на данного персонажа
         // Сделать персонажей активным/ неактивными
@@ -329,7 +364,8 @@ namespace GentianoseRealDolls
             m_ActiveDoll.DollController.ConstructPoop(m_PoopStore);
             m_ActiveDoll.DollController.SetDollProperties();
 
-            
+            m_ActiveDoll.DollController.FoodManager.SetAllPet(m_AllDollCharacters);
+            m_ActiveDoll.DollController.FoodManager.ConstructDollCom(m_Inventory);
 
            
                 
@@ -350,7 +386,7 @@ namespace GentianoseRealDolls
 
             m_TrailDolls = new Doll[2];
 
-            m_CountDollTurn++;
+            m_NotFirstDoll = true;
         }
 
 
@@ -486,7 +522,6 @@ private void SetDollsPatrol()
         }
         private void Start()
         {
-
         }
         private void Update()
         {
@@ -505,9 +540,18 @@ private void SetDollsPatrol()
         {
             if (pause)
             {
-                m_CountDollTurn = 0;
+            }
+            else
+            {
+                m_NotFirstDoll = false;
+                m_NotSessionStart = false;
+                InitBase(m_CurrentScene.LocationIndex, m_TimePastStats.ReadTime());
+
+                m_IsSwimming = false;
             }
         }
+
+       
     }
 
 }
