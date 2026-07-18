@@ -86,7 +86,11 @@ namespace GentianoseRealDolls
         [SerializeField] private int m_AttackPower = 288;
 
         [SerializeField] private bool m_LesserSkillBuff;
-        public bool LesserSkillBuff => m_LesserSkillBuff;
+
+        // 18 VII '26
+        [SerializeField] private bool m_LesserSkillGaitBuff;
+        public bool LesserSkillGaitBuff => m_LesserSkillGaitBuff;
+
 
         [SerializeField] private float m_BuffDuration = 10;
 
@@ -102,6 +106,11 @@ namespace GentianoseRealDolls
         public float Cooldown => m_Cooldown;
 
         public bool SprayStanceOn => m_IsSprayStance;
+
+        Vector3 posDollStart;
+
+        [SerializeField] private float m_UrineTrailMinDist = 0.5f; 
+        [SerializeField] private float m_UrineTrailTime = 5; 
 
         public void SetOffField(OffField off)
         {
@@ -258,7 +267,9 @@ namespace GentianoseRealDolls
             if (m_LesserSkillBuff)
             {
                 m_AnimatorGuard.SetAnimation(13);
-                m_LesserSkillNormalAttackPart.Use(aimInput, m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0013"));
+                m_LesserSkillNormalAttackPart.SetAimInput(aimInput);
+                m_LesserSkillNormalAttackPart.SetActionTime(lntime);
+                m_LesserSkillNormalAttackPart.Use();
 
 
                 await Task.Delay((int)(lntime * 1000));
@@ -266,8 +277,10 @@ namespace GentianoseRealDolls
             }
             else
             {
-                m_AnimatorGuard.SetAnimation(7);
-                m_NormalAttackPart.Use(aimInput, m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0007"));
+                m_AnimatorGuard.SetAnimation(7); 
+                m_LesserSkillNormalAttackPart.SetAimInput(aimInput);
+                m_LesserSkillNormalAttackPart.SetActionTime(ntime);
+                m_NormalAttackPart.Use();
 
                 await Task.Delay((int)(ntime * 1000));
                 m_AnimatorGuard.SetAnimation(0);
@@ -289,7 +302,9 @@ namespace GentianoseRealDolls
             if (m_LesserSkillBuff)
             {
                 m_AnimatorGuard.SetAnimation(14);
-                m_LesserSkillChargedAttackPart.Use(aimInput, m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0014"));
+                m_LesserSkillChargedAttackPart.SetAimInput(aimInput);
+                m_LesserSkillChargedAttackPart.SetActionTime(lctime);
+                m_LesserSkillChargedAttackPart.Use();
 
                 await Task.Delay((int)(lctime * 1000));
                 Idle();
@@ -297,7 +312,9 @@ namespace GentianoseRealDolls
             else
             {
                 m_AnimatorGuard.SetAnimation(8);
-                m_ChargedAttackPart.Use(aimInput, m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0008"));
+                m_ChargedAttackPart.SetAimInput(aimInput);
+                m_ChargedAttackPart.SetActionTime(ctime);
+                m_ChargedAttackPart.Use();
 
                 await Task.Delay((int)(ctime * 1000));
                 Idle();
@@ -324,20 +341,29 @@ namespace GentianoseRealDolls
 
                 m_AnimatorGuard.SetAnimation(9);
 
-                m_LesserSkillPart?.Use(m_AimInput, m_AnimatorGuard.GetAnimationLength("LesserSkill"));
+                //m_LesserSkillPart?.Use(m_AimInput, m_AnimatorGuard.GetAnimationLength("LesserSkill"));
 
                 if (m_SummonPrefab && m_OffField)
                 {
                     var summon = Instantiate(m_SummonPrefab, m_OffField.transform);
+                    m_OffField.SetSummon(summon, m_Doll.DollID);
+
                     if (summon is HealSide)
                     {
                         (summon as HealSide).SetParty(m_Party);
-                        summon.Use(Vector2.zero, 4);
+
+
+                        summon.SetActionTime(4);
+                        summon.Use();
                     }
                 }
 
                 StartCoroutine(EffectTimer());
-                m_LesserSkillBuff = true;
+                m_LesserSkillGaitBuff = true;
+
+                posDollStart = transform.parent.position;
+                StartCoroutine(RideTimer());
+
                 StartCoroutine(FlehmenCDSkill());
                 m_LesserSkillCooldownTime = m_Cooldown;
 
@@ -367,6 +393,15 @@ namespace GentianoseRealDolls
                 Idle();
             }
 
+            IEnumerator RideTimer()
+            {
+                yield return new WaitForSeconds(m_UrineTrailTime);
+
+                if ((transform.parent.position - posDollStart).magnitude >= m_UrineTrailMinDist)
+                {
+                    m_LesserSkillBuff = true;
+                }
+            }
         }
         #region Spray
         public void SprayModeOnOff()
