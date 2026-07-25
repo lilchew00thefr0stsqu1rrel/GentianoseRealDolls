@@ -16,6 +16,18 @@ public class PetInputController : MonoCache
     private Vector2 m_FirstFing;
     private Vector2 m_SecondFing;
 
+
+    [SerializeField] private float[] m_LesserSkillMaxTime = new float[]
+    {
+        3, 12, 8, 10, 3
+    };
+
+    [SerializeField]
+    private float[] m_LesserSkillTimers = new float[3];
+
+
+    [SerializeField]
+    private bool[] m_LesserSkillBuffs = new bool[3];
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -40,16 +52,20 @@ public class PetInputController : MonoCache
             cameraAroundDoll.Zoom(1);
         }
 
+        
 
-        if (m_VirtualGamePad.VirtualJoystickRotation.Value.x > 0)
+        for (int i = 0; i < m_LesserSkillTimers.Length; i++)
         {
-            cameraAroundDoll.Rotate(-1);
-        }
-        if (m_VirtualGamePad.VirtualJoystickRotation.Value.x < 0)
-        {
-            cameraAroundDoll.Rotate(1);
+
+            if (m_LesserSkillTimers[i] > 0)
+                m_LesserSkillTimers[i] -= Time.deltaTime;
+
         }
 
+        if (m_LesserSkillTimers[party.ActiveDoll.DollID] <= 0)
+        {
+            cameraAroundDoll.OffLookUp();
+        }
     }
 
     // Этот метод вызывается при нажатии кнопки Jump
@@ -133,6 +149,7 @@ public class PetInputController : MonoCache
         party.ActiveDoll.DollController.SetAimInput(aim);
 
     }
+
     public void OnLesserSkill(InputAction.CallbackContext context)
     {
         // Проверяем, что действие именно выполнено,
@@ -140,6 +157,13 @@ public class PetInputController : MonoCache
         if (!context.performed) return;
 
         party.ActiveDoll.DollController.BattleManager.LesserSkill();
+
+
+        cameraAroundDoll.LookUp();
+
+        m_LesserSkillTimers[party.ActiveDoll.DollID] = m_LesserSkillMaxTime[party.ActiveDoll.DollID];
+
+        m_LesserSkillBuffs[party.ActiveDoll.DollID] = true;
     }
 
 
@@ -160,7 +184,6 @@ public class PetInputController : MonoCache
 
     }
 
-    
     public void OnDigitKey1(InputAction.CallbackContext context)
     {
         // Проверяем, что действие именно выполнено,
@@ -190,7 +213,6 @@ public class PetInputController : MonoCache
 
         dashboard.InitDoll();
     }
-    
     private float m_Wheel;
     private float m_MouseX;
     
@@ -214,5 +236,29 @@ public class PetInputController : MonoCache
     public void OnSecondFing(InputAction.CallbackContext context)
     {
         m_SecondFing = context.ReadValue<Vector2>();
+    }
+
+    public void OnSwipe(InputAction.CallbackContext context)
+    {
+        var controls = context.ReadValue<Vector2>();
+        if (aim.x > 300)
+        {
+            if (controls.x > 0)
+            {
+                cameraAroundDoll.Rotate(-1);
+            }
+            if (controls.x < 0)
+            {
+                cameraAroundDoll.Rotate(1);
+            }
+            if (controls.y > 0)
+            {
+                // cameraAroundDoll.Lift(1);
+            }
+            if (controls.y < 0)
+            {
+                // cameraAroundDoll.Lift(-1);
+            }
+        }
     }
 }
