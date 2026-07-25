@@ -68,6 +68,9 @@ namespace GentianoseRealDolls
         [SerializeField] private DollSleep sleepSystem;
         public DollSleep SleepSystem => sleepSystem;
 
+        [SerializeField] private DollFood foodManager;
+        public DollFood FoodManager => foodManager;
+
         [SerializeField] private Inventory m_Inventory;
 
 
@@ -77,7 +80,8 @@ namespace GentianoseRealDolls
         [SerializeField] private Vector2 m_AimInput;
         [SerializeField] private Vector2 m_MoveInput;
 
-        private Dashboard m_Dashboard;
+
+       private Dashboard m_Dashboard;
         private Party m_Party;
         private bool m_IsSleeping;
         public bool Sleeping => m_IsSleeping;
@@ -293,4 +297,5 @@ namespace GentianoseRealDolls
         }
     }
 }
+
 
