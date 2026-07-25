@@ -208,7 +208,7 @@ public class Dashboard : MonoBehaviour
     {
 
         SetUI(1);
-        m_VirtualJoystickForRotation.SetActive(false);
+        //m_VirtualJoystickForRotation.SetActive(false);
 
         habitatUI.HideAdditiveDashboard();
         m_Party.PauseAllDolls();
@@ -216,7 +216,7 @@ public class Dashboard : MonoBehaviour
     public void CloseInventory()
     {
 
-        m_VirtualJoystickForRotation.SetActive(true);
+        //m_VirtualJoystickForRotation.SetActive(true);
         
         m_Party.UnPauseAllDolls();
 
