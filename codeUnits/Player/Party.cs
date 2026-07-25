@@ -85,6 +85,7 @@ namespace GentianoseRealDolls
 
 
         [SerializeField] private UnityEngine.UI.Text m_Warn;
+        [SerializeField] private SkillStates m_SkillStates;
 
         private int m_ActiveDollID = 0;
 
@@ -173,6 +174,8 @@ namespace GentianoseRealDolls
                 m_ActiveDoll.DollController.PositionManager.Save();
             }
 
+            m_AllDollBattle.WriteDoll(new int[2] {m_ActiveDollID, m_ActiveDoll.PetAsSpaceShip.HitPoints});
+
             yield return new WaitForSeconds(m_TickLength);
 
             StartCoroutine(UniTick());
@@ -184,7 +187,7 @@ namespace GentianoseRealDolls
         {
             yield return new WaitUntil(() => DateTime.Now.Second == 59);
             yield return new WaitForSeconds(1);
-            
+
             if (m_ActiveDoll != null)
             {
                 List<int> slp = m_AllDollSleeps.GetDolls();
@@ -198,7 +201,10 @@ namespace GentianoseRealDolls
                 m_ActiveDoll.DollController.GoToBed(m_AllDollSleeps.GetDoll(m_ActiveDollID));
             }
 
-            StartCoroutine(UniTickMinute());            
+
+
+            StartCoroutine(UniTickMinute());
+            
         }
 
 
@@ -225,13 +231,13 @@ namespace GentianoseRealDolls
             m_ActiveDollIndexInParty = m_ActiveDollUponExit.GetActiveDoll();
 
             m_NotFirstDoll = false;
-            
+
             if (!m_NotSessionStart)
             {
                 ChangeStatsByPastTime();
                 m_NotSessionStart = true;
             }
-                
+
             InitDoll(m_ActiveDollIndexInParty);
 
             if (!m_NotFirstSession)
@@ -239,12 +245,11 @@ namespace GentianoseRealDolls
                 StartCoroutine(UniTick());
                 StartCoroutine(UniTickMinute());
 
-               
 
                 m_NotFirstSession = true;
 
             }
-            
+
 
 
 
@@ -290,8 +295,6 @@ namespace GentianoseRealDolls
             }
         }
 
-        // Предупреждение о том, что невозможно сделать
-       
         private async void Warn(string text)
         {
             m_Warn.enabled = true;
@@ -302,18 +305,14 @@ namespace GentianoseRealDolls
 
         [SerializeField] private bool m_IsSwimming;
 
-        // Начало плавания
-        // Инициируется водой
-
         public void SetSwimming(bool swimming)
         {
             m_IsSwimming = swimming;
         }
 
+        // Создать и заполнить куклу
+        // Интерфейс пользователя зависит от зверей, а не наоборот
 
-        // Переключиться на данного персонажа
-        // Сделать персонажей активным/ неактивными
-        
         public void ChangeDoll(int index)
         {
             if (m_IsSwimming)
@@ -327,9 +326,8 @@ namespace GentianoseRealDolls
             }
         }
 
-        // Создать и заполнить куклу
-        // Интерфейс пользователя зависит от зверей, а не наоборот
-        
+        // Переключиться на данного персонажа
+        // Сделать персонажей активным/ неактивными
         public void InitDoll(int index)
         {
             m_ActiveDollIndexInParty = index;
@@ -370,7 +368,11 @@ namespace GentianoseRealDolls
 
             m_ActiveDoll.DollController.FoodManager.SetAllPet(m_AllDollCharacters);
             m_ActiveDoll.DollController.FoodManager.ConstructDollCom(m_Inventory);
-           
+
+
+            m_ActiveDoll.DollController.BattleManager.AssignTurretCamera(m_ProperCamera); 
+                
+            
 
             m_ActiveDoll.FillStats(m_AllDollCharacters.GetDoll(m_ActiveDollID));
             m_ActiveDoll.DollController.GoToBed(m_AllDollSleeps.GetDoll(m_ActiveDoll.DollID));
@@ -511,6 +513,7 @@ private void SetDollsPatrol()
         public void RestoreHPAll(int healAmount)
         {
             m_AllDollBattle.RestoreHPAll(healAmount);
+            m_ActiveDoll.PetAsSpaceShip.RestoreHitPoints(healAmount);
         }
 
         // 6. События Unity
