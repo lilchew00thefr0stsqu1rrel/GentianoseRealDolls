@@ -21,7 +21,18 @@ namespace GentianoseRealDolls
         {
             for (int i = 0; i < m_OffFieldParts.Length; i++)
             {
-                if (m_OffFieldParts[i] != null)
+                if (m_OffFieldParts[i] != null && !m_OffFieldParts[i].TogetherWithNormalAttack)
+                {
+                    m_OffFieldParts[i].Use();
+                }
+            }
+        }
+
+        public void UseParfusion()
+        {
+            for (int i = 0; i < m_OffFieldParts.Length; i++)
+            {
+                if (m_OffFieldParts[i] != null && m_OffFieldParts[i].TogetherWithNormalAttack)
                 {
                     m_OffFieldParts[i].Use();
                 }
