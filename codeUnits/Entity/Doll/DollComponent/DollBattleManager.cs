@@ -128,6 +128,8 @@ namespace GentianoseRealDolls
         {
             if (m_NormalAttackPart is Turret)
                 (m_NormalAttackPart as Turret).SetCamera(cam);
+            if (m_LesserSkillChargedAttackPart is Turret)
+                (m_LesserSkillChargedAttackPart as Turret).SetCamera(cam);
             if (m_LesserSkillPart is Turret)
                 (m_LesserSkillPart as Turret).SetCamera(cam);
             if (m_AnusTurret)
@@ -188,7 +190,6 @@ namespace GentianoseRealDolls
 
                 if (m_ChargingTimerCA >= m_ChargedAttackTime)
                 {
-                    m_BeforeChargedAttack = false;
                     print("Charged");
                     ChargedAttack(m_AimInput);
                 }
@@ -241,6 +242,9 @@ namespace GentianoseRealDolls
             m_ChargingTimerCA = 0;
             m_BeforeChargedAttack = false;
             m_AtChargedAttack = false;
+
+
+            m_Party.Camera.OffAimMode();
         }
 
         private const int SprayStanceID = 4;
@@ -260,6 +264,10 @@ namespace GentianoseRealDolls
         private async void NormalAttack(Vector2 aimInput)
         {
             if (m_AnimatorGuard == null) m_AnimatorGuard = GetComponent<AnimatorGuard>();
+
+
+            //20vii26
+            m_OffField.UseParfusion();
 
             float ntime = m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0007");
             float lntime = m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0013");
@@ -296,17 +304,33 @@ namespace GentianoseRealDolls
         {
             if (m_AnimatorGuard == null) m_AnimatorGuard = GetComponent<AnimatorGuard>();
 
+            //20vii26
+            m_OffField.UseParfusion();
+
             float ctime = m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0008");
             float lctime = m_AnimatorGuard.GetAnimationLength($"{10000 + m_Doll.DollID}0014");
 
+
             if (m_LesserSkillBuff)
             {
+
+                m_Party.Camera.AimMode();
+
                 m_AnimatorGuard.SetAnimation(14);
                 m_LesserSkillChargedAttackPart.SetAimInput(aimInput);
                 m_LesserSkillChargedAttackPart.SetActionTime(lctime);
                 m_LesserSkillChargedAttackPart.Use();
 
+                if (!m_LesserSkillChargedAttackPart.Repeating)
+                {
+                    m_BeforeChargedAttack = false;
+                }
+
                 await Task.Delay((int)(lctime * 1000));
+
+
+                //m_Party.Camera.OffAimMode();
+
                 Idle();
             }
             else
@@ -316,13 +340,23 @@ namespace GentianoseRealDolls
                 m_ChargedAttackPart.SetActionTime(ctime);
                 m_ChargedAttackPart.Use();
 
+
+
+                if (!m_ChargedAttackPart.Repeating)
+                {
+                    m_BeforeChargedAttack = false;
+                }
+
                 await Task.Delay((int)(ctime * 1000));
                 Idle();
             }
 
 
+            if (!m_Doll.Sounds[2].isPlaying)
+                m_Doll.Sounds[2].Play();
+
             //m_AtChargedAttack = true;
-            m_Doll.Sounds[2].Play();
+
 
         }
 
@@ -337,6 +371,7 @@ namespace GentianoseRealDolls
 
             if (!m_FlehmenCooldown)
             {
+
                 m_AtAnimationE = true;
 
                 m_AnimatorGuard.SetAnimation(9);
