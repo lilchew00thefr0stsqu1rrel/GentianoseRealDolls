@@ -108,6 +108,8 @@ namespace GentianoseRealDolls
         [SerializeField] private DollDataLists m_DollDataLists;
         public DollDataLists DollData => m_DollDataLists;
 
+        private int m_NumberOfDolls = 4;
+
         /// <summary>
         /// С 3 VI 2026 нужно внедрить новую систему управления куклами:
         /// Как игровой объект существуют 1 главная кукла и до 2 следующих кукол:
@@ -238,6 +240,7 @@ namespace GentianoseRealDolls
                 m_NotSessionStart = true;
             }
 
+            
             InitDoll(m_ActiveDollIndexInParty);
 
             if (!m_NotFirstSession)
@@ -258,8 +261,6 @@ namespace GentianoseRealDolls
         }
 
 
-     
-
 
 
 
@@ -269,7 +270,7 @@ namespace GentianoseRealDolls
         {
             int timeI = (int)m_TimeDifference;
 
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < m_NumberOfDolls; i++)
             {
                 int[] stats = new int[8];
                 stats = m_AllDollCharacters.GetDoll(i);
@@ -330,14 +331,21 @@ namespace GentianoseRealDolls
         // Сделать персонажей активным/ неактивными
         public void InitDoll(int index)
         {
+            
+
             m_ActiveDollIndexInParty = index;
 
 
             if (m_ActiveDoll) DestroyImmediate(m_ActiveDoll.gameObject);
-            m_ActiveDoll = Instantiate(m_DollPrefabs[index], m_ActiveDollPosition.GetDollPos(), Quaternion.identity);
 
 
-            m_ActiveDollID = m_ActiveDoll.DollID;
+            // 26 vii 26
+
+            m_ActiveDollID = m_DollsCode[index];
+
+            m_ActiveDoll = Instantiate(m_DollPrefabs[m_ActiveDollID], m_ActiveDollPosition.GetDollPos(), Quaternion.identity);
+
+
 
 
 
@@ -514,6 +522,13 @@ private void SetDollsPatrol()
         {
             m_AllDollBattle.RestoreHPAll(healAmount);
             m_ActiveDoll.PetAsSpaceShip.RestoreHitPoints(healAmount);
+        }
+
+        public void SetDollInParty(string dolladdr)
+        {
+            int index = int.Parse(dolladdr[..1]);
+            int dollID = int.Parse(dolladdr[1..]);
+            m_DollsCode[index] = dollID;
         }
 
         // 6. События Unity
