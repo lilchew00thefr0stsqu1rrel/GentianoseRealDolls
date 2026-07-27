@@ -17,6 +17,16 @@ public class AnimatorGuard : MonoBehaviour, IAnimatorController
         m_Animator.SetInteger("Autom", m_AnimID);
         print($"Inflicted animation #{m_AnimID}");
     }
+    public void LightOn()
+    {
+        m_Animator.SetBool("Light", true);
+        print($"Light");
+    }
+    public void LightOff()
+    {
+        m_Animator.SetBool("Light", false);
+        print($"Light--");
+    }
 
     public float GetAnimationLength(string name)
     {
