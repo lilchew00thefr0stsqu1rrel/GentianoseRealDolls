@@ -23,11 +23,11 @@ public class PetInputController : MonoCache
     };
 
     [SerializeField]
-    private float[] m_LesserSkillTimers = new float[3];
+    private float[] m_LesserSkillTimers = new float[17];
 
 
     [SerializeField]
-    private bool[] m_LesserSkillBuffs = new bool[3];
+    private bool[] m_LesserSkillBuffs = new bool[17];
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -62,23 +62,9 @@ public class PetInputController : MonoCache
 
         }
 
-        if (m_LesserSkillTimers[party.ActiveDoll.DollID] <= 0)
+        if (m_LesserSkillTimers[party.ActiveDoll.DollID] <= 0.1f && m_LesserSkillTimers[party.ActiveDoll.DollID] > 0)
         {
-            cameraAroundDoll.OffLookUp();
-        }
-
-
-        for (int i = 0; i < m_LesserSkillTimers.Length; i++)
-        {
-
-            if (m_LesserSkillTimers[i] > 0)
-                m_LesserSkillTimers[i] -= Time.deltaTime;
-
-        }
-
-        if (m_LesserSkillTimers[party.ActiveDoll.DollID] <= 0)
-        {
-            cameraAroundDoll.OffLookUp();
+            //cameraAroundDoll.OffLookUp();
         }
     }
 
@@ -172,8 +158,6 @@ public class PetInputController : MonoCache
 
         party.ActiveDoll.DollController.BattleManager.LesserSkill();
 
-
-        cameraAroundDoll.LookUp();
 
         m_LesserSkillTimers[party.ActiveDoll.DollID] = m_LesserSkillMaxTime[party.ActiveDoll.DollID];
 
@@ -276,3 +260,4 @@ public class PetInputController : MonoCache
         }
     }
 }
+
