@@ -23,22 +23,13 @@ namespace GentianoseRealDolls
         [SerializeField] private float m_InputAngleRatio = 6;
         [SerializeField] private int m_FullAngleInMarmosetUnits = 48;
 
-        // Схема: величина float для ввода, int для фиксации и управления камерой
-        // Шаг: 1 дм
-        //
-
         [SerializeField] private float m_LinearStep = 0.1f;
-        //
-        [SerializeField] private float m_RadiusRaw = 1;
-        [SerializeField] private int m_Radius;
-        [SerializeField] private float m_MaxRadius = 5f;
+        
+        [SerializeField] private float m_Radius = 1;
         [SerializeField] private float m_MinRadius = 0.3f;
+        [SerializeField] private float m_MaxRadius = 5f;
 
-        [Tooltip("В вршк")]
-
-        // В 10-см единицах
-        [SerializeField] private float m_HeightRaw = 1;
-        [SerializeField] private int m_Height = 10;
+        [SerializeField] private float m_Height = 1;
 
         [SerializeField] private float m_BaseHeight = 1;
         [SerializeField] private float m_ExtraHeight = 2;
@@ -46,11 +37,6 @@ namespace GentianoseRealDolls
 
         [SerializeField] private bool m_AimMode;
 
-
-
-
-
-        [SerializeField] private float m_TargetUpOffsetRaw;
         [SerializeField] private int m_TargetUpOffset;
 
         private void Start()
@@ -78,66 +64,50 @@ namespace GentianoseRealDolls
 
                 m_Theta = (int)(m_ThetaRaw / m_InputAngleRatio);
 
-                if (m_RadiusRaw > 5) m_RadiusRaw = 0.1f;
-                if (m_RadiusRaw < 0.1f) m_RadiusRaw = 5;
+                m_Radius = Mathf.Clamp(m_Radius, m_MinRadius, m_MaxRadius);
 
-                m_Radius = (int)(m_RadiusRaw / m_LinearStep);
-                m_TargetUpOffset = (int)(m_TargetUpOffsetRaw / m_LinearStep);
 
-                var dmx = (float)Math.Round(m_Target.position.x, 1);
-                var dmy = (float)Math.Round(m_Target.position.y, 1);
-                var dmz = (float)Math.Round(m_Target.position.z, 1);
-                var dpos = new Vector3(dmx, dmy, dmz);
-                Vector3 toDoll = dpos + Vector3.up * m_TargetUpOffsetRaw - transform.position;
+                Vector3 toDoll = m_Target.position - transform.position;
 
 
 
                 float theta = m_Theta * m_QuadrobistAngleStep * Mathf.Deg2Rad;
 
                 transform.position = m_Target.TransformPoint(
-                    new Vector3(Mathf.Sin(theta) * m_Radius * m_LinearStep, m_Height,
-                    -Mathf.Cos(theta) * m_Radius * m_LinearStep));
-                transform.position = new Vector3(transform.position.x, m_Target.position.y + m_Height * 0.1f, transform.position.z);
+                    new Vector3(Mathf.Sin(theta) * (int)m_Radius, (int)m_Height,
+                    -Mathf.Cos(theta) * (int)m_Radius));
 
                 Quaternion toDollLook = Quaternion.LookRotation(toDoll, Vector3.up);
 
                 transform.rotation = toDollLook;
 
                 transform.forward = toDoll;
-
-
-
             }
-
         }
 
-
-        public void LookUp()
-        {
-        }
-
-        public void OffLookUp()
-        {
-        }
 
         public void AimMode()
         {
-            m_TargetUpOffsetRaw = 1.1f;
+            m_Height = 0;
+            m_Radius = 1;
 
             m_AimMode = true;
         }
 
-        public void OffAimMode()
+        public void OffAimMode(int dollSize)
         {
+            if (dollSize == 0)
+                m_Height = m_SmallBeastHeight;
+            else
+                m_Height = m_BaseHeight;
 
-            m_TargetUpOffsetRaw = 0.6f; 
-
+            m_Radius = 1;
 
             m_AimMode = false;
         }
         public void Zoom(int sign)
         {
-            m_RadiusRaw += sign * 0.1f;
+            m_Radius += sign * 0.1f;
         }
 
         public void Rotate(int sign)
@@ -145,26 +115,19 @@ namespace GentianoseRealDolls
             m_ThetaRaw += sign;
         }
 
-        public void Lift(int sign)
-        {
-            m_HeightRaw += sign * 0.1f; ;
-        }
-
         public void BirdEye()
         {
-            m_HeightRaw = m_ExtraHeight;
+            m_Height = m_ExtraHeight;
         }
 
         public void ReBirdEye(int dollSize)
         {
             if (dollSize == 0)
-             m_HeightRaw = m_SmallBeastHeight;
+             m_Height = m_SmallBeastHeight;
             else
-                m_HeightRaw = m_BaseHeight;
-        }
-        public void ReBirdEyeSmallDoll()
-        {
-            m_HeightRaw = m_SmallBeastHeight;
+                m_Height = m_BaseHeight;
+
+            m_Radius = 1;
         }
 
         public void SetTarget(Transform transform)
