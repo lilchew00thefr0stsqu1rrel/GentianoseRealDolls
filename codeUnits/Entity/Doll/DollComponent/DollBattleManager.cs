@@ -37,6 +37,7 @@ namespace GentianoseRealDolls
 
         [SerializeField] private DollPart m_SummonPrefab; //14vi2026
         [SerializeField] private OffField m_OffField;
+        [SerializeField] private GameObject m_EffectSign;
 
         [Header("***")]
 
@@ -110,7 +111,8 @@ namespace GentianoseRealDolls
         Vector3 posDollStart;
 
         [SerializeField] private float m_UrineTrailMinDist = 0.5f; 
-        [SerializeField] private float m_UrineTrailTime = 5; 
+        [SerializeField] private float m_UrineTrailTime = 5;
+
 
         public void SetOffField(OffField off)
         {
@@ -128,10 +130,19 @@ namespace GentianoseRealDolls
         {
             if (m_NormalAttackPart is Turret)
                 (m_NormalAttackPart as Turret).SetCamera(cam);
+
+            if (m_ChargedAttackPart is Turret)
+                (m_ChargedAttackPart as Turret).SetCamera(cam);
+
+            if (m_LesserSkillNormalAttackPart is Turret)
+                (m_LesserSkillNormalAttackPart as Turret).SetCamera(cam);
+
             if (m_LesserSkillChargedAttackPart is Turret)
                 (m_LesserSkillChargedAttackPart as Turret).SetCamera(cam);
+
             if (m_LesserSkillPart is Turret)
                 (m_LesserSkillPart as Turret).SetCamera(cam);
+
             if (m_AnusTurret)
                 m_Doll.AnusNipplesTurret.SetCamera(cam);
         }
@@ -244,7 +255,7 @@ namespace GentianoseRealDolls
             m_AtChargedAttack = false;
 
 
-            m_Party.Camera.OffAimMode();
+            m_Party.Camera.OffAimMode(m_Doll.DollSize);
         }
 
         private const int SprayStanceID = 4;
@@ -313,8 +324,10 @@ namespace GentianoseRealDolls
 
             if (m_LesserSkillBuff)
             {
-
-                m_Party.Camera.AimMode();
+                if (m_LesserSkillChargedAttackPart is Turret && (m_LesserSkillChargedAttackPart as Turret).Mode == TurretMode.Thorn)
+                {
+                    m_Party.Camera.AimMode();
+                }
 
                 m_AnimatorGuard.SetAnimation(14);
                 m_LesserSkillChargedAttackPart.SetAimInput(aimInput);
@@ -335,6 +348,11 @@ namespace GentianoseRealDolls
             }
             else
             {
+                if (m_ChargedAttackPart is Turret && (m_ChargedAttackPart as Turret).Mode == TurretMode.Thorn)
+                {
+                    m_Party.Camera.AimMode();
+                }
+
                 m_AnimatorGuard.SetAnimation(8);
                 m_ChargedAttackPart.SetAimInput(aimInput);
                 m_ChargedAttackPart.SetActionTime(ctime);
@@ -374,7 +392,7 @@ namespace GentianoseRealDolls
 
                 m_AtAnimationE = true;
 
-                m_AnimatorGuard.SetAnimation(9);
+                //m_AnimatorGuard.SetAnimation(9);
 
                 //m_LesserSkillPart?.Use(m_AimInput, m_AnimatorGuard.GetAnimationLength("LesserSkill"));
 
@@ -425,7 +443,11 @@ namespace GentianoseRealDolls
                 yield return new WaitForSeconds(m_BuffDuration);
                
                 m_LesserSkillBuff = false;
-                Idle();
+                m_LesserSkillGaitBuff = false;
+
+                if (m_EffectSign != null)
+                    m_EffectSign.SetActive(false);
+                m_AnimatorGuard.SetAnimation(0);
             }
 
             IEnumerator RideTimer()
@@ -435,6 +457,10 @@ namespace GentianoseRealDolls
                 if ((transform.parent.position - posDollStart).magnitude >= m_UrineTrailMinDist)
                 {
                     m_LesserSkillBuff = true;
+                    
+
+                    if (m_EffectSign != null)
+                    m_EffectSign.SetActive(true);
                 }
             }
         }
