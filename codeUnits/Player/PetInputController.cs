@@ -66,6 +66,20 @@ public class PetInputController : MonoCache
         {
             cameraAroundDoll.OffLookUp();
         }
+
+
+        for (int i = 0; i < m_LesserSkillTimers.Length; i++)
+        {
+
+            if (m_LesserSkillTimers[i] > 0)
+                m_LesserSkillTimers[i] -= Time.deltaTime;
+
+        }
+
+        if (m_LesserSkillTimers[party.ActiveDoll.DollID] <= 0)
+        {
+            cameraAroundDoll.OffLookUp();
+        }
     }
 
     // Этот метод вызывается при нажатии кнопки Jump

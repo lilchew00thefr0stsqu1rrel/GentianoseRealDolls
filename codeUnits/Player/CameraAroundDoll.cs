@@ -39,6 +39,7 @@ namespace GentianoseRealDolls
 
         [SerializeField] private int m_TargetUpOffset;
 
+        [SerializeField] private float m_TrueTargetDelta;
         private void Start()
         { 
 
@@ -46,7 +47,7 @@ namespace GentianoseRealDolls
         }
         public void Normalize()
         {
-            m_ThetaRaw = 0;
+            m_ThetaInput = 0;
         }
         // TODO: Lerp и Slerp
         private void FixedUpdate()
@@ -67,15 +68,13 @@ namespace GentianoseRealDolls
                 m_Radius = Mathf.Clamp(m_Radius, m_MinRadius, m_MaxRadius);
 
 
-                Vector3 toDoll = m_Target.position - transform.position;
+                Vector3 toDoll = m_Target.position + new Vector3(0, m_TrueTargetDelta, 0) - transform.position;
 
-
-
-                float theta = m_Theta * m_QuadrobistAngleStep * Mathf.Deg2Rad;
 
                 transform.position = m_Target.TransformPoint(
-                    new Vector3(Mathf.Sin(theta) * (int)m_Radius, (int)m_Height,
-                    -Mathf.Cos(theta) * (int)m_Radius));
+                    new Vector3(Mathf.Sin(theta) * m_Radius * m_RadiusStep, m_Height,
+                    -Mathf.Cos(theta) * m_Radius * m_RadiusStep));
+                transform.position = new Vector3(transform.position.x, m_Target.position.y + m_Height, transform.position.z);
 
                 Quaternion toDollLook = Quaternion.LookRotation(toDoll, Vector3.up);
 
@@ -108,6 +107,16 @@ namespace GentianoseRealDolls
         public void Zoom(int sign)
         {
             m_Radius += sign * 0.1f;
+        }
+
+        public void LookUp()
+        {
+            m_TrueTargetDelta = 1;
+        }
+
+        public void OffLookUp()
+        {
+            m_TrueTargetDelta = 0;
         }
 
         public void Rotate(int sign)
