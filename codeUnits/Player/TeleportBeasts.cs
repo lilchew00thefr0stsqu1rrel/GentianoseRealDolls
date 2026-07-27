@@ -14,6 +14,7 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
     [SerializeField] private CurrentSceneData currentScene;
 
     [SerializeField] private float m_I;
+    private const int m_TeleportTime = 1600;
 
     [SerializeField] private AllDollSleeps m_AllSleeps;
     [SerializeField] private ActiveDollPosition m_AllPositions;
@@ -66,7 +67,7 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
 
             m_AllPositions.SetDoll(gps);
 
-            await Task.Delay(400);
+            await Task.Delay(m_TeleportTime);
 
             m_Party.PlaceSomeOrAllDolls(gps);
 
@@ -101,7 +102,7 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
 
     public async void InitScene(int levelID)
     {
-        await Task.Delay(400);
+        await Task.Delay(m_TeleportTime);
 
         m_Party.InitBase(levelID, m_TimePastStats.ReadTime());
 
@@ -113,14 +114,6 @@ public class TeleportBeasts : MonoBehaviour, ISceneGate
         m_I = 0.12345679f;
 
         print("Chno Whew!");
-    }
-
-    private void OnApplicationPause(bool pause)
-    {
-        if (!pause)
-        {
-            InitScene(currentScene.LocationIndex);
-        }
     }
 
 }

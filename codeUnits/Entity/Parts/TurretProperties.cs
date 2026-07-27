@@ -8,7 +8,8 @@ namespace GentianoseRealDolls
         Direct,
         Homing,
         Auto,
-        Thorn
+        Thorn,
+        Series
     }
 
     [CreateAssetMenu]

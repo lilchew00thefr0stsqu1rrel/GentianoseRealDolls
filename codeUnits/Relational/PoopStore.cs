@@ -18,6 +18,7 @@ namespace GentianoseRealDolls
     /// </summary>
     public class PoopStore : MonoBehaviour
     {
+        private const int m_PoopNumber = 64;
 
         [Inject]
         public void Construct(Inventory obj)
@@ -98,7 +99,7 @@ namespace GentianoseRealDolls
         public void InitPoop()
         {
 
-            m_PooArray = new Poop[72];
+            m_PooArray = new Poop[m_PoopNumber];
             
             m_PooPosIntList = m_DollBase.GetAllRecords("poop", m_FieldNames);
             int numPoop = m_PooPosIntList.Count / 5;
@@ -120,7 +121,7 @@ namespace GentianoseRealDolls
 
                     m_PooArray[m_Caret] = poop; 
 
-                    if (m_Caret < 71)
+                    if (m_Caret < m_PoopNumber - 1)
                         m_Caret++;
                 }
             }
@@ -198,7 +199,7 @@ namespace GentianoseRealDolls
         {
             m_PooArray[m_Caret] = poop;
 
-            if (m_Caret < 71)
+            if (m_Caret < m_PoopNumber - 1)
                 m_Caret++;
 
 

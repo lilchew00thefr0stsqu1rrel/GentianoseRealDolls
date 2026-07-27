@@ -21,6 +21,7 @@ namespace GentianoseRealDolls
         [SerializeField] private Animator m_Animator;
 
         [SerializeField] private GaitInputController m_GaitInputController;
+        [SerializeField] private CameraAroundDoll m_CameraAroundDoll;
 
         //lemur
         public static bool mouseTorque = true;
@@ -103,6 +104,8 @@ namespace GentianoseRealDolls
             {
                 thrust = moveInput.y;
                 torque = -moveInput.x;
+                
+                m_CameraAroundDoll.Normalize();
             }
 
             m_TargetShip.ThrustControl = thrust;
@@ -127,6 +130,8 @@ namespace GentianoseRealDolls
                 m_TargetShip.TorqueControl = -dir.x * m_MobileXQuotient;
 
                 m_GaitInputController.StartGait();
+
+                m_CameraAroundDoll.Normalize();
             }
             else
             {

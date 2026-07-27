@@ -114,6 +114,8 @@ namespace GentianoseRealDolls
             {
                 base.ApplyDamage(damage);
 
+
+               
             }
         }
 

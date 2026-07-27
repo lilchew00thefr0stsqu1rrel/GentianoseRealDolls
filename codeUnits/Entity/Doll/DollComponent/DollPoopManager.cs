@@ -31,6 +31,7 @@ namespace GentianoseRealDolls
 
         [SerializeField] private Poop m_PoopPrefab;
 
+        [SerializeField] private bool m_InPoop;
         public void ConstructPoopStorage(PoopStore poopStore)
         {
             m_PoopStore = poopStore;
@@ -59,6 +60,10 @@ namespace GentianoseRealDolls
         int count = 0;
         private bool m_AfterTwerk;
         private bool m_AfterLiftTail;
+
+        private int m_PrepareToPoopTime = 1500;
+        private int m_PoopIntervTime = 500;
+        
         private void Start()
         {
             t = new GRDTimer(5);
@@ -68,20 +73,28 @@ namespace GentianoseRealDolls
         #region Poop API
         public async void ToPoop()
         {
-            poopNumber = (Doll.MaxLooStat - m_Doll.PooPoints) / 2;
-
-            StartPosePoop();
-
-            await Task.Delay(3000);
-            
-            for (int i = 0; i < poopNumber; i++)
+            if (!m_InPoop)
             {
-                Poop();
-                StartPee();
-                await Task.Delay(1000);
+                poopNumber = (Doll.MaxLooStat - m_Doll.PooPoints) / 2;
+
+                StartPosePoop();
+
+                m_InPoop = true;
+
+                await Task.Delay(m_PrepareToPoopTime);
+
+                for (int i = 0; i < poopNumber; i++)
+                {
+                    await Task.Delay(m_PoopIntervTime);
+                    print(i + "Poo~");
+                    Poop();
+                    StartPee();
+                }
+                EndPosePoop();
+
+                m_InPoop = false;
+
             }
-            EndPosePoop();
-            
         }
 
         public void OutPoop()
@@ -93,6 +106,7 @@ namespace GentianoseRealDolls
 
         public void Poop()
         {
+            print("Pooey~");
             var poop = NightPool.Spawn(m_PoopPrefab, 
             m_AnusTurret.transform.position, transform.rotation);
             // poop.InitPoop(m_Doll.Asset);
@@ -207,4 +221,5 @@ namespace GentianoseRealDolls
 
     }
 }
+
 

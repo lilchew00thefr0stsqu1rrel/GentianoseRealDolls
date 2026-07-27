@@ -2,6 +2,7 @@ using Common;
 using UnityEngine;
 using NTC.Pool;
 using SpaceShooter;
+using System.Threading.Tasks;
 
 namespace GentianoseRealDolls
 {
@@ -122,12 +123,22 @@ namespace GentianoseRealDolls
             projectile.SetAoEParent(m_Ship);
             m_RefireTimer = m_TurretProperties.RateOfFire;
 
+            if (m_Mode == TurretMode.Series)
+            {
+
+            }
+            {
+                //var aimedVector = transform.parent.parent.forward;
+                //transform.forward = aimedVector;
+            }
 
 
             {
                 // SFX
             }
         }
+
+        
 
         public void AssignLoadout(TurretProperties props)
         {

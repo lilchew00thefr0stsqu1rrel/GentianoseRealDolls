@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using System.Threading.Tasks;
 using System.Collections;
+using Unity.VisualScripting;
 
 
 namespace GentianoseRealDolls
@@ -11,36 +12,36 @@ namespace GentianoseRealDolls
     {
         [SerializeField] private Transform m_Target;
 
-        // В универсальных квадроберских единицах (7 градуса 30 минут)
-        [SerializeField] private int m_ThetaQuadrobist;
-        [SerializeField] private int m_ThetaInput;
-
-
-        // В вршк
-        [Tooltip("В вршк")]
-        [SerializeField] private int m_Radius = 22;
         [SerializeField] private float m_InterpolationLinear = 4;
         [SerializeField] private float m_InterpolationAngular = 5;
 
-        [SerializeField] private float m_Height = 1;
-        [SerializeField] private float m_BaseHeight = 1;
-        [SerializeField] private float m_ExtraHeight = 2;
-        [SerializeField] private float m_SmallBeastHeight = 0.5f;
-
-        [SerializeField] private float m_MaxRadius = 0.3f;
-        [SerializeField] private float m_MinRadius = 5f;
-        [SerializeField] private float m_RadiusStep = 0.044f;
-
+        // В универсальных квадроберских единицах (7 градуса 30 минут)
+        [SerializeField] private int m_ThetaRaw;
+        [SerializeField] private int m_Theta;
 
         [SerializeField] private float m_QuadrobistAngleStep = 7.5f;
         [SerializeField] private float m_InputAngleRatio = 6;
         [SerializeField] private int m_FullAngleInMarmosetUnits = 48;
 
+        [SerializeField] private float m_LinearStep = 0.1f;
+        
+        [SerializeField] private float m_Radius = 1;
+        [SerializeField] private float m_MinRadius = 0.3f;
+        [SerializeField] private float m_MaxRadius = 5f;
+
+        [SerializeField] private float m_Height = 1;
+
+        [SerializeField] private float m_BaseHeight = 1;
+        [SerializeField] private float m_ExtraHeight = 2;
+        [SerializeField] private float m_SmallBeastHeight = 0.5f;
+
+        [SerializeField] private bool m_AimMode;
+
+        [SerializeField] private int m_TargetUpOffset;
 
         [SerializeField] private float m_TrueTargetDelta;
         private void Start()
-        {
-            m_Radius = 1;
+        { 
 
             Normalize();
         }
@@ -53,22 +54,22 @@ namespace GentianoseRealDolls
         {
             PoseCamera();
         }
+        
 
         private void PoseCamera()
         {
             if (m_Target)
             {
-                if (m_ThetaInput > m_FullAngleInMarmosetUnits * m_InputAngleRatio - 1) m_ThetaInput = 0;
-                if (m_ThetaInput < 0) m_ThetaInput = (int)(m_FullAngleInMarmosetUnits * m_InputAngleRatio - 1);
-                m_ThetaQuadrobist = (int)(m_ThetaInput / m_InputAngleRatio);
+                if (m_ThetaRaw >= 360) m_ThetaRaw = 0;
+                if (m_ThetaRaw < 0) m_ThetaRaw = 359;
 
+                m_Theta = (int)(m_ThetaRaw / m_InputAngleRatio);
 
-                if (m_Radius > 100) m_Radius = 100;
-                if (m_Radius < 2) m_Radius = 2;
+                m_Radius = Mathf.Clamp(m_Radius, m_MinRadius, m_MaxRadius);
+
 
                 Vector3 toDoll = m_Target.position + new Vector3(0, m_TrueTargetDelta, 0) - transform.position;
 
-                float theta = m_ThetaQuadrobist * m_QuadrobistAngleStep * Mathf.Deg2Rad;
 
                 transform.position = m_Target.TransformPoint(
                     new Vector3(Mathf.Sin(theta) * m_Radius * m_RadiusStep, m_Height,
@@ -80,16 +81,32 @@ namespace GentianoseRealDolls
                 transform.rotation = toDollLook;
 
                 transform.forward = toDoll;
-
-
-
             }
-
         }
 
+
+        public void AimMode()
+        {
+            m_Height = 0;
+            m_Radius = 1;
+
+            m_AimMode = true;
+        }
+
+        public void OffAimMode(int dollSize)
+        {
+            if (dollSize == 0)
+                m_Height = m_SmallBeastHeight;
+            else
+                m_Height = m_BaseHeight;
+
+            m_Radius = 1;
+
+            m_AimMode = false;
+        }
         public void Zoom(int sign)
         {
-            m_Radius += sign;
+            m_Radius += sign * 0.1f;
         }
 
         public void LookUp()
@@ -104,7 +121,7 @@ namespace GentianoseRealDolls
 
         public void Rotate(int sign)
         {
-            m_ThetaInput += sign;
+            m_ThetaRaw += sign;
         }
 
         public void BirdEye()
@@ -118,10 +135,8 @@ namespace GentianoseRealDolls
              m_Height = m_SmallBeastHeight;
             else
                 m_Height = m_BaseHeight;
-        }
-        public void ReBirdEyeSmallDoll()
-        {
-            m_Height = m_SmallBeastHeight;
+
+            m_Radius = 1;
         }
 
         public void SetTarget(Transform transform)
@@ -131,7 +146,8 @@ namespace GentianoseRealDolls
 
         public void Turn()
         {
-            m_ThetaQuadrobist += 48;
+            m_Theta += 48;
         }
+
     }
 }

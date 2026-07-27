@@ -174,6 +174,8 @@ namespace GentianoseRealDolls
                 m_ActiveDoll.DollController.PositionManager.Save();
             }
 
+            m_AllDollBattle.WriteDoll(new int[2] {m_ActiveDollID, m_ActiveDoll.PetAsSpaceShip.HitPoints});
+
             yield return new WaitForSeconds(m_TickLength);
 
             StartCoroutine(UniTick());
@@ -367,7 +369,8 @@ namespace GentianoseRealDolls
             m_ActiveDoll.DollController.FoodManager.SetAllPet(m_AllDollCharacters);
             m_ActiveDoll.DollController.FoodManager.ConstructDollCom(m_Inventory);
 
-           
+
+            m_ActiveDoll.DollController.BattleManager.AssignTurretCamera(m_ProperCamera); 
                 
             
 
@@ -510,6 +513,7 @@ private void SetDollsPatrol()
         public void RestoreHPAll(int healAmount)
         {
             m_AllDollBattle.RestoreHPAll(healAmount);
+            m_ActiveDoll.PetAsSpaceShip.RestoreHitPoints(healAmount);
         }
 
         // 6. События Unity

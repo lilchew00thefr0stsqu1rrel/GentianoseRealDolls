@@ -16,6 +16,14 @@ namespace GentianoseRealDolls
 
         [SerializeField] protected GameObject m_EffectBale;
 
+        // 20vii26
+
+        [SerializeField] protected bool m_TogetherWithNormalAttack;
+        public bool TogetherWithNormalAttack => m_TogetherWithNormalAttack;
+
+        [SerializeField] private bool m_IsRepeating;
+        public bool Repeating => m_IsRepeating;
+
         public void Construct(DollController contr, Party party)
         {
             m_DollContr = contr;
@@ -30,5 +38,6 @@ namespace GentianoseRealDolls
         public virtual void Use() { }
     }
 }
+
 
 

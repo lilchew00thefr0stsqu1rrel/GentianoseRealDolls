@@ -381,13 +381,7 @@ namespace GentianoseRealDolls
 
         public void Eat(InventoryItem food)
         {
-            m_Inventory.AddItemInstances(food, -1);
-            m_FoodHunger = Mathf.Min(m_FoodHunger + food.foodBonus, MaxStat);
-
-            m_Stats[6] = m_FoodHunger;
-            m_AllDollPetStats.WriteDoll(m_Stats);
-
-            PackStats();
+           
         }
 
         public void OhPoop()

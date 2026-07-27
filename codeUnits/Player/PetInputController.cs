@@ -52,14 +52,19 @@ public class PetInputController : MonoCache
             cameraAroundDoll.Zoom(1);
         }
 
+        
 
-        if (m_VirtualGamePad.VirtualJoystickRotation.Value.x > 0)
+        for (int i = 0; i < m_LesserSkillTimers.Length; i++)
         {
-            cameraAroundDoll.Rotate(-1);
+
+            if (m_LesserSkillTimers[i] > 0)
+                m_LesserSkillTimers[i] -= Time.deltaTime;
+
         }
-        if (m_VirtualGamePad.VirtualJoystickRotation.Value.x < 0)
+
+        if (m_LesserSkillTimers[party.ActiveDoll.DollID] <= 0)
         {
-            cameraAroundDoll.Rotate(1);
+            cameraAroundDoll.OffLookUp();
         }
 
 
@@ -245,5 +250,29 @@ public class PetInputController : MonoCache
     public void OnSecondFing(InputAction.CallbackContext context)
     {
         m_SecondFing = context.ReadValue<Vector2>();
+    }
+
+    public void OnSwipe(InputAction.CallbackContext context)
+    {
+        var controls = context.ReadValue<Vector2>();
+        if (aim.x > 300)
+        {
+            if (controls.x > 0)
+            {
+                cameraAroundDoll.Rotate(-1);
+            }
+            if (controls.x < 0)
+            {
+                cameraAroundDoll.Rotate(1);
+            }
+            if (controls.y > 0)
+            {
+                // cameraAroundDoll.Lift(1);
+            }
+            if (controls.y < 0)
+            {
+                // cameraAroundDoll.Lift(-1);
+            }
+        }
     }
 }

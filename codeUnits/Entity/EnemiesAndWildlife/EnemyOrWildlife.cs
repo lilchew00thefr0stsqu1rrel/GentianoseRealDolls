@@ -9,15 +9,11 @@ namespace GentianoseRealDolls
     public class EnemyOrWildlife : MonoBehaviour
     {
         [SerializeField] private GiveResource m_Yield;
-        public void Construct(Dashboard dashboard)
-        {
-            m_Yield.Construct(dashboard);
-        }
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-            Despawn();
+            //Despawn();
         }
 
         // Update is called once per frame
