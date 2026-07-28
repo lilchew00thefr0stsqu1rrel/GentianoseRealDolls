@@ -52,6 +52,8 @@ namespace GentianoseRealDolls
 
         [SerializeField] private int m_SprayPortionsInScentSacs = 5;
 
+        [SerializeField] private int m_FireIterAmount = 5;
+        [SerializeField] int countAtt = 0;
         private float m_AnimationTimerNA = 0;
         private bool m_AtNormalAttack;
 
@@ -311,6 +313,7 @@ namespace GentianoseRealDolls
         }
 
 
+
         private async void ChargedAttack(Vector2 aimInput)
         {
             if (m_AnimatorGuard == null) m_AnimatorGuard = GetComponent<AnimatorGuard>();
@@ -341,7 +344,16 @@ namespace GentianoseRealDolls
 
                 await Task.Delay((int)(lctime * 1000));
 
-
+                if (m_ChargedAttackPart.Repeating)
+                {
+                    if (countAtt < m_FireIterAmount)
+                        countAtt++;
+                    else
+                    {
+                        countAtt = 0;
+                        m_BeforeChargedAttack = false;
+                    }
+                }
                 //m_Party.Camera.OffAimMode();
 
                 Idle();
@@ -366,6 +378,18 @@ namespace GentianoseRealDolls
                 }
 
                 await Task.Delay((int)(ctime * 1000));
+
+                if (m_ChargedAttackPart.Repeating)
+                {
+                    if (countAtt < m_FireIterAmount)
+                        countAtt++;
+                    else
+                    {
+                        countAtt = 0;
+                        m_BeforeChargedAttack = false;
+                    }
+                }
+
                 Idle();
             }
 
@@ -538,4 +562,6 @@ namespace GentianoseRealDolls
         #endregion
     }
 }
+
+
 
