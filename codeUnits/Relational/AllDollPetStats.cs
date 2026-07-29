@@ -64,14 +64,15 @@ namespace GentianoseRealDolls
         {
             Doll.OnSave -= SaveDoll();
         }
-        
+
+        private int m_NumberOfDolls = 7;
 
         public void ReadDolls()
         {
             m_Dolls.Clear();
             int[] stats = new int[8];
 
-            for (int i = 0; i < WhooSettings.NumberOfDolls; i++)
+            for (int i = 0; i < m_NumberOfDolls; i++)
             {
                 stats = m_DollBase.GetRecord("dollStats", "dollID", i, m_FieldNames);
 
@@ -147,7 +148,7 @@ namespace GentianoseRealDolls
         
         public void ReduceNonSleepStats()
         {
-            for (int i = 0; i < WhooSettings.NumberOfDolls; i++)
+            for (int i = 0; i < m_NumberOfDolls; i++)
             {
                 int[] doll = m_Dolls.ToArray()[(i * 8)..((i + 1) * 8)];
 
@@ -169,7 +170,7 @@ namespace GentianoseRealDolls
        
         public void ChangeSleepStat(List<int> sleepMap)
         {
-            for (int i = 0; i < WhooSettings.NumberOfDolls; i++)
+            for (int i = 0; i < m_NumberOfDolls; i++)
             {
                 int[] doll = m_Dolls.ToArray()[(i * 8)..((i + 1) * 8)];
                 print(i + '~' +doll[7]);
@@ -185,4 +186,5 @@ namespace GentianoseRealDolls
     }
 
 }
+
 

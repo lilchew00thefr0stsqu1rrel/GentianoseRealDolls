@@ -64,12 +64,14 @@ namespace GentianoseRealDolls
 
         [SerializeField] private List<int> m_Dolls;
 
+        private int m_NumberOfDolls = 7;
+
         [Tooltip("int[2n]")]
         public void ReadDolls()
         {
             m_Dolls.Clear();
 
-            for (int i = 0; i < WhooSettings.NumberOfDolls; i++)
+            for (int i = 0; i < m_NumberOfDolls; i++)
             {
                 int[] slp = m_DollBase.GetRecord("dollSleeps", "dollID", i, m_FieldNames);
 

@@ -105,6 +105,7 @@ namespace GentianoseRealDolls
 
 
 
+
             if (m_Mode == TurretMode.Direct)
             {
                 //var aimedVector = transform.parent.parent.forward;
@@ -158,3 +159,4 @@ namespace GentianoseRealDolls
     }
 
 }
+

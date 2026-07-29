@@ -35,8 +35,9 @@ namespace GentianoseRealDolls
         [SerializeField] private DollPart m_LesserSkillPart;
         [SerializeField] private Turret m_AnusTurret;
 
-        [SerializeField] private DollPart m_SummonPrefab; //14vi2026
-        [SerializeField] private OffField m_OffField;
+        [SerializeField] protected DollPart m_SummonPrefab; //14vi2026
+        [SerializeField] protected OffField m_OffField;
+        [SerializeField] protected GameObject m_EffectSign;
 
         [Header("***")]
 
@@ -51,6 +52,8 @@ namespace GentianoseRealDolls
 
         [SerializeField] private int m_SprayPortionsInScentSacs = 5;
 
+        [SerializeField] private int m_FireIterAmount = 5;
+        [SerializeField] int countAtt = 0;
         private float m_AnimationTimerNA = 0;
         private bool m_AtNormalAttack;
 
@@ -60,7 +63,7 @@ namespace GentianoseRealDolls
         private bool m_AtChargedAttack;
 
         private float timerE = 0;
-        private bool m_AtAnimationE;
+        protected bool m_AtAnimationE;
         
         private float m_AnalSphincterTimer = 0;
         private bool m_AtSpray = false;
@@ -80,37 +83,34 @@ namespace GentianoseRealDolls
         [SerializeField] private int attackDamage;
         public int AttackDamage => attackDamage;
 
-        [SerializeField] private bool m_FlehmenCooldown;
+        [SerializeField] protected bool m_FlehmenCooldown;
         public bool FlehmenCooldown => m_FlehmenCooldown;
         [SerializeField] private int m_HealAmount = 336;
         [SerializeField] private int m_AttackPower = 288;
 
-        [SerializeField] private bool m_LesserSkillBuff;
+        [SerializeField] protected bool m_LesserSkillBuff;
 
         // 18 VII '26
-        [SerializeField] private bool m_LesserSkillGaitBuff;
+        [SerializeField] protected bool m_LesserSkillGaitBuff;
         public bool LesserSkillGaitBuff => m_LesserSkillGaitBuff;
 
 
-        [SerializeField] private float m_BuffDuration = 10;
+        [SerializeField] protected float m_BuffDuration = 10;
 
 
-        private float m_LesserSkillCooldownTime;
+        protected float m_LesserSkillCooldownTime;
         public float LesserSkillCooldownTime => m_LesserSkillCooldownTime;
 
         public void SetFlehmenCooldown()
         {
             m_FlehmenCooldown = true;
         }
-        [SerializeField] private float m_Cooldown;
+        [SerializeField] protected float m_Cooldown;
         public float Cooldown => m_Cooldown;
 
         public bool SprayStanceOn => m_IsSprayStance;
 
-        Vector3 posDollStart;
 
-        [SerializeField] private float m_UrineTrailMinDist = 0.5f; 
-        [SerializeField] private float m_UrineTrailTime = 5; 
 
         public void SetOffField(OffField off)
         {
@@ -128,10 +128,19 @@ namespace GentianoseRealDolls
         {
             if (m_NormalAttackPart is Turret)
                 (m_NormalAttackPart as Turret).SetCamera(cam);
+
+            if (m_ChargedAttackPart is Turret)
+                (m_ChargedAttackPart as Turret).SetCamera(cam);
+
+            if (m_LesserSkillNormalAttackPart is Turret)
+                (m_LesserSkillNormalAttackPart as Turret).SetCamera(cam);
+
             if (m_LesserSkillChargedAttackPart is Turret)
                 (m_LesserSkillChargedAttackPart as Turret).SetCamera(cam);
+
             if (m_LesserSkillPart is Turret)
                 (m_LesserSkillPart as Turret).SetCamera(cam);
+
             if (m_AnusTurret)
                 m_Doll.AnusNipplesTurret.SetCamera(cam);
         }
@@ -244,7 +253,7 @@ namespace GentianoseRealDolls
             m_AtChargedAttack = false;
 
 
-            m_Party.Camera.OffAimMode();
+            m_Party.Camera.OffAimMode(m_Doll.DollSize);
         }
 
         private const int SprayStanceID = 4;
@@ -300,6 +309,7 @@ namespace GentianoseRealDolls
         }
 
 
+
         private async void ChargedAttack(Vector2 aimInput)
         {
             if (m_AnimatorGuard == null) m_AnimatorGuard = GetComponent<AnimatorGuard>();
@@ -313,8 +323,10 @@ namespace GentianoseRealDolls
 
             if (m_LesserSkillBuff)
             {
-
-                m_Party.Camera.AimMode();
+                if (m_LesserSkillChargedAttackPart is Turret && (m_LesserSkillChargedAttackPart as Turret).Mode == TurretMode.Thorn)
+                {
+                    m_Party.Camera.AimMode();
+                }
 
                 m_AnimatorGuard.SetAnimation(14);
                 m_LesserSkillChargedAttackPart.SetAimInput(aimInput);
@@ -328,13 +340,27 @@ namespace GentianoseRealDolls
 
                 await Task.Delay((int)(lctime * 1000));
 
-
+                if (m_ChargedAttackPart.Repeating)
+                {
+                    if (countAtt < m_FireIterAmount)
+                        countAtt++;
+                    else
+                    {
+                        countAtt = 0;
+                        m_BeforeChargedAttack = false;
+                    }
+                }
                 //m_Party.Camera.OffAimMode();
 
                 Idle();
             }
             else
             {
+                if (m_ChargedAttackPart is Turret && (m_ChargedAttackPart as Turret).Mode == TurretMode.Thorn)
+                {
+                    m_Party.Camera.AimMode();
+                }
+
                 m_AnimatorGuard.SetAnimation(8);
                 m_ChargedAttackPart.SetAimInput(aimInput);
                 m_ChargedAttackPart.SetActionTime(ctime);
@@ -348,6 +374,18 @@ namespace GentianoseRealDolls
                 }
 
                 await Task.Delay((int)(ctime * 1000));
+
+                if (m_ChargedAttackPart.Repeating)
+                {
+                    if (countAtt < m_FireIterAmount)
+                        countAtt++;
+                    else
+                    {
+                        countAtt = 0;
+                        m_BeforeChargedAttack = false;
+                    }
+                }
+
                 Idle();
             }
 
@@ -363,80 +401,10 @@ namespace GentianoseRealDolls
         #endregion
 
 
-        public void LesserSkill()
+        public virtual void LesserSkill()
         {
-            print("Lesser");
+          
 
-            if (m_AnimatorGuard == null) m_AnimatorGuard = GetComponent<AnimatorGuard>();
-
-            if (!m_FlehmenCooldown)
-            {
-
-                m_AtAnimationE = true;
-
-                m_AnimatorGuard.SetAnimation(9);
-
-                //m_LesserSkillPart?.Use(m_AimInput, m_AnimatorGuard.GetAnimationLength("LesserSkill"));
-
-                if (m_SummonPrefab && m_OffField)
-                {
-                    var summon = Instantiate(m_SummonPrefab, m_OffField.transform);
-                    m_OffField.SetSummon(summon, m_Doll.DollID);
-
-                    if (summon is HealSide)
-                    {
-                        (summon as HealSide).SetParty(m_Party);
-
-
-                        summon.SetActionTime(4);
-                        summon.Use();
-                    }
-                }
-
-                StartCoroutine(EffectTimer());
-                m_LesserSkillGaitBuff = true;
-
-                posDollStart = transform.parent.position;
-                StartCoroutine(RideTimer());
-
-                StartCoroutine(FlehmenCDSkill());
-                m_LesserSkillCooldownTime = m_Cooldown;
-
-
-            }
-
-            IEnumerator FlehmenCDSkill()
-            {
-                print("Flehmen at CD");
-                m_FlehmenCooldown = true;
-                for (int i = 0; i < m_Cooldown; i++)
-                {
-                    //OnUpdateCooldownTime(m_Cooldown - i);
-                    m_LesserSkillCooldownTime--;
-                    yield return new WaitForSeconds(1);
-                }
-                m_FlehmenCooldown = false;
-              //  m_Dashboard.Btn();
-                print("Flehmen free");
-            }
-
-            IEnumerator EffectTimer()
-            {
-                yield return new WaitForSeconds(m_BuffDuration);
-               
-                m_LesserSkillBuff = false;
-                Idle();
-            }
-
-            IEnumerator RideTimer()
-            {
-                yield return new WaitForSeconds(m_UrineTrailTime);
-
-                if ((transform.parent.position - posDollStart).magnitude >= m_UrineTrailMinDist)
-                {
-                    m_LesserSkillBuff = true;
-                }
-            }
         }
         #region Spray
         public void SprayModeOnOff()

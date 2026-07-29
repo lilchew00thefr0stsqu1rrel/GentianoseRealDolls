@@ -44,12 +44,14 @@ public class AllDollCombatStats : MonoBehaviour, IAllDolls
         return m_Dolls;
     }
 
+    private int m_NumberOfDolls = 7;
+
     public void ReadDolls()
     {
         m_Dolls.Clear();
         int[] stats = new int[2];
 
-        for (int i = 0; i < WhooSettings.NumberOfDolls; i++)
+        for (int i = 0; i < m_NumberOfDolls; i++)
         {
             stats = m_DollBase.GetRecord("dollBattle", "dollID", i, m_FieldNames);
 
