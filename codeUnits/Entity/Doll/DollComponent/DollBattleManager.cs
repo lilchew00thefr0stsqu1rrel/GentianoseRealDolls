@@ -35,9 +35,9 @@ namespace GentianoseRealDolls
         [SerializeField] private DollPart m_LesserSkillPart;
         [SerializeField] private Turret m_AnusTurret;
 
-        [SerializeField] private DollPart m_SummonPrefab; //14vi2026
-        [SerializeField] private OffField m_OffField;
-        [SerializeField] private GameObject m_EffectSign;
+        [SerializeField] protected DollPart m_SummonPrefab; //14vi2026
+        [SerializeField] protected OffField m_OffField;
+        [SerializeField] protected GameObject m_EffectSign;
 
         [Header("***")]
 
@@ -63,7 +63,7 @@ namespace GentianoseRealDolls
         private bool m_AtChargedAttack;
 
         private float timerE = 0;
-        private bool m_AtAnimationE;
+        protected bool m_AtAnimationE;
         
         private float m_AnalSphincterTimer = 0;
         private bool m_AtSpray = false;
@@ -83,42 +83,34 @@ namespace GentianoseRealDolls
         [SerializeField] private int attackDamage;
         public int AttackDamage => attackDamage;
 
-        [SerializeField] private bool m_FlehmenCooldown;
+        [SerializeField] protected bool m_FlehmenCooldown;
         public bool FlehmenCooldown => m_FlehmenCooldown;
         [SerializeField] private int m_HealAmount = 336;
         [SerializeField] private int m_AttackPower = 288;
 
-        [SerializeField] private bool m_LesserSkillBuff;
+        [SerializeField] protected bool m_LesserSkillBuff;
 
         // 18 VII '26
-        [SerializeField] private bool m_LesserSkillGaitBuff;
+        [SerializeField] protected bool m_LesserSkillGaitBuff;
         public bool LesserSkillGaitBuff => m_LesserSkillGaitBuff;
 
 
-        [SerializeField] private float m_BuffDuration = 10;
+        [SerializeField] protected float m_BuffDuration = 10;
 
 
-        private float m_LesserSkillCooldownTime;
+        protected float m_LesserSkillCooldownTime;
         public float LesserSkillCooldownTime => m_LesserSkillCooldownTime;
 
         public void SetFlehmenCooldown()
         {
             m_FlehmenCooldown = true;
         }
-        [SerializeField] private float m_Cooldown;
+        [SerializeField] protected float m_Cooldown;
         public float Cooldown => m_Cooldown;
 
         public bool SprayStanceOn => m_IsSprayStance;
 
-        Vector3 posDollStart;
 
-        // Cheirogaleus
-        [SerializeField] private float m_UrineTrailMinDist = 0.5f; 
-        [SerializeField] private float m_UrineTrailTime = 5;
-
-        // Callimico
-        [SerializeField] private Vector3 m_Blink;
-        [SerializeField] private float m_BlinkTime;
 
         public void SetOffField(OffField off)
         {
@@ -409,91 +401,10 @@ namespace GentianoseRealDolls
         #endregion
 
 
-        public async void LesserSkill()
+        public virtual void LesserSkill()
         {
-            print("Lesser");
+          
 
-            if (m_AnimatorGuard == null) m_AnimatorGuard = GetComponent<AnimatorGuard>();
-
-            if (!m_FlehmenCooldown)
-            {
-                m_AtAnimationE = true;
-
-                await Task.Delay((int)(1000 * m_BlinkTime));
-                transform.parent.position += m_Blink.z * transform.parent.forward;
-                transform.parent.position += m_Blink.y * transform.parent.up;
-
-                //m_AnimatorGuard.SetAnimation(9);
-
-                //m_LesserSkillPart?.Use(m_AimInput, m_AnimatorGuard.GetAnimationLength("LesserSkill"));
-
-                if (m_SummonPrefab && m_OffField)
-                {
-                    var summon = Instantiate(m_SummonPrefab, m_OffField.transform);
-                    m_OffField.SetSummon(summon, m_Doll.DollID);
-
-                    if (summon is HealSide)
-                    {
-                        (summon as HealSide).SetParty(m_Party);
-
-
-                        summon.SetActionTime(4);
-                        summon.Use();
-                    }
-                }
-
-                StartCoroutine(EffectTimer());
-                m_LesserSkillGaitBuff = true;
-
-                posDollStart = transform.parent.position;
-                StartCoroutine(RideTimer());
-
-                StartCoroutine(FlehmenCDSkill());
-                m_LesserSkillCooldownTime = m_Cooldown;
-
-
-            }
-
-            IEnumerator FlehmenCDSkill()
-            {
-                print("Flehmen at CD");
-                m_FlehmenCooldown = true;
-                for (int i = 0; i < m_Cooldown; i++)
-                {
-                    //OnUpdateCooldownTime(m_Cooldown - i);
-                    m_LesserSkillCooldownTime--;
-                    yield return new WaitForSeconds(1);
-                }
-                m_FlehmenCooldown = false;
-              //  m_Dashboard.Btn();
-                print("Flehmen free");
-            }
-
-            IEnumerator EffectTimer()
-            {
-                yield return new WaitForSeconds(m_BuffDuration);
-               
-                m_LesserSkillBuff = false;
-                m_LesserSkillGaitBuff = false;
-
-                if (m_EffectSign != null)
-                    m_EffectSign.SetActive(false);
-                m_AnimatorGuard.SetAnimation(0);
-            }
-
-            IEnumerator RideTimer()
-            {
-                yield return new WaitForSeconds(m_UrineTrailTime);
-
-                if ((transform.parent.position - posDollStart).magnitude >= m_UrineTrailMinDist)
-                {
-                    m_LesserSkillBuff = true;
-                    
-
-                    if (m_EffectSign != null)
-                    m_EffectSign.SetActive(true);
-                }
-            }
         }
         #region Spray
         public void SprayModeOnOff()
@@ -569,5 +480,4 @@ namespace GentianoseRealDolls
         #endregion
     }
 }
-
 
