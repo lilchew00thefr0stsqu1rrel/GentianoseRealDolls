@@ -112,9 +112,13 @@ namespace GentianoseRealDolls
 
         Vector3 posDollStart;
 
+        // Cheirogaleus
         [SerializeField] private float m_UrineTrailMinDist = 0.5f; 
         [SerializeField] private float m_UrineTrailTime = 5;
 
+        // Callimico
+        [SerializeField] private Vector3 m_Blink;
+        [SerializeField] private float m_BlinkTime;
 
         public void SetOffField(OffField off)
         {
@@ -405,7 +409,7 @@ namespace GentianoseRealDolls
         #endregion
 
 
-        public void LesserSkill()
+        public async void LesserSkill()
         {
             print("Lesser");
 
@@ -413,8 +417,11 @@ namespace GentianoseRealDolls
 
             if (!m_FlehmenCooldown)
             {
-
                 m_AtAnimationE = true;
+
+                await Task.Delay((int)(1000 * m_BlinkTime));
+                transform.parent.position += m_Blink.z * transform.parent.forward;
+                transform.parent.position += m_Blink.y * transform.parent.up;
 
                 //m_AnimatorGuard.SetAnimation(9);
 
@@ -562,6 +569,5 @@ namespace GentianoseRealDolls
         #endregion
     }
 }
-
 
 
