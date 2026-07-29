@@ -150,6 +150,8 @@ namespace GentianoseRealDolls
 
         [SerializeField] private DollAsset[] m_DollAssets;
 
+        // состав
+        [SerializeField] private CurrentPartyDolls m_CurrentPartyDolls;
 
         private int m_ActiveDollIndexInParty;
         public int ActiveDollIndexInParty => m_ActiveDollIndexInParty;
@@ -339,6 +341,9 @@ namespace GentianoseRealDolls
             if (m_ActiveDoll) DestroyImmediate(m_ActiveDoll.gameObject);
 
 
+            // 29 vii 26
+            m_DollsCode = m_CurrentPartyDolls.DollConsist;
+            
             // 26 vii 26
 
             m_ActiveDollID = m_DollsCode[index];
@@ -529,6 +534,8 @@ private void SetDollsPatrol()
             int index = int.Parse(dolladdr[..1]);
             int dollID = int.Parse(dolladdr[1..]);
             m_DollsCode[index] = dollID;
+
+            m_CurrentPartyDolls.DollConsist[index] = dollID;
         }
 
         // 6. События Unity
