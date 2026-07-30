@@ -108,7 +108,7 @@ namespace GentianoseRealDolls
         [SerializeField] private DollDataLists m_DollDataLists;
         public DollDataLists DollData => m_DollDataLists;
 
-        private int m_NumberOfDolls = 4;
+        private int m_NumberOfDolls = 7;
 
         /// <summary>
         /// С 3 VI 2026 нужно внедрить новую систему управления куклами:
@@ -151,7 +151,8 @@ namespace GentianoseRealDolls
         [SerializeField] private DollAsset[] m_DollAssets;
 
         // состав
-        [SerializeField] private CurrentPartyDolls m_CurrentPartyDolls;
+        [SerializeField] private PartyCompositionDolls m_PartyCompositionDolls;
+
 
         private int m_ActiveDollIndexInParty;
         public int ActiveDollIndexInParty => m_ActiveDollIndexInParty;
@@ -340,13 +341,8 @@ namespace GentianoseRealDolls
 
             if (m_ActiveDoll) DestroyImmediate(m_ActiveDoll.gameObject);
 
-
             // 29 vii 26
-            m_DollsCode = m_CurrentPartyDolls.DollConsist;
-            
-            // 26 vii 26
-
-            m_ActiveDollID = m_DollsCode[index];
+            m_ActiveDollID = m_PartyCompositionDolls.GetDollsInParty()[index];
 
             m_ActiveDoll = Instantiate(m_DollPrefabs[m_ActiveDollID], m_ActiveDollPosition.GetDollPos(), Quaternion.identity);
 
@@ -529,14 +525,6 @@ private void SetDollsPatrol()
             m_ActiveDoll.PetAsSpaceShip.RestoreHitPoints(healAmount);
         }
 
-        public void SetDollInParty(string dolladdr)
-        {
-            int index = int.Parse(dolladdr[..1]);
-            int dollID = int.Parse(dolladdr[1..]);
-            m_DollsCode[index] = dollID;
-
-            m_CurrentPartyDolls.DollConsist[index] = dollID;
-        }
 
         // 6. События Unity
 
