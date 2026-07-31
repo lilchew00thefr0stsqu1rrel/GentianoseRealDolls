@@ -167,11 +167,11 @@ public class CombatDashboard : DashboardBase
 
     public void Flehmen()
     {
-        if (!m_FlehmenOnCooldown)
-        {
-            m_DollBattleManager.LesserSkill();
-            m_LesserSkillCooldownText.gameObject.SetActive(true);
-        }
+       if (m_Party.StataOfDolls.LesserSkillCooldownTimers[m_Party.ActiveDollID] > 0) return;
+
+        m_DollBattleManager.LesserSkill();
+
+        m_Party.StataOfDolls.SetCooldown(m_Party.ActiveDollID);
 
         m_FlehmenButton.SetInteractable(false);
     }
