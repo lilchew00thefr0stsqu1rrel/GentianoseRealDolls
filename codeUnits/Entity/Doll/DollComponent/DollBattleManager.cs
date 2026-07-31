@@ -342,7 +342,10 @@ namespace GentianoseRealDolls
                         countAtt++;
                     }
                     countAtt = 0;
-                    m_BeforeChargedAttack = false;
+                }
+                else
+                {
+                    await UniTask.Delay(TimeSpan.FromSeconds(lctime));
                 }
 
                 Idle();
@@ -370,12 +373,20 @@ namespace GentianoseRealDolls
                         countAtt++;
                     }
                     countAtt = 0;
-                    m_BeforeChargedAttack = false;
+                }
+                else
+                {
+                    await UniTask.Delay(TimeSpan.FromSeconds(ctime));
                 }
 
 
                 Idle();
             }
+
+            m_BeforeChargedAttack = false;
+            m_AtChargedAttack = false;
+
+            m_Party.Camera.OffAimMode(m_Doll.DollSize);
 
 
             if (!m_Doll.Sounds[2].isPlaying)
