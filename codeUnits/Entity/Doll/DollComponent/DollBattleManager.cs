@@ -7,6 +7,9 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
 
+using Cysharp.Threading.Tasks;
+
+
 namespace GentianoseRealDolls
 {
     /// <summary>
@@ -32,7 +35,7 @@ namespace GentianoseRealDolls
         [SerializeField] private DollPart m_LesserSkillNormalAttackPart;
         [SerializeField] private DollPart m_ChargedAttackPart;
         [SerializeField] private DollPart m_LesserSkillChargedAttackPart;
-        [SerializeField] private DollPart m_LesserSkillPart;
+        [SerializeField] protected DollPart m_LesserSkillPart;
         [SerializeField] private Turret m_AnusTurret;
 
         [SerializeField] protected DollPart m_SummonPrefab; //14vi2026
@@ -222,7 +225,7 @@ namespace GentianoseRealDolls
 
         bool attackAtCooldown = false;
 
-        public async void StartAttack()
+        public async UniTask StartAttack()
         {
             print("StartAtt");
             gameObject.SetActive(true);
@@ -270,7 +273,7 @@ namespace GentianoseRealDolls
             GreaterSkill
         }
 
-        private async void NormalAttack(Vector2 aimInput)
+        private async UniTask NormalAttack(Vector2 aimInput)
         {
             if (m_AnimatorGuard == null) m_AnimatorGuard = GetComponent<AnimatorGuard>();
 
@@ -310,7 +313,7 @@ namespace GentianoseRealDolls
 
 
 
-        private async void ChargedAttack(Vector2 aimInput)
+        private async UniTask ChargedAttack(Vector2 aimInput)
         {
             if (m_AnimatorGuard == null) m_AnimatorGuard = GetComponent<AnimatorGuard>();
 
@@ -428,28 +431,36 @@ namespace GentianoseRealDolls
         /// <summary>
         /// ���������� ������� �������� ����� (�����), �������� ��������� ���������
         /// </summary>
-        public void StartGreaterSkill()
+        public async UniTask StartGreaterSkill()
         {
             m_AnalSphincterTimer = 0;
             m_AtSpray = true;
 
-            ChargeSpray();
-        }
-
-        private async void ChargeSpray()
-        {
-            if (m_AtSpray)
+            while (m_AtSpray)
             {
                 await Task.Delay((int)(m_SprayTime * 1000 / 8));
 
                 m_AnalSphincterTimer += m_SprayTime / 8;
 
-                EndSpray();
-
-                ChargeSpray();
+                if (m_AnalSphincterTimer >= m_SprayTime)
+                    EndSpray();
             }
-            
         }
+
+        //private async UniTask ChargeSpray()
+        //{
+        //    if (m_AtSpray)
+        //    {
+        //        await Task.Delay((int)(m_SprayTime * 1000 / 8));
+
+        //        m_AnalSphincterTimer += m_SprayTime / 8;
+
+        //        EndSpray();
+
+        //        ChargeSpray();
+        //    }
+            
+        //}
         private void EndSpray()
         {
             if (m_AnalSphincterTimer >= m_SprayTime)
@@ -472,7 +483,8 @@ namespace GentianoseRealDolls
 
         public void EndGreaterSkill()
         {
-            EndSpray();
+            // EndSpray();
+            m_AtSpray = false;
 
             m_AnalSphincterTimer = 0;
             m_AtSpray = false;
