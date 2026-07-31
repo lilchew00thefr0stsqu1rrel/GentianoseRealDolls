@@ -2,6 +2,9 @@ using Unity.VisualScripting;
 using UnityEngine;
 using System.Collections;
 
+using Cysharp.Threading.Tasks;
+using System;
+
 namespace GentianoseRealDolls
 {
 
@@ -23,7 +26,7 @@ namespace GentianoseRealDolls
 
         }
 
-        public override void LesserSkill()
+        public override async UniTask LesserSkill()
         {
             print("Lesser");
 
@@ -37,9 +40,8 @@ namespace GentianoseRealDolls
 
 
                 //await Task.Delay((int)(1000 * m_BlinkTime));
-                StartCoroutine(BlinkTimer());
+                //StartCoroutine(BlinkTimer());
 
-                //m_LesserSkillPart?.Use(m_AimInput, m_AnimatorGuard.GetAnimationLength("LesserSkill"));
 
                 if (m_SummonPrefab && m_OffField)
                 {
@@ -56,34 +58,24 @@ namespace GentianoseRealDolls
                     }
                 }
 
-                StartCoroutine(EffectTimer());
+                //StartCoroutine(EffectTimer());
 
                 m_LesserSkillBuff = true;
 
-                StartCoroutine(FlehmenCDSkill());
+                //StartCoroutine(FlehmenCDSkill());
                 m_LesserSkillCooldownTime = m_Cooldown;
 
 
-            }
 
-            IEnumerator FlehmenCDSkill()
-            {
-                print("Flehmen at CD");
-                m_FlehmenCooldown = true;
-                for (int i = 0; i < m_Cooldown; i++)
-                {
-                    //OnUpdateCooldownTime(m_Cooldown - i);
-                    m_LesserSkillCooldownTime--;
-                    yield return new WaitForSeconds(1);
-                }
-                m_FlehmenCooldown = false;
-                //  m_Dashboard.Btn();
-                print("Flehmen free");
-            }
+                await UniTask.Delay(TimeSpan.FromSeconds(m_BlinkTime));
 
-            IEnumerator EffectTimer()
-            {
-                yield return new WaitForSeconds(m_BuffDuration);
+                transform.parent.position += m_Blink.z * transform.parent.forward;
+                transform.parent.position += m_Blink.y * transform.parent.up;
+
+                m_LesserSkillPart?.SetActionTime(2);
+                m_LesserSkillPart?.Use();
+
+                await UniTask.Delay(TimeSpan.FromSeconds(m_BuffDuration));
 
                 m_LesserSkillBuff = false;
                 m_LesserSkillGaitBuff = false;
@@ -91,16 +83,27 @@ namespace GentianoseRealDolls
                 if (m_EffectSign != null)
                     m_EffectSign.SetActive(false);
                 m_AnimatorGuard.SetAnimation(0);
-            }
-
-            IEnumerator BlinkTimer()
-            {
-                yield return new WaitForSeconds(m_BlinkTime);
-
-                transform.parent.position += m_Blink.z * transform.parent.forward;
-                transform.parent.position += m_Blink.y * transform.parent.up;
 
             }
+
+            //IEnumerator FlehmenCDSkill()
+            //{
+            //    print("Flehmen at CD");
+            //    m_FlehmenCooldown = true;
+            //    for (int i = 0; i < m_Cooldown; i++)
+            //    {
+            //        //OnUpdateCooldownTime(m_Cooldown - i);
+            //        m_LesserSkillCooldownTime--;
+            //        yield return new WaitForSeconds(1);
+            //    }
+            //    m_FlehmenCooldown = false;
+            //    //  m_Dashboard.Btn();
+            //    print("Flehmen free");
+            //}
+
+            
+                
+            
 
         }
     }
