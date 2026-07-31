@@ -155,10 +155,13 @@ public class PetInputController : MonoCache
         // Проверяем, что действие именно выполнено,
         // а не отменено или в процессе
         if (!context.performed) return;
-
+        
+        if (party.StataOfDolls.LesserSkillCooldownTimers[party.ActiveDollID] > 0) return;
+        
         party.ActiveDoll.DollController.BattleManager.LesserSkill();
 
-
+        party.StataOfDolls.SetCooldown(party.ActiveDollID);
+        
         m_LesserSkillTimers[party.ActiveDoll.DollID] = m_LesserSkillMaxTime[party.ActiveDoll.DollID];
 
         m_LesserSkillBuffs[party.ActiveDoll.DollID] = true;
