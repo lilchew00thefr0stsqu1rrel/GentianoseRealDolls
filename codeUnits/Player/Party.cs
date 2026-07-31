@@ -64,6 +64,8 @@ namespace GentianoseRealDolls
         
         [SerializeField] private ActiveDollUponExit m_ActiveDollUponExit;
 
+        [SerializeField] private StatusOfDolls m_StatusOfDolls;
+        public StatusOfDolls StataOfDolls => m_StatusOfDolls;
 
         [SerializeField] private PoopStore m_PoopStore;
 
