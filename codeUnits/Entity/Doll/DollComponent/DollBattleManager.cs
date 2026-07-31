@@ -56,6 +56,7 @@ namespace GentianoseRealDolls
         [SerializeField] private int m_SprayPortionsInScentSacs = 5;
 
         [SerializeField] private int m_FireIterAmount = 5;
+        [SerializeField] private float m_RateOfFire = 0.4f;
         [SerializeField] int countAtt = 0;
         private float m_AnimationTimerNA = 0;
         private bool m_AtNormalAttack;
@@ -99,6 +100,10 @@ namespace GentianoseRealDolls
 
 
         [SerializeField] protected float m_BuffDuration = 10;
+
+
+        [SerializeField] private bool m_AtAttackMousePressed;
+
 
 
         protected float m_LesserSkillCooldownTime;
@@ -203,7 +208,7 @@ namespace GentianoseRealDolls
                 if (m_ChargingTimerCA >= m_ChargedAttackTime)
                 {
                     print("Charged");
-                    ChargedAttack(m_AimInput);
+                    //ChargedAttack(m_AimInput);
                 }
             }
 
@@ -227,36 +232,26 @@ namespace GentianoseRealDolls
 
         public async UniTask StartAttack()
         {
-            print("StartAtt");
-            gameObject.SetActive(true);
+            m_AtAttackMousePressed = true;
 
-            if (attackAtCooldown) return;
+            await UniTask.WaitForSeconds(m_ChargedAttackTime);
 
-            m_ChargingTimerCA = 0;
-            m_BeforeChargedAttack = true;
 
-            attackAtCooldown = true;
-            await Task.Delay((int)(m_AttackCooldown * 1000));
-            attackAtCooldown = false;
+            if (m_AtAttackMousePressed)
+            {
+                m_AtChargedAttack = true;
+                await ChargedAttack(m_AimInput);
+            }
         }
 
-        public void EndAttack(Vector2 aimInput)
+        public async UniTask EndAttack(Vector2 aimInput)
         {
-            print("EndAtt");
-            if (m_ChargingTimerCA < m_ChargedAttackTime)
-            {
-                NormalAttack(aimInput);
-            }
-            else
-            {
-                Idle();
-            }
-            m_ChargingTimerCA = 0;
-            m_BeforeChargedAttack = false;
-            m_AtChargedAttack = false;
+            m_AtAttackMousePressed = false;
 
-
-            m_Party.Camera.OffAimMode(m_Doll.DollSize);
+            if (!m_AtChargedAttack)
+            {
+                await NormalAttack(aimInput);
+            }
         }
 
         private const int SprayStanceID = 4;
@@ -336,24 +331,19 @@ namespace GentianoseRealDolls
                 m_LesserSkillChargedAttackPart.SetActionTime(lctime);
                 m_LesserSkillChargedAttackPart.Use();
 
-                if (!m_LesserSkillChargedAttackPart.Repeating)
+                if (m_LesserSkillChargedAttackPart.Repeating)
                 {
+                    while (countAtt < m_FireIterAmount)
+                    {
+                        await UniTask.Delay(TimeSpan.FromSeconds(m_RateOfFire));
+                        m_LesserSkillChargedAttackPart.SetAimInput(aimInput);
+                        m_LesserSkillChargedAttackPart.SetActionTime(lctime);
+                        m_LesserSkillChargedAttackPart?.Use();
+                        countAtt++;
+                    }
+                    countAtt = 0;
                     m_BeforeChargedAttack = false;
                 }
-
-                await Task.Delay((int)(lctime * 1000));
-
-                if (m_ChargedAttackPart.Repeating)
-                {
-                    if (countAtt < m_FireIterAmount)
-                        countAtt++;
-                    else
-                    {
-                        countAtt = 0;
-                        m_BeforeChargedAttack = false;
-                    }
-                }
-                //m_Party.Camera.OffAimMode();
 
                 Idle();
             }
@@ -369,25 +359,20 @@ namespace GentianoseRealDolls
                 m_ChargedAttackPart.SetActionTime(ctime);
                 m_ChargedAttackPart.Use();
 
-
-
-                if (!m_ChargedAttackPart.Repeating)
+                if (m_ChargedAttackPart.Repeating)
                 {
+                    while (countAtt < m_FireIterAmount)
+                    {
+                        await UniTask.Delay(TimeSpan.FromSeconds(m_RateOfFire));
+                        m_ChargedAttackPart.SetAimInput(aimInput);
+                        m_ChargedAttackPart.SetActionTime(lctime);
+                        m_ChargedAttackPart?.Use();
+                        countAtt++;
+                    }
+                    countAtt = 0;
                     m_BeforeChargedAttack = false;
                 }
 
-                await Task.Delay((int)(ctime * 1000));
-
-                if (m_ChargedAttackPart.Repeating)
-                {
-                    if (countAtt < m_FireIterAmount)
-                        countAtt++;
-                    else
-                    {
-                        countAtt = 0;
-                        m_BeforeChargedAttack = false;
-                    }
-                }
 
                 Idle();
             }
@@ -404,7 +389,7 @@ namespace GentianoseRealDolls
         #endregion
 
 
-        public virtual void LesserSkill()
+        public virtual async UniTask LesserSkill()
         {
           
 
@@ -438,7 +423,7 @@ namespace GentianoseRealDolls
 
             while (m_AtSpray)
             {
-                await Task.Delay((int)(m_SprayTime * 1000 / 8));
+                await UniTask.Delay((int)(m_SprayTime * 1000 / 8));
 
                 m_AnalSphincterTimer += m_SprayTime / 8;
 
