@@ -254,11 +254,11 @@ public class CombatDashboard : DashboardBase
 
         m_SprayUI.UpdateUI();
 
-        if (m_DollBattleManager.FlehmenCooldown)
+        if (m_Party.StataOfDolls.LesserSkillCooldownTimers[m_Party.ActiveDollID] > 0)
         {
             m_LesserSkillCooldownText.gameObject.SetActive(true);
             m_LesserSkillCooldownText.text =
-                m_DollBattleManager.LesserSkillCooldownTime.ToString();
+                m_Party.StataOfDolls.LesserSkillCooldownTimers[m_Party.ActiveDollID].ToString();
             m_FlehmenButton.SetInteractable(false);
         }
         else
