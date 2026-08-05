@@ -407,6 +407,11 @@ namespace GentianoseRealDolls
             m_NotFirstDoll = true;
         }
 
+        // 5viii26
+        public void InitCurrentDoll()
+        {
+            InitDoll(m_ActiveDollIndexInParty);
+        }
 
         // 5. Методы отряда как системы кукол
 
