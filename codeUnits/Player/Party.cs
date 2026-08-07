@@ -155,6 +155,9 @@ namespace GentianoseRealDolls
         // состав
         [SerializeField] private PartyCompositionDolls m_PartyCompositionDolls;
 
+        public PartyCompositionDolls PartyDolls => m_PartyCompositionDolls;
+        
+        public Doll[] DollPrefabs => m_DollPrefabs;
 
         private int m_ActiveDollIndexInParty;
         public int ActiveDollIndexInParty => m_ActiveDollIndexInParty;
