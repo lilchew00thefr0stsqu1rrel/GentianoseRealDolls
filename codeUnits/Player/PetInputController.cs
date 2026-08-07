@@ -5,6 +5,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
 
+using Cysharp.Threading.Tasks;
+
+
 public class PetInputController : MonoCache
 {
     [SerializeField] private Party party;
@@ -19,7 +22,7 @@ public class PetInputController : MonoCache
 
     [SerializeField] private float[] m_LesserSkillMaxTime = new float[]
     {
-        3, 12, 8, 10, 3
+        3, 12, 8, 10, 3, 3, 3
     };
 
     [SerializeField]
@@ -28,6 +31,10 @@ public class PetInputController : MonoCache
 
     [SerializeField]
     private bool[] m_LesserSkillBuffs = new bool[17];
+
+
+    UniTask whoDoll;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -53,19 +60,6 @@ public class PetInputController : MonoCache
         }
 
         
-
-        for (int i = 0; i < m_LesserSkillTimers.Length; i++)
-        {
-
-            if (m_LesserSkillTimers[i] > 0)
-                m_LesserSkillTimers[i] -= Time.deltaTime;
-
-        }
-
-        if (m_LesserSkillTimers[party.ActiveDoll.DollID] <= 0.1f && m_LesserSkillTimers[party.ActiveDoll.DollID] > 0)
-        {
-            //cameraAroundDoll.OffLookUp();
-        }
     }
 
     // Этот метод вызывается при нажатии кнопки Jump
@@ -138,7 +132,7 @@ public class PetInputController : MonoCache
         // а не отменено или в процессе
         if (!context.performed) return;
 
-        party.ActiveDoll.DollController.BattleManager.StartGreaterSkill();
+        whoDoll = party.ActiveDoll.DollController.BattleManager.StartGreaterSkill();
         dashboard.SetSprayChargeUIVisible(true);
     }
     public void OnCursorAim(InputAction.CallbackContext context)
@@ -156,12 +150,15 @@ public class PetInputController : MonoCache
         // а не отменено или в процессе
         if (!context.performed) return;
 
-        party.ActiveDoll.DollController.BattleManager.LesserSkill();
+        if (party.StataOfDolls.LesserSkillCooldownTimers[party.ActiveDollID] > 0) return;
 
+        whoDoll = party.ActiveDoll.DollController.BattleManager.LesserSkill();
 
-        m_LesserSkillTimers[party.ActiveDoll.DollID] = m_LesserSkillMaxTime[party.ActiveDoll.DollID];
+        party.StataOfDolls.SetCooldown(party.ActiveDollID);
 
-        m_LesserSkillBuffs[party.ActiveDoll.DollID] = true;
+        //m_LesserSkillTimers[party.ActiveDoll.DollID] = m_LesserSkillMaxTime[party.ActiveDoll.DollID];
+
+        //m_LesserSkillBuffs[party.ActiveDoll.DollID] = true;
     }
 
 
@@ -260,4 +257,3 @@ public class PetInputController : MonoCache
         }
     }
 }
-

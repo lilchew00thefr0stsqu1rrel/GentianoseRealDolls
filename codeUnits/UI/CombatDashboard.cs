@@ -7,6 +7,8 @@ using Unity.VisualScripting;
 using System;
 using System.Threading.Tasks;
 
+using Cysharp.Threading.Tasks;
+
 public class CombatDashboard : DashboardBase
 {
     const float keyCooldownDuration = 0.3f;
@@ -155,23 +157,28 @@ public class CombatDashboard : DashboardBase
         m_FlehmenButton.SetInteractable(true);
         m_LesserSkillCooldownText.gameObject.SetActive(false);
     }
-
+    private async UniTask StartAtt()
+    {
+        await m_DollBattleManager.StartAttack();
+    }
     public void StartAttack()
     {
-        m_DollBattleManager.StartAttack();
+        whoDoll = m_DollBattleManager.StartAttack();
     }
     public void EndAttack()
     {
-        m_DollBattleManager.EndAttack(m_AimInput);
+        whoDoll = m_DollBattleManager.EndAttack(m_AimInput);
     }
+
+    UniTask whoDoll;
 
     public void Flehmen()
     {
-        if (!m_FlehmenOnCooldown)
-        {
-            m_DollBattleManager.LesserSkill();
-            m_LesserSkillCooldownText.gameObject.SetActive(true);
-        }
+        if (m_Party.StataOfDolls.LesserSkillCooldownTimers[m_Party.ActiveDollID] > 0) return;
+
+        whoDoll = m_DollBattleManager.LesserSkill();
+
+        m_Party.StataOfDolls.SetCooldown(m_Party.ActiveDollID);
 
         m_FlehmenButton.SetInteractable(false);
     }
@@ -213,7 +220,7 @@ public class CombatDashboard : DashboardBase
 
     public void StartSpray()
     {
-        m_DollBattleManager.StartGreaterSkill();
+        whoDoll = m_DollBattleManager.StartGreaterSkill();
         m_SprayChargeUI.SetActive(true);
 
     }
@@ -254,11 +261,11 @@ public class CombatDashboard : DashboardBase
 
         m_SprayUI.UpdateUI();
 
-        if (m_DollBattleManager.FlehmenCooldown)
+        if (m_Party.StataOfDolls.LesserSkillCooldownTimers[m_Party.ActiveDollID] > 0)
         {
             m_LesserSkillCooldownText.gameObject.SetActive(true);
             m_LesserSkillCooldownText.text =
-                m_DollBattleManager.LesserSkillCooldownTime.ToString();
+                m_Party.StataOfDolls.LesserSkillCooldownTimers[m_Party.ActiveDollID].ToString();
             m_FlehmenButton.SetInteractable(false);
         }
         else
@@ -270,7 +277,7 @@ public class CombatDashboard : DashboardBase
 
     }
 
-    public void SetDoll(Doll doll)
+    public override void SetDoll(Doll doll)
     {
         m_CurrentDoll = doll;
     }

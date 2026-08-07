@@ -68,6 +68,8 @@ public class Dashboard : MonoBehaviour
     [SerializeField] int tipID = -1;
 
     [SerializeField] private int tick;
+    
+    [SerializeField] private Text[] m_DollNames;
 
     public void UpdateUI()
     {
@@ -98,6 +100,12 @@ public class Dashboard : MonoBehaviour
                 {
                     m_DollSleepIndic[i].SetActive(slp[i] == 1);
                 }
+            }
+            
+            for (int i = 0;i < 3; i++)
+            {
+
+                m_DollNames[i].text = m_Party.DollPrefabs[m_Party.PartyDolls.GetDollsInParty()[i]].CharacterName.ToString();
             }
         }
 

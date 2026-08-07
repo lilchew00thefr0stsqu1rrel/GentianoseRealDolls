@@ -64,6 +64,8 @@ namespace GentianoseRealDolls
         
         [SerializeField] private ActiveDollUponExit m_ActiveDollUponExit;
 
+        [SerializeField] private StatusOfDolls m_StatusOfDolls;
+        public StatusOfDolls StataOfDolls => m_StatusOfDolls;
 
         [SerializeField] private PoopStore m_PoopStore;
 
@@ -153,6 +155,9 @@ namespace GentianoseRealDolls
         // состав
         [SerializeField] private PartyCompositionDolls m_PartyCompositionDolls;
 
+        public PartyCompositionDolls PartyDolls => m_PartyCompositionDolls;
+        
+        public Doll[] DollPrefabs => m_DollPrefabs;
 
         private int m_ActiveDollIndexInParty;
         public int ActiveDollIndexInParty => m_ActiveDollIndexInParty;
@@ -401,6 +406,11 @@ namespace GentianoseRealDolls
             m_NotFirstDoll = true;
         }
 
+        // 5viii26
+        public void InitCurrentDoll()
+        {
+            InitDoll(m_ActiveDollIndexInParty);
+        }
 
         // 5. Методы отряда как системы кукол
 

@@ -1,3 +1,5 @@
+using Cysharp.Threading.Tasks;
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -24,7 +26,7 @@ namespace GentianoseRealDolls
 
         }
 
-        public override void LesserSkill()
+        public override async UniTask LesserSkill()
         {
             print("Lesser");
 
@@ -49,48 +51,16 @@ namespace GentianoseRealDolls
                     }
                 }
 
-                StartCoroutine(EffectTimer());
+                //StartCoroutine(EffectTimer());
                 m_LesserSkillGaitBuff = true;
 
                 posDollStart = transform.parent.position;
-                StartCoroutine(RideTimer());
+                //StartCoroutine(RideTimer());
 
-                StartCoroutine(FlehmenCDSkill());
+                //StartCoroutine(FlehmenCDSkill());
                 m_LesserSkillCooldownTime = m_Cooldown;
 
-
-            }
-
-            IEnumerator FlehmenCDSkill()
-            {
-                print("Flehmen at CD");
-                m_FlehmenCooldown = true;
-                for (int i = 0; i < m_Cooldown; i++)
-                {
-                    //OnUpdateCooldownTime(m_Cooldown - i);
-                    m_LesserSkillCooldownTime--;
-                    yield return new WaitForSeconds(1);
-                }
-                m_FlehmenCooldown = false;
-                //  m_Dashboard.Btn();
-                print("Flehmen free");
-            }
-
-            IEnumerator EffectTimer()
-            {
-                yield return new WaitForSeconds(m_BuffDuration);
-
-                m_LesserSkillBuff = false;
-                m_LesserSkillGaitBuff = false;
-
-                if (m_EffectSign != null)
-                    m_EffectSign.SetActive(false);
-                m_AnimatorGuard.SetAnimation(0);
-            }
-
-            IEnumerator RideTimer()
-            {
-                yield return new WaitForSeconds(m_UrineTrailTime);
+                await UniTask.Delay(TimeSpan.FromSeconds(m_UrineTrailTime));
 
                 if ((transform.parent.position - posDollStart).magnitude >= m_UrineTrailMinDist)
                 {
@@ -100,7 +70,36 @@ namespace GentianoseRealDolls
                     if (m_EffectSign != null)
                         m_EffectSign.SetActive(true);
                 }
+
+                await UniTask.Delay(TimeSpan.FromSeconds(m_BuffDuration));
+
+                m_LesserSkillBuff = false;
+                m_LesserSkillGaitBuff = false;
+
+                if (m_EffectSign != null)
+                    m_EffectSign.SetActive(false);
+                m_AnimatorGuard.SetAnimation(0);
             }
+
+            //IEnumerator FlehmenCDSkill()
+            //{
+            //    print("Flehmen at CD");
+            //    m_FlehmenCooldown = true;
+            //    for (int i = 0; i < m_Cooldown; i++)
+            //    {
+            //        //OnUpdateCooldownTime(m_Cooldown - i);
+            //        m_LesserSkillCooldownTime--;
+            //        yield return new WaitForSeconds(1);
+            //    }
+            //    m_FlehmenCooldown = false;
+            //    //  m_Dashboard.Btn();
+            //    print("Flehmen free");
+            //}
+
+
+           
+            
+
         }
     }
 }
