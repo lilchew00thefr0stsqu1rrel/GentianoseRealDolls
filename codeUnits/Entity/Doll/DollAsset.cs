@@ -14,6 +14,7 @@ namespace GentianoseRealDolls
 
         public Sprite RSkillIcon;
         public Sprite RSkillFill;
+        public Sprite RChargeFill;  //~~~
 
         public MeshFilter PoopMesh;
         public Material PoopMaterial;

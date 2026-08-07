@@ -274,6 +274,9 @@ public class CombatDashboard : DashboardBase
             m_FlehmenButton.SetInteractable(true);
         }
 
+        
+        m_SprayChargeImage.sprite = m_CurrentDoll.Asset.RChargeFill;
+
 
     }
 
