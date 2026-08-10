@@ -1,0 +1,157 @@
+using UnityEngine;
+using NTC.MonoCache;
+using SpaceShooter;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace GentianoseRealDolls
+{
+    public class DollClimbing : DollComponent
+    {
+        [SerializeField] private Transform m_Nose;
+        public Transform Nose => m_Nose;
+        [SerializeField] private Transform m_Hand;
+        [SerializeField] private SpaceShip m_PetAsSpaceShip;
+        [SerializeField] private Rigidbody m_Rigid;
+        [SerializeField] private float m_DistanceToWall = 0.14f;
+
+        [SerializeField] private Transform m_FootRayOrigin;
+        [SerializeField] private Transform m_HandRayOrigin;
+
+        [SerializeField] private float m_InterpolationAngular = 2f;
+
+        [SerializeField] private float m_DistanceToWallNose = 0.07f;
+        [SerializeField] private float m_DistanceToFloorFoot= 0.14f;
+        [SerializeField] private float m_DistanceToFloorHand = 0.2f;
+
+        private bool m_IsClimbing = false;
+
+        private void Awake()
+        {
+
+        }
+        // Start is called once before the first execution of Update after the MonoBehaviour is created
+        void Start()
+        {
+        }
+
+        private int climbProjectionYSign = 0;
+        public int ClimbProjectionYSign => climbProjectionYSign;
+
+        public void StartClimbing()
+        {
+           // m_PetAsSpaceShip.SetMoveMode(SpaceShip.MoveMode.Climb);
+            climbProjectionYSign = 1;
+
+            m_Animator.SetInteger("Autom", 17);
+        }
+        public void EndClimbing()
+        {
+           // m_PetAsSpaceShip.SetMoveMode(SpaceShip.MoveMode.Normal);
+            climbProjectionYSign = 0;
+            m_Animator.SetInteger("Autom", 2);
+        }
+        public void StartDescend()
+        {
+           // m_PetAsSpaceShip.SetMoveMode(SpaceShip.MoveMode.Descend);
+            climbProjectionYSign = -1;
+            m_Animator.SetInteger("Autom", 18);
+        }
+        [SerializeField] private float pitchUpdateTime = 3.45f;
+
+
+
+        private void Update()
+        {
+            var rHit = Physics.RaycastAll(m_FootRayOrigin.position, -transform.parent.up, m_DistanceToFloorFoot);
+
+
+            List<RaycastHit> rearHit = new List<RaycastHit>();
+            for (int i = 0; i < rHit.Length; i++)
+            {
+                if (rHit[i].collider.transform.root.GetComponent<Doll>() == null)
+                {
+                    rearHit.Add(rHit[i]);
+                }
+            }
+
+
+            if (rearHit != null)
+            {
+                if (rearHit.Count > 0)
+                {
+                    
+                    if (Mathf.Min(Vector3.Angle(Vector3.up, rearHit[0].normal), 180 - Vector3.Angle(Vector3.up, rearHit[0].normal)) > 15)
+                    {
+                        var upNormal = rearHit[0].normal;
+                        
+                        var dollEuler = transform.parent.eulerAngles;
+                        var dollRotation = transform.parent.rotation;
+
+                        
+                        dollRotation = Quaternion.Euler(Vector3.Angle(Vector3.up, rearHit[0].normal), dollEuler.y, dollEuler.z);
+
+                        transform.parent.rotation = Quaternion.Slerp(transform.parent.rotation, dollRotation, m_InterpolationAngular * Time.deltaTime);
+                    }
+                }
+            }
+
+            if (m_HandRayOrigin != null)
+            {
+                var fHit = Physics.Raycast(m_HandRayOrigin.position, -transform.parent.up, m_DistanceToFloorHand);
+               
+
+
+                if (!fHit)
+                {
+                    if (Input.GetKeyDown(KeyCode.W))
+                    {
+                        var dollEuler = transform.parent.eulerAngles;
+                        var dollRotation = transform.parent.rotation;
+                        dollRotation = Quaternion.AngleAxis(90, transform.parent.right);
+                        transform.parent.rotation = Quaternion.Slerp(transform.parent.rotation, dollRotation, m_InterpolationAngular * Time.deltaTime);
+
+                        if (climbProjectionYSign == 0)
+                            StartDescend();
+                        else
+                            EndClimbing();
+                    }
+                    // Поворот куклы на 60 о
+                   
+                }
+
+
+            }
+            var nHit = Physics.Raycast(m_Nose.position, transform.parent.forward, m_DistanceToWallNose);
+
+           
+            if (nHit)
+            {
+                if (Input.GetKeyDown(KeyCode.W))
+                {
+                    // Поворот куклы на 60 о
+                    var dollEuler = transform.parent.eulerAngles;
+                    var dollRotation = transform.parent.rotation;
+                    dollRotation = Quaternion.AngleAxis(-90, transform.parent.right);
+                    transform.parent.rotation = Quaternion.Slerp(transform.parent.rotation, dollRotation, m_InterpolationAngular * Time.deltaTime);
+
+
+                    StartClimbing();
+                }
+            }
+           
+
+
+            if (Input.GetMouseButtonDown(1))
+            {
+                if (climbProjectionYSign == 0)
+                    StartDescend();
+                else
+                    EndClimbing();
+            }
+            // Update is called once per frame
+
+        }
+    }
+}
+
